@@ -1,11 +1,12 @@
 import axios from "axios"
 import { useRouter } from "next/router"
-import { formatDate, handleShowRatingEmoji } from "../../../common/functions"
+import { formatDate, handleNavigateToProductDetails, handleShowRatingEmoji } from "../../../common/functions"
 import { pathOr } from "ramda"
 import t from "../../../translations.json"
 import { Fragment } from "react"
 import Image from "next/image"
 import { toast } from "react-toastify"
+import { Avatar } from "@mui/material"
 
 const Comment = ({
   orderId,
@@ -18,6 +19,8 @@ const Comment = ({
   createdAt,
   id,
   isShare,
+  productImage,
+  productId,
 }) => {
   const { locale, push } = useRouter()
   // const [openReplyModal, setOpenReplyModal] = useState(false)
@@ -77,6 +80,13 @@ const Comment = ({
       <div className="contint_paner box-Rev-Que">
         <div className="title_">
           <div className="d-flex align-items-center gap-2">
+            <div
+              className="d-flex align-items-center gap-2 pointer mx-2"
+              onClick={() => handleNavigateToProductDetails(productId)}
+            >
+              <Avatar src={productImage} alt="product" />
+              <p className="f-b">#{productId}</p>
+            </div>
             <div className="font-11">
               <div>{pathOr("", [locale, "questionsAndReviews", "ad"], t)}</div>
               <div className="f-b fs-5">{locale === "en" ? productNameEn : productNameAr}</div>

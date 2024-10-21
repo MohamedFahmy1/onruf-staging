@@ -3,14 +3,25 @@ import { useRouter } from "next/router"
 import { Fragment, useState } from "react"
 import { Row, Col } from "react-bootstrap"
 import Modal from "react-bootstrap/Modal"
-import { formatDate } from "../../../common/functions"
+import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
 import { pathOr } from "ramda"
 import t from "../../../translations.json"
 import Image from "next/image"
 import { toast } from "react-toastify"
 import { multiFormData } from "../../../common/axiosHeaders"
+import { Avatar } from "@mui/material"
 
-const Question = ({ id, question, isShared, productName, clientName, clientImage, createdAt }) => {
+const Question = ({
+  id,
+  question,
+  isShared,
+  productName,
+  clientName,
+  clientImage,
+  createdAt,
+  productImage,
+  productId,
+}) => {
   const [openReplyModal, setOpenReplyModal] = useState(false)
   const { locale, push } = useRouter()
 
@@ -41,6 +52,13 @@ const Question = ({ id, question, isShared, productName, clientName, clientImage
       <div className="contint_paner box-Rev-Que">
         <div className="title_">
           <div className="d-flex align-items-center gap-2">
+            <div
+              className="d-flex align-items-center gap-2 pointer"
+              onClick={() => handleNavigateToProductDetails(productId)}
+            >
+              <Avatar src={productImage} alt="product" />
+              <p className="f-b">#{productId}</p>
+            </div>
             <div className="font-11">
               <div>{pathOr("", [locale, "questionsAndReviews", "ad"], t)}</div>
               <div className="f-b">{productName}</div>
