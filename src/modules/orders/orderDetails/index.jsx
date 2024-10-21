@@ -18,6 +18,7 @@ import {
 } from "../../../common/functions"
 import ResponsiveImage from "../../../common/ResponsiveImage"
 import moment from "moment"
+import { toast } from "react-toastify"
 
 export const OrderDetails = () => {
   const {
@@ -39,6 +40,23 @@ export const OrderDetails = () => {
       },
     })
     setOrderData(orderData)
+  }
+
+  const handleDownloadInvoice = (invoiceLink) => {
+    if (!invoiceLink) return toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة")
+    fetch(invoiceLink)
+      .then((response) => response.blob())
+      .then((blob) => {
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement("a")
+        a.href = url
+        a.download = invoiceLink?.split("/")?.pop() || "invoice"
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+      })
+      .catch(() => toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة"))
   }
 
   useEffect(() => {
@@ -96,7 +114,9 @@ export const OrderDetails = () => {
     <div style={{ padding: "24px" }}>
       <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
         <h6 className="f-b m-0 fs-5">{pathOr("", [locale, "Orders", "order_details"], t)}</h6>
-        <button className="btn-main">{pathOr("", [locale, "Orders", "download_invoice"], t)}</button>
+        <button className="btn-main" onClick={() => handleDownloadInvoice(orderData?.orderInvoice)}>
+          {pathOr("", [locale, "Orders", "download_invoice"], t)}
+        </button>
       </div>
 
       <div className="row">
@@ -304,11 +324,13 @@ export const OrderDetails = () => {
                 </label>
                 <input type="text" id="invoice" className="form-control" readOnly value="تم ارفاق الفاتورة" />
                 <div className="btn_file">
-                  <label htmlFor="download_invoice" className="visually-hidden">
+                  <button
+                    htmlFor="download_invoice"
+                    className="btn-main"
+                    onClick={() => handleDownloadInvoice(orderData?.orderInvoice)}
+                  >
                     {pathOr("", [locale, "Orders", "download_invoice"], t)}
-                  </label>
-                  <input type="file" id="download_invoice" />
-                  {pathOr("", [locale, "Orders", "download_invoice"], t)}
+                  </button>
                 </div>
               </div>
               <div className="info_shan">

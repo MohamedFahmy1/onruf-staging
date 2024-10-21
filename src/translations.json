@@ -467,6 +467,9 @@
       "chargeWallet": "شحن المحفظة"
     },
     "Orders": {
+      "Apartment": "شقة",
+      "Building": "منزل",
+      "Floor": "الطابق",
       "orders": "الطلبات",
       "filter": "فلترة",
       "filterByShipping": "فلتره بشركه الشحن",
@@ -1159,6 +1162,9 @@
       "chargeWallet": "Charge Wallet"
     },
     "Orders": {
+      "Apartment": "Apartment",
+      "Building": "Building",
+      "Floor": "Floor",
       "orders": "Orders",
       "filter": "Filter",
       "filterByShipping": "Filter By Shipping",

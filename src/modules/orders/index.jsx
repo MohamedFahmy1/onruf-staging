@@ -78,8 +78,7 @@ const Orders = () => {
     const {
       data: { data },
     } = await axios(
-      `/GetBusinessAccountOrders?pageIndex=1&PageRowsCount=100000
-        ${orderStatus ? `&orderStatus=${orderStatus}` : ``}`,
+      `/GetBusinessAccountOrders?pageIndex=1&PageRowsCount=1000${orderStatus ? `&orderStatus=${orderStatus}` : ""}`,
     )
     if (!orderStatus) {
       const WaitingForPayment = data.filter((item) => item.status === "Waiting For Payment")

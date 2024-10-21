@@ -17,6 +17,8 @@ import Image from "next/image"
 import ResponsiveImage from "../../../common/ResponsiveImage"
 import { useFetch } from "../../../hooks/useFetch"
 import Link from "next/link"
+import GoogleMaps from "../../../common/GoogleMaps"
+import { LoadingScreen } from "../../../common/Loading"
 
 const UserDetails = () => {
   const {
@@ -24,8 +26,13 @@ const UserDetails = () => {
     query: { id },
   } = useRouter()
   const [openNotificationModal, setOpenNotificationModal] = useState(false)
-  const { data: user } = useFetch(`/ClientDetails?clientId=${id}&lang=${locale}`, true)
-  const { data: userOrders } = useFetch(`/GetClientAddedOrders?userId=${id}&pageIndex=1&PageRowsCount=10`, true)
+  const { data: user, isLoading } = useFetch(`/ClientDetails?clientId=${id}&lang=${locale}`, true)
+  const { data: userOrders, isLoading: userOrdersLoading } = useFetch(
+    `/GetClientAddedOrders?userId=${id}&pageIndex=1&PageRowsCount=10`,
+    true,
+  )
+
+  const defaultAddress = user?.clientAddresses?.find((item) => item?.defaultAddress)
 
   const columns = useMemo(
     () => [
@@ -114,66 +121,80 @@ const UserDetails = () => {
           {pathOr("", [locale, "Users", "sendNotfi"], t)}
         </button>
       </div>
-      <Row>
-        <Col lg={3} md={5}>
-          <div className="contint_paner">
-            <div className="detalis-customer">
-              <div className="d-flex align-items-center justify-content-between gap-2">
-                {user?.clientImage && (
-                  <ResponsiveImage
-                    imageSrc={`${process.env.NEXT_PUBLIC_URL}/${user?.clientImage}`}
-                    alt={"client"}
-                    width="100px"
-                    height="100px"
-                  />
-                )}
-                <ul className="d-flex gap-1 contuct">
-                  <li>
-                    <Image width={50} height={50} src={emailImg.src} alt="email" />
+      {!!(isLoading || userOrdersLoading) ? (
+        <LoadingScreen />
+      ) : (
+        <Row>
+          <Col lg={3} md={5}>
+            <div className="contint_paner">
+              <div className="detalis-customer">
+                <div className="d-flex align-items-center justify-content-between gap-2">
+                  {user?.clientImage && (
+                    <ResponsiveImage
+                      imageSrc={`${process.env.NEXT_PUBLIC_URL}/${user?.clientImage}`}
+                      alt={"client"}
+                      width="100px"
+                      height="100px"
+                    />
+                  )}
+                  <ul className="d-flex gap-1 contuct">
+                    <li>
+                      <Image width={50} height={50} src={emailImg.src} alt="email" />
+                    </li>
+                    <li>
+                      <Image width={50} height={50} src={smsImg.src} alt="sms" />
+                    </li>
+                    <li>
+                      <Image width={50} height={50} src={whatsappImg.src} alt="whatsapp" />
+                    </li>
+                  </ul>
+                </div>
+                <p className="f-b fs-5 m-0">{user?.clientName}</p>
+                <div className="gray-color">
+                  {pathOr("", [locale, "Users", "memberSince"], t)} {formatDate(user?.createdAt)}
+                </div>
+                <ul className="mb-2 mt-1">
+                  <li className="mb-1">
+                    <FaEnvelope />
+                    <span className="gray-color mx-2">{user?.email}</span>
                   </li>
-                  <li>
-                    <Image width={50} height={50} src={smsImg.src} alt="sms" />
-                  </li>
-                  <li>
-                    <Image width={50} height={50} src={whatsappImg.src} alt="whatsapp" />
+                  <li className="mb-1">
+                    <FaPhone />
+                    <span className="gray-color mx-2">{user?.phoneNumber}</span>
                   </li>
                 </ul>
-              </div>
-              <p className="f-b fs-5 m-0">{user?.clientName}</p>
-              <div className="gray-color">
-                {pathOr("", [locale, "Users", "memberSince"], t)} {formatDate(user?.createdAt)}
-              </div>
-              <ul className="mb-2 mt-1">
-                <li className="mb-1">
-                  <FaEnvelope />
-                  <span className="gray-color mx-2">{user?.email}</span>
-                </li>
-                <li className="mb-1">
-                  <FaPhone />
-                  <span className="gray-color mx-2">{user?.phoneNumber}</span>
-                </li>
-              </ul>
-              <div className="font-18">{pathOr("", [locale, "Users", "totalOrders"], t)}</div>
-              <p className="f-b fs-3 main-color m-0">
-                {user?.totalOrdersPrice} {pathOr("", [locale, "Products", "currency"], t)}
-              </p>
-            </div>
-          </div>
-        </Col>
-        <Col lg={9} md={7} className="col-lg-9 col-md-7">
-          <div className="contint_paner">
-            <div>
-              <div className="mb-2">
-                <h6 className="f-b m-0">{pathOr("", [locale, "Orders", "client_address"], t)}</h6>
-                <div className="font-18">الرياض</div>
-              </div>
-              <div className="map">
-                <Image src={mapImg} width={900} height={190} alt="map" />
+                <div className="font-18">{pathOr("", [locale, "Users", "totalOrders"], t)}</div>
+                <p className="f-b fs-3 main-color m-0">
+                  {user?.totalOrdersPrice} {pathOr("", [locale, "Products", "currency"], t)}
+                </p>
               </div>
             </div>
-          </div>
-        </Col>
-      </Row>
+          </Col>
+          <Col lg={9} md={7} className="col-lg-9 col-md-7">
+            <div className="contint_paner">
+              <div>
+                <div className="mb-2">
+                  <h6 className="f-b m-0 mb-2">{pathOr("", [locale, "Orders", "client_address"], t)}</h6>
+                  <div className="font-16">{defaultAddress?.location}</div>
+                  <p className="font-14">{`${pathOr("", [locale, "Orders", "Apartment"], t)}: ${
+                    defaultAddress?.appartment
+                  }, ${pathOr("", [locale, "Orders", "Floor"], t)}: ${defaultAddress?.floor}, ${pathOr(
+                    "",
+                    [locale, "Orders", "Building"],
+                    t,
+                  )}: ${defaultAddress?.building}`}</p>
+                </div>
+                <div className="map">
+                  {/* <Image src={mapImg} width={900} height={190} alt="map" /> */}
+                  {defaultAddress?.lat && (
+                    <GoogleMaps lat={parseInt(defaultAddress?.lat, 10)} lng={parseInt(defaultAddress?.lng, 10)} />
+                  )}
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
+      )}
       {/* Notification Modal*/}
       <SendNotificationModal
         openNotificationModal={openNotificationModal}
