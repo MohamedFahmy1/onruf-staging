@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
 import t from "../../translations.json"
@@ -6,6 +6,7 @@ import Comment from "./comments"
 import Question from "./questions"
 import axios from "axios"
 import { Pagination } from "@mui/material"
+import { LoadingScreen } from "../../common/Loading"
 
 const Reviews = () => {
   const {
@@ -16,55 +17,82 @@ const Reviews = () => {
   const [items, setItems] = useState({ ratings: [], questions: [] })
   const [selectedFilter, setSelectedFilter] = useState("All")
   const [currentPage, setCurrentPage] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [hasMorePages, setHasMorePages] = useState(true)
   const pageSize = 12
+
+  const getFilterValue = () => {
+    switch (selectedFilter) {
+      case "Positive":
+        return 2 // Positive reviews
+      case "Negative":
+        return 1 // Negative reviews
+      default:
+        return 3 // All reviews
+    }
+  }
 
   useEffect(() => {
     const fetchReviews = async () => {
+      setLoading(true)
+      const filterValue = getFilterValue()
       const response = await axios.get(`/ListProviderProductsRates`, {
-        params: { pageIndex: 1, PageRowsCount: 10000, filter: 3 },
+        params: { pageIndex: currentPage, PageRowsCount: pageSize, filter: filterValue },
       })
-      setItems((items) => ({ ...items, ratings: response.data.data }))
-    }
-    const fetchQuestions = async () => {
-      const response = await axios.get(`/ListQuestionsForProductOwnerToReplyQuestion`)
-      setItems((items) => ({ ...items, questions: response.data.data }))
-    }
-    fetchReviews()
-    fetchQuestions()
-  }, [])
+      const fetchedData = response.data.data
 
-  const filteredItems = useMemo(() => {
-    const data = items[tab === "ratings" ? "ratings" : "questions"]
-    if (tab === "ratings") {
-      switch (selectedFilter) {
-        case "Positive":
-          return data.filter((item) => item.rate >= 2)
-        case "Negative":
-          return data.filter((item) => item.rate < 2)
-        default:
-          return data
+      if (fetchedData.length < pageSize) {
+        setHasMorePages(false)
+      } else {
+        setHasMorePages(true)
       }
-    }
-    return data
-  }, [items, tab, selectedFilter])
 
-  const totalPages = Math.ceil(filteredItems.length / pageSize)
-  const currentData = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+      setItems((items) => ({ ...items, ratings: fetchedData }))
+      setLoading(false)
+    }
+
+    const fetchQuestions = async () => {
+      setLoading(true)
+      setCurrentPage(1)
+      const response = await axios.get(`/ListQuestionsForProductOwnerToReplyQuestion`, {
+        params: { pageIndex: currentPage, PageRowsCount: pageSize },
+      })
+      const fetchedData = response.data.data
+
+      if (fetchedData.length < pageSize) {
+        setHasMorePages(false)
+      } else {
+        setHasMorePages(true)
+      }
+
+      setItems((items) => ({ ...items, questions: fetchedData }))
+      setLoading(false)
+    }
+
+    if (tab === "ratings") {
+      fetchReviews()
+    } else {
+      fetchQuestions()
+    }
+  }, [tab, selectedFilter, currentPage])
+
+  const filteredItems = items[tab === "ratings" ? "ratings" : "questions"]
 
   const handlePageChange = (event, value) => setCurrentPage(value)
 
   const renderItems = () => {
-    if (currentData.length === 0) {
+    if (filteredItems.length === 0) {
       return tab === "ratings" ? (
         <h2 className="text-center mt-5">{pathOr("", [locale, "questionsAndReviews", "noRatings"], t)}</h2>
       ) : (
         <h2 className="text-center mt-5">{pathOr("", [locale, "questionsAndReviews", "noQuestions"], t)}</h2>
       )
     }
-    return currentData.map((item) =>
+    return filteredItems.map((item) =>
       tab === "ratings" ? <Comment key={item.id} {...item} /> : <Question key={item.id} {...item} />,
     )
   }
+
   return (
     <div className="body-content">
       <div>
@@ -132,10 +160,10 @@ const Reviews = () => {
         )}
         <div className="tab-content">
           <div className="tab-pane fade show active">
-            <div>{renderItems()}</div>
-            {currentData?.length > 0 && (
+            {loading ? <LoadingScreen /> : renderItems()}
+            {filteredItems.length > 0 && (
               <Pagination
-                count={totalPages}
+                count={currentPage + (hasMorePages ? 1 : 0)}
                 page={currentPage}
                 onChange={handlePageChange}
                 color="primary"
@@ -148,4 +176,5 @@ const Reviews = () => {
     </div>
   )
 }
+
 export default Reviews
