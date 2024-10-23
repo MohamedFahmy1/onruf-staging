@@ -1,5 +1,3 @@
-import axios from "axios"
-import { token } from "../../token"
 import t from "../translations.json"
 import { pathOr } from "ramda"
 import Image from "next/image"
@@ -25,15 +23,6 @@ export const onlyNumbersInInputs = (e) => {
   ) {
     e.preventDefault()
   }
-}
-
-export const fetch = (url) => {
-  return axios(url, {
-    headers: {
-      Authorization: "Bearer " + token,
-      "Access-Control-Allow-Origin": "*",
-    },
-  })
 }
 
 export const handleFormErrors = (errors, name) => {

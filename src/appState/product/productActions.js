@@ -1,6 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import axios from "axios"
-import { headersJson } from "../../../token"
 
 export const getProductById = createAsyncThunk("data/fetch", async (id, locale) => {
   const productData = await axios(`/GetProductById?id=${id}&lang=${locale}`)

@@ -6,7 +6,6 @@ import t from "../../../../translations.json"
 import { handleFormErrors } from "../../../../common/functions"
 import { Box, Button, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material"
 import axios from "axios"
-import { headersJson } from "../../../../../token"
 import { toast } from "react-toastify"
 
 function ConditionForm({ fetchedCountries, products, conditions, setAddConditionModal, handleDeleteOption }) {
@@ -66,27 +65,23 @@ function ConditionForm({ fetchedCountries, products, conditions, setAddCondition
   }) => {
     try {
       // Wait for the API send response
-      await axios.post(
-        "/AddEditShippingOptionsConditions",
-        {
-          id,
-          shippingOptionsId,
-          cashOnDeliveryFee: parseInt(cashOnDeliveryFee),
-          measurableType: parseInt(measurableType),
-          standardAmount: parseInt(standardAmount),
-          standardPrice: parseInt(standardPrice),
-          extraAmount: parseInt(extraAmount),
-          extraAmountFee: parseInt(extraAmountFee),
-          cashOnDelivery,
-          countries: [{ countryId: countries[0].id }],
-          shippingTime: new Date().toISOString(),
-          cities: [{ regionId: cities[0].id }],
-          products: products?.map(({ id }) => ({
-            productId: id,
-          })),
-        },
-        headersJson,
-      )
+      await axios.post("/AddEditShippingOptionsConditions", {
+        id,
+        shippingOptionsId,
+        cashOnDeliveryFee: parseInt(cashOnDeliveryFee),
+        measurableType: parseInt(measurableType),
+        standardAmount: parseInt(standardAmount),
+        standardPrice: parseInt(standardPrice),
+        extraAmount: parseInt(extraAmount),
+        extraAmountFee: parseInt(extraAmountFee),
+        cashOnDelivery,
+        countries: [{ countryId: countries[0].id }],
+        shippingTime: new Date().toISOString(),
+        cities: [{ regionId: cities[0].id }],
+        products: products?.map(({ id }) => ({
+          productId: id,
+        })),
+      })
       push(`/settings/shipping/${shippingOptionsId}`)
       toast.success("Condition Saved!")
     } catch (error) {

@@ -11,7 +11,6 @@ import { toast } from "react-toastify"
 import { Accordion } from "react-bootstrap"
 import styles from "../../../modules/products/add/stepTwo/stepTwo.module.css"
 import ConditionForm from "./components/conditionForm"
-import { headers } from "../../../../token"
 
 const ShippingOptionPage = ({}) => {
   const [addConditionModal, setAddConditionModal] = useState(false)
@@ -71,7 +70,6 @@ const ShippingOptionPage = ({}) => {
         newImage
           ? { ...values, shippingOptionImage: newImage, businessAccountId, shippingOptionTypeId, id }
           : { ...values, businessAccountId, shippingOptionTypeId, id },
-        headers,
       )
       toast.success("Done")
     } catch (error) {
