@@ -10,6 +10,7 @@ import t from "../../translations.json"
 export const UnAuthorisedPage = () => {
   const { push, locale } = useRouter()
   const [message, setMessage] = useState(pathOr("", [locale, "navbar", "loading"], t))
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setMessage(pathOr("", [locale, "navbar", "unauth"], t))

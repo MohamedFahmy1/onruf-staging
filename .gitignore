@@ -30,8 +30,11 @@ yarn-error.log*
 
 # local env files
 .env*.local
-
+.env.local
 # vercel
 .vercel
 package-lock.json
 yarn.lock
+
+# files
+token.js
