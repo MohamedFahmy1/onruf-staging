@@ -13,6 +13,7 @@ import { useSelector } from "react-redux"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
 import { Skeleton } from "@mui/material"
+import Cookies from "js-cookie"
 
 const Navbar = () => {
   const [toggleLangMenu, setToggleLangMenu] = useState(false)
@@ -22,7 +23,7 @@ const Navbar = () => {
   const [userImage, setUserImage] = useState()
   const [userName, setUserName] = useState()
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
-  const deviceId = useSelector((state) => state.idSlice.id)
+  // const deviceId = useSelector((state) => state.idSlice.id)
   const dropdownRef = useRef(null)
 
   const getAllBuisnessAccounts = async (id) => {
@@ -49,6 +50,9 @@ const Navbar = () => {
   const handleLogout = async () => {
     // try {
     //   await axios.post(`/LogoutWebsite?deviceId=${deviceId}`)
+    Cookies.remove("businessAccountId")
+    Cookies.remove("Token")
+    Cookies.remove("ProviderId")
     push(process.env.NEXT_PUBLIC_WEBSITE)
     // } catch (error) {
     //   Alerto(error)

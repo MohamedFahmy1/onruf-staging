@@ -3,7 +3,9 @@
     "navbar": {
       "search": "ابحث برقم الطلب, المنتج",
       "switch": "تغيير الحساب",
-      "enter": "دخول"
+      "enter": "دخول",
+      "loading": "جاري التحميل ...",
+      "unauth": "غير مصرح بالوصول"
     },
     "negotiation": {
       "negotiationOffers": "عروض التفاوض",
@@ -698,7 +700,9 @@
     "navbar": {
       "search": "Search by order number, product",
       "switch": "Switch accounts",
-      "enter": "Enter"
+      "enter": "Enter",
+      "loading": "Loading...",
+      "unauth": "Unauthorized"
     },
     "negotiation": {
       "negotiationOffers": "Negotiation Offers",
