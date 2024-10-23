@@ -136,6 +136,7 @@ export const handleNavigateToProductDetails = (id) => {
 }
 
 export const handleDownloadInvoice = (invoiceLink, locale) => {
+  // handling download invoice if empty
   if (!invoiceLink) return toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة")
   fetch(invoiceLink)
     .then((response) => response.blob())

@@ -45,12 +45,13 @@ const Users = () => {
   const { rows, selectedUsersIds } = useMemo(() => {
     const computedRows = Object.keys(selectedRows)
     const computedSelectedUserIds = computedRows.map((row) => {
-      const selectedRow = users?.filter((_, index) => index === +row)
-      return selectedRow[0].id
+      const selectedRow = users?.filter((item) => item.id == row)
+      return selectedRow?.[0]?.id
     })
     return { rows: computedRows, selectedUsersIds: computedSelectedUserIds }
   }, [selectedRows, users])
 
+  console.log(rows, selectedUsersIds)
   const addNewFolder = async () => {
     if (!folder.folderName) return toast.error(locale === "en" ? "Please enter folder name!" : "من فضلك ادخل اسم الملف")
     const formData = new FormData()
