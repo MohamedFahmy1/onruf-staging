@@ -7,7 +7,12 @@ import { useRouter } from "next/router"
 import { pathOr } from "ramda"
 import t from "../../translations.json"
 import Link from "next/link"
-import { formatDate, orderStatusTranslate, paymentTypesTranslation } from "../../common/functions"
+import {
+  formatDate,
+  handleDownloadInvoice,
+  orderStatusTranslate,
+  paymentTypesTranslation,
+} from "../../common/functions"
 import styles from "./orders.module.css"
 import { toast } from "react-toastify"
 import ChangeStatusModal from "./ChangeStatusModal"
@@ -54,10 +59,11 @@ const Orders = () => {
   const selectedOrdersObj = useMemo(() => {
     const rows = Object.keys(selectedRows || {})
     return rows.map((row) => {
-      const selectedRow = orders.filter((_, index) => index === +row)
+      const selectedRow = orders.filter((item) => item.orderId == +row)
       return {
         orderId: selectedRow?.[0]?.orderId,
         orderStatus: selectedRow?.[0]?.orderStatus,
+        orderInvoice: selectedRow?.[0]?.orderInvoice,
       }
     })
   }, [selectedRows, orders])
@@ -73,6 +79,12 @@ const Orders = () => {
   //   }
   //   fetchShippingOptions()
   // }, [buisnessAccountId, locale])
+
+  const downloadSelectorInvoice = () => {
+    selectedOrdersObj.map((item) => {
+      handleDownloadInvoice(item?.orderInvoice, locale)
+    })
+  }
 
   const getOrders = useCallback(async () => {
     const {
@@ -456,7 +468,7 @@ const Orders = () => {
           ordersId={selectedOrdersObj?.map((item) => item.orderId)}
         />
       </div>
-      <div className={`btns_fixeds ${styles.buttons}`}>
+      <div className={`btns_fixeds ${styles.buttons}`} style={{ left: locale === "en" ? "55%" : "42%" }}>
         <button
           className="btn-main btn-w rounded-0"
           onClick={() => {
@@ -479,7 +491,7 @@ const Orders = () => {
         >
           {pathOr("", [locale, "Orders", "selectBranch"], t)}
         </button>
-        <button className="btn-main btn-w rounded-0">
+        <button className="btn-main btn-w rounded-0" onClick={downloadSelectorInvoice}>
           {pathOr("", [locale, "Orders", "downloadSelectorInvoice"], t)}
         </button>
       </div>

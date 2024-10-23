@@ -11,6 +11,7 @@ import Image from "next/image"
 import ChangeSingleStatusModal from "./ChangeSingleStatusModal"
 import ChangeBranchModal from "../ChangeBranchModal"
 import {
+  handleDownloadInvoice,
   handleNavigateToProductDetails,
   orderStatusTranslate,
   orderTypesTranslation,
@@ -18,7 +19,6 @@ import {
 } from "../../../common/functions"
 import ResponsiveImage from "../../../common/ResponsiveImage"
 import moment from "moment"
-import { toast } from "react-toastify"
 
 export const OrderDetails = () => {
   const {
@@ -40,23 +40,6 @@ export const OrderDetails = () => {
       },
     })
     setOrderData(orderData)
-  }
-
-  const handleDownloadInvoice = (invoiceLink) => {
-    if (!invoiceLink) return toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة")
-    fetch(invoiceLink)
-      .then((response) => response.blob())
-      .then((blob) => {
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement("a")
-        a.href = url
-        a.download = invoiceLink?.split("/")?.pop() || "invoice"
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-      })
-      .catch(() => toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة"))
   }
 
   useEffect(() => {
@@ -114,7 +97,7 @@ export const OrderDetails = () => {
     <div style={{ padding: "24px" }}>
       <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
         <h6 className="f-b m-0 fs-5">{pathOr("", [locale, "Orders", "order_details"], t)}</h6>
-        <button className="btn-main" onClick={() => handleDownloadInvoice(orderData?.orderInvoice)}>
+        <button className="btn-main" onClick={() => handleDownloadInvoice(orderData?.orderInvoice, locale)}>
           {pathOr("", [locale, "Orders", "download_invoice"], t)}
         </button>
       </div>
@@ -327,7 +310,7 @@ export const OrderDetails = () => {
                   <button
                     htmlFor="download_invoice"
                     className="btn-main"
-                    onClick={() => handleDownloadInvoice(orderData?.orderInvoice)}
+                    onClick={() => handleDownloadInvoice(orderData?.orderInvoice, locale)}
                   >
                     {pathOr("", [locale, "Orders", "download_invoice"], t)}
                   </button>

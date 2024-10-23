@@ -387,7 +387,7 @@ const Users = () => {
           </Modal.Footer>
         )}
       </Modal>
-      <div className="btns_fixeds">
+      <div className="btns_fixeds" style={{ left: locale === "en" ? "55%" : "42%" }}>
         <button
           className="btn-main rounded-0"
           onClick={() => {

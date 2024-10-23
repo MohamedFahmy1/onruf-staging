@@ -5,6 +5,7 @@ import sadFace from "../assets/images/SadColor-Gray.svg"
 import smileFace from "../assets/images/SmileFace-Color.svg"
 import happyFace from "../assets/images/HappyFace-Color.svg"
 import moment from "moment"
+import { toast } from "react-toastify"
 
 export const formatDate = (date) => {
   return moment(date).format("DD/MM/YYYY")
@@ -134,6 +135,19 @@ export const handleNavigateToProductDetails = (id) => {
   window.open(`${process.env.NEXT_PUBLIC_WEBSITE}Home/GetProductById?id=${id}`, "_blank")
 }
 
-export const handleNavigateToSellerDetails = (id) => {
-  window.open(`${process.env.NEXT_PUBLIC_WEBSITE}Home/SellerInformation?productId=${id}`, "_blank")
+export const handleDownloadInvoice = (invoiceLink, locale) => {
+  if (!invoiceLink) return toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة")
+  fetch(invoiceLink)
+    .then((response) => response.blob())
+    .then((blob) => {
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = invoiceLink?.split("/")?.pop() || "invoice"
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    })
+    .catch(() => toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة"))
 }

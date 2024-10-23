@@ -132,7 +132,7 @@ const SingleFolder = () => {
           </div>
         </div>
         {users?.listUser.length > 10 && <Pagination listLength={users?.listUser.length} pageSize={10} />}
-        <div className="btns_fixeds">
+        <div className="btns_fixeds" style={{ left: locale === "en" ? "55%" : "42%" }}>
           <button className="btn-main rounded-0" onClick={() => handleRemoveUserFromFolder(selectedUsersIds)}>
             {pathOr("", [locale, "Users", "removeClient"], t)}
           </button>
