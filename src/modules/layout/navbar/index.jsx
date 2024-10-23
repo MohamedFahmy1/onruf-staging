@@ -47,12 +47,12 @@ const Navbar = () => {
   }, [buisnessAccountId, businessAccountList])
 
   const handleLogout = async () => {
-    try {
-      await axios.post(`/LogoutWebsite?deviceId=${deviceId}`)
-      push(process.env.NEXT_PUBLIC_WEBSITE)
-    } catch (error) {
-      Alerto(error)
-    }
+    // try {
+    //   await axios.post(`/LogoutWebsite?deviceId=${deviceId}`)
+    push(process.env.NEXT_PUBLIC_WEBSITE)
+    // } catch (error) {
+    //   Alerto(error)
+    // }
   }
 
   const onClick = () => {

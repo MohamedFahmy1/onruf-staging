@@ -4,7 +4,6 @@ import { useRouter } from "next/router"
 import emailImg from "../../../../public/images/email.png"
 import smsImg from "../../../../public/images/sms.png"
 import whatsappImg from "../../../../public/images/whatsapp.png"
-import mapImg from "../../../../public/images/map.png"
 import Pagination from "./../../../common/pagination"
 import Table from "../../../common/table"
 import { formatDate } from "./../../../common/functions"
@@ -185,7 +184,6 @@ const UserDetails = () => {
                   )}: ${defaultAddress?.building}`}</p>
                 </div>
                 <div className="map">
-                  {/* <Image src={mapImg} width={900} height={190} alt="map" /> */}
                   {defaultAddress?.lat && (
                     <GoogleMaps lat={parseInt(defaultAddress?.lat, 10)} lng={parseInt(defaultAddress?.lng, 10)} />
                   )}

@@ -12,6 +12,7 @@ import { FaFlag } from "react-icons/fa"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
 import { DevTool } from "@hookform/devtools"
+import GoogleMaps from "../../../common/GoogleMaps"
 
 const AddBranch = () => {
   const [neighbourhoods, setNeighbourhoods] = useState([])
@@ -33,6 +34,8 @@ const AddBranch = () => {
     push,
   } = useRouter()
   const countryId = watch("countryId")
+
+  console.log(watch())
 
   const countryFlag = useMemo(() => {
     return countryId && countries?.find((item) => item.id === countryId)?.countryFlag
@@ -116,6 +119,8 @@ const AddBranch = () => {
     streetName,
     regionCode,
     location,
+    lng,
+    lat,
     ...values
   }) => {
     try {
@@ -130,9 +135,10 @@ const AddBranch = () => {
         location: location,
         streetName: streetName,
         regionCode: regionCode,
-        lng: 0,
-        lat: 0,
+        lng,
+        lat,
       }
+
       const formData = new FormData()
       for (const key in values) {
         formData.append(key, values[key])
@@ -174,6 +180,15 @@ const AddBranch = () => {
       )
     }
   }
+
+  const handleSetLatitude = (value) => {
+    setValue("lat", value)
+  }
+
+  const handleSetLongitude = (value) => {
+    setValue("lng", value)
+  }
+
   return (
     <div className="body-content">
       <div>
@@ -190,6 +205,14 @@ const AddBranch = () => {
         <div className="contint_paner">
           <div className="form-content">
             <form onSubmit={handleSubmit(createBranch)}>
+              <div className="map">
+                <GoogleMaps
+                  lat={parseFloat(watch("lat"))}
+                  lng={parseFloat(watch("lng"))}
+                  setLat={handleSetLatitude}
+                  setLng={handleSetLongitude}
+                />
+              </div>
               <div className="form-group">
                 <label htmlFor="branchName">{pathOr("", [locale, "Branch", "branchName"], t)}</label>
                 <input
