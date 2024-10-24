@@ -51,7 +51,6 @@ const Users = () => {
     return { rows: computedRows, selectedUsersIds: computedSelectedUserIds }
   }, [selectedRows, users])
 
-  console.log(rows, selectedUsersIds)
   const addNewFolder = async () => {
     if (!folder.folderName) return toast.error(locale === "en" ? "Please enter folder name!" : "من فضلك ادخل اسم الملف")
     const formData = new FormData()
@@ -60,7 +59,14 @@ const Users = () => {
     formData.append("nameEn", folder.folderName)
     formData.append("image", folder.folderImage)
     try {
-      await axios.post("/AddFolder", formData)
+      const {
+        data: { data },
+      } = await axios.post("/AddFolder", formData)
+      await axios.post("/AddFolderUser", {
+        folderId: data,
+        userId: selectedUsersIds,
+      })
+      setSelectedRows({})
       toast.success(locale === "en" ? "A folder has been added successfully!" : "تم اضافة الملف الجديد بنجاح")
       setOpenFolderModal(false)
       fetchFolders()
@@ -81,17 +87,15 @@ const Users = () => {
   }, [folders])
 
   const addUserToFolder = async (id) => {
-    let msg = ""
     try {
       if (!id) return
-      const { message } = await axios.post("/AddFolderUser", {
+      await axios.post("/AddFolderUser", {
         folderId: id,
         userId: selectedUsersIds,
       })
-      msg = message
+      setSelectedRows({})
       toast.success(locale === "en" ? "Request has been made successfully!" : "تمت اضافة العميل بنجاح")
       setOpenFolderModal(false)
-      setSelectedRows({})
     } catch (error) {
       if (error.response && error.response.status === 400) {
         toast.error(locale === "en" ? "User already exists in the folder!" : "العميل موجود بالفعل في المجلد")

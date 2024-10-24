@@ -41,14 +41,14 @@ const UsersFolders = () => {
       formData.append(key, values[key])
     }
     await axios.put("/EditFolder", formData)
-    toast.success(locale === "en" ? "A folder has been added successfully!" : "تم تعديل الملف بنجاح")
+    toast.success(locale === "en" ? "A folder has been edited successfully!" : "تم تعديل الملف بنجاح")
     setOpenFolderModal(false)
   }
 
   const deleteFolder = async (folderId) => {
-    alert("Delete this folder")
+    alert(locale === "en" ? "Are you sure you want to delete this folder?" : " هل انت متاكد من مسح هذا الملف؟")
     await axios.delete(`/RemoveFolder?id=${folderId}`)
-    toast.success(locale === "en" ? "A folder has been added successfully!" : "تم مسح الملف بنجاح")
+    toast.success(locale === "en" ? "A folder has been deleted successfully!" : "تم مسح الملف بنجاح")
     setOpenFolderModal(false)
     getUserFolders()
   }
