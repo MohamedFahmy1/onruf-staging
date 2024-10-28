@@ -29,8 +29,7 @@ const Options = ({ userWalletState }) => {
             <h6 className="f-b">
               {pathOr("", [locale, "Settings", "myWallet"], t)}{" "}
               <span className="d-flex justify-content-center">
-                {userWalletState ? userWalletState?.walletBalance : <Skeleton variant="text" width={21} />}{" "}
-                {pathOr("", [locale, "Products", "currency"], t)}
+                {userWalletState ? userWalletState?.walletBalance : 0} {pathOr("", [locale, "Products", "currency"], t)}
               </span>
             </h6>
             <Link href="/settings/wallet">

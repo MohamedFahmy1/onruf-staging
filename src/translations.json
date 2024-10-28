@@ -317,6 +317,7 @@
     },
     "Settings": {
       "settings": "الاعدادات",
+      "noBankAccounts": "لا يوجد حسابات بنكية مسجلة",
       "enLang": "اللغة الانجليزية",
       "arLang": "اللغة العربية",
       "bankAccounts": "حساباتك البنكية",
@@ -1015,6 +1016,7 @@
       "settings": "Settings",
       "enLang": "English",
       "arLang": "Arabic",
+      "noBankAccounts": "No Bank Accounts Added Yet",
       "bankAccounts": "Your Bank Accounts",
       "editAccount": "Edit Profile",
       "userFrom": "user from",

@@ -148,9 +148,12 @@ const PaymentCards = ({ bankTransfers }) => {
             <AiOutlinePlus />
           </button>
           <div
-            className="d-flex justify-content-between overflow-x-scroll overflow-y-hidden"
+            className="d-flex justify-content-between overflow-x-scroll overflow-y-hidden w-100"
             style={{ height: "300px", alignItems: "center", columnGap: "20px" }}
           >
+            {bankTransferData?.length === 0 && (
+              <div className="f-b text-center flex-grow-1">{pathOr("", [locale, "Settings", "noBankAccounts"], t)}</div>
+            )}
             {bankTransferData?.map((bank) => (
               <div
                 className="box-bank-account"

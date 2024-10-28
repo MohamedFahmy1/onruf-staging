@@ -50,15 +50,27 @@ const EditBussinessAccount = () => {
     return countryId && countries?.find((item) => item.id === +countryId)?.countryFlag
   }, [countries, countryId])
 
+  const replaceNullValues = (data) => {
+    if (Array.isArray(data)) {
+      return data.map((item) => replaceNullValues(item))
+    } else if (typeof data === "object" && data !== null) {
+      return Object.fromEntries(
+        Object.entries(data).map(([key, value]) => [key, replaceNullValues(value === "null" ? "" : value)]),
+      )
+    }
+    return data
+  }
+
   const getAccountData = useCallback(async () => {
     const {
       data: { data: accountData },
     } = await axios.get("/GetBusinessAccountById", {
       params: { businessAccountId: buisnessAccountId },
     })
-    setAccountData(accountData)
-    reset(accountData)
-  }, [buisnessAccountId, reset])
+    const sanitizedData = replaceNullValues(accountData)
+    setAccountData(sanitizedData)
+    reset(sanitizedData)
+  }, [buisnessAccountId])
 
   const fetchCountries = useCallback(async () => {
     try {
@@ -132,7 +144,9 @@ const EditBussinessAccount = () => {
       : { ...rest }
     const formData = new FormData()
     for (const key of Object.keys(updatedValues)) {
-      if (key === "businessAccountImage" && businessAccountImage == null) {
+      if (updatedValues[key] === null) {
+        continue
+      } else if (key === "businessAccountImage" && businessAccountImage == null) {
         continue
       } else if (key === "businessAccountImage") {
         if (updatedValues[key] && updatedValues[key].length > 0) {

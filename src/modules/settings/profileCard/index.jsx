@@ -37,9 +37,7 @@ const ProfileCard = ({ id, businessAccountNameEn, rate, createdAt, businessAccou
           </div>
           <div className="imogy">
             {handleShowRatingEmoji(rate)}
-            <span className="mx-2">
-              {rate ? rate?.toFixed(1) : <Skeleton variant="text" width={20} sx={{ fontSize: "15px" }} />}
-            </span>
+            <span className="mx-2">{rate ? rate?.toFixed(1) : Number(0).toFixed(1)}</span>
           </div>
           <Link href={`/settings/editAccount/${id}`}>
             <span className="btn-main d-block mt-3">{pathOr("", [locale, "Settings", "editAccount"], t)}</span>
