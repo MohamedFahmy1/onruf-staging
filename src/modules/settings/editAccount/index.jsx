@@ -130,7 +130,6 @@ const EditBussinessAccount = () => {
     const updatedValues = registeryFile
       ? { ...rest, businessAccountCertificates: businessAccountCertificates }
       : { ...rest }
-    console.log(registeryFile)
     const formData = new FormData()
     for (const key of Object.keys(updatedValues)) {
       if (key === "businessAccountImage" && businessAccountImage == null) {
@@ -143,8 +142,6 @@ const EditBussinessAccount = () => {
         if (updatedValues[key] && updatedValues[key].length > 0) {
           formData.append(key, updatedValues[key][0])
         }
-      } else if (key === "businessAccountUserName") {
-        formData.append(key, "test")
       } else {
         formData.append(key, updatedValues[key])
       }
@@ -152,7 +149,7 @@ const EditBussinessAccount = () => {
     formData.append("id", accountData?.id)
     formData.append("BusinessAccountNameEn", data.businessAccountName)
     try {
-      const { data } = await axios.post("/AddEditBusinessAccount", formData, {
+      await axios.post("/AddEditBusinessAccount", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },

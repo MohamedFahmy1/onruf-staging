@@ -9,8 +9,11 @@ import axios from "axios"
 const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders }) => {
   let selectedOrder = selectedOrders ? selectedOrders : []
   const { locale } = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
   const changeOrderStatus = async (statusId) => {
     if (selectedOrder.length > 0) {
+      setIsLoading(true)
       let ordersId = selectedOrder.map((item) => item.orderId)
       try {
         await axios.post(`/ChangeMultiOrdersStatus?status=${statusId}`, ordersId)
@@ -20,7 +23,9 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
         setOpenModal(false)
         // Update the grid of orders and resetting it
         getOrders()
+        setIsLoading(false)
       } catch (error) {
+        setIsLoading(false)
         toast.error("Error!")
       }
     }
@@ -39,6 +44,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 1 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(1)}
               >
                 {pathOr("", [locale, "Orders", "waiting_for_payment"], t)}
@@ -49,6 +55,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 2 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(2)}
               >
                 {pathOr("", [locale, "Orders", "waiting_for_review"], t)}
@@ -59,6 +66,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 3 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(3)}
               >
                 {pathOr("", [locale, "Orders", "in_progress"], t)}
@@ -69,6 +77,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 4 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(4)}
               >
                 {pathOr("", [locale, "Orders", "ready_for_delivery"], t)}
@@ -79,6 +88,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 5 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(5)}
               >
                 {pathOr("", [locale, "Orders", "delivery_in_progress"], t)}
@@ -89,6 +99,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 6 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(6)}
               >
                 {pathOr("", [locale, "Orders", "delivered"], t)}
@@ -99,6 +110,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 7 ? `main-color` : ``}`}
+                disabled={isLoading}
                 onClick={() => changeOrderStatus(7)}
               >
                 {pathOr("", [locale, "Orders", "canceled"], t)}

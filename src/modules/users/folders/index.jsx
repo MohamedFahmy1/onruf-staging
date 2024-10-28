@@ -21,7 +21,6 @@ import { LoadingScreen } from "../../../common/Loading"
 
 const UsersFolders = () => {
   const { locale } = useRouter()
-
   const [openFolderModal, setOpenFolderModal] = useState(false)
   const [folderName, setFolderName] = useState("")
   const [editedFolderName, setEditedFolderName] = useState("")
@@ -33,6 +32,7 @@ const UsersFolders = () => {
     fetchData: getUserFolders,
     isLoading,
   } = useFetch(`/ListFolder?type=2&pageIndex=1&PageRowsCount=10&lang=${locale}`)
+
   const editFolder = async () => {
     if (!editedFolderName) return toast.error(locale === "en" ? "Please enter folder name!" : "من فضلك ادخل اسم الملف")
     const values = { id: folderId, type: 2, nameAr: editedFolderName, nameEn: editedFolderName, image: folderImage }

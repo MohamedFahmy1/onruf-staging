@@ -1,10 +1,11 @@
 import { Row, Col, Modal } from "react-bootstrap"
-import React from "react"
+import React, { useState } from "react"
 import t from "../../translations.json"
 import { pathOr } from "ramda"
 import { useRouter } from "next/router"
 import { toast } from "react-toastify"
 import axios from "axios"
+import Alerto from "../../common/Alerto"
 
 const ChangeBranchModal = ({
   openBranchModal,
@@ -18,8 +19,11 @@ const ChangeBranchModal = ({
     locale,
     query: { id },
   } = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+
   const changeOrderBranch = async (branchId) => {
     try {
+      setIsLoading(true)
       await axios.post(`/ChangeMultiOrderBranch?branchId=${branchId}`, ordersId, {
         headers: {
           "content-type": "application/json",
@@ -30,8 +34,10 @@ const ChangeBranchModal = ({
         getOrderData(ordersId[0])
       }
       toast.success(locale === "en" ? "Branch Updated Successfully!" : "!تم تحديد الفرع بنجاح")
+      setIsLoading(false)
     } catch (error) {
-      toast.error("Error")
+      setIsLoading(false)
+      Alerto(error)
     }
   }
   return (
@@ -47,8 +53,10 @@ const ChangeBranchModal = ({
           {branchesData?.map((item, index) => (
             <Col md={12} key={index}>
               <div className="mb-2 text-center">
+                {console.log(item.branchId, orderBranch)}
                 <button
                   className={`fs-5 f-b ${item?.branchId == orderBranch ? `main-color` : ``}`}
+                  disabled={isLoading}
                   onClick={() => changeOrderBranch(item.branchId)}
                 >
                   {item.branchName}
