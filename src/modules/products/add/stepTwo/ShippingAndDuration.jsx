@@ -72,44 +72,23 @@ const ShippingAndDuration = ({
                 />
               </Fragment>
             )}
-            <div className="col-lg-12 col-md-12">
-              <div className="form-group">
-                <label style={{ ...textAlignStyle(locale), display: "block" }}>
-                  {pathOr("", [locale, "Products", "shippingOptions"], t)}
-                  {<RequiredSympol />}
-                </label>
-                <div className="row">
-                  {productPayload.ShippingOptions?.includes(2) || productPayload.ShippingOptions?.includes(3)
-                    ? shippingOptions?.map((item) => (
-                        <div className="col-lg-6 col-md-6" key={item.id}>
-                          <div className="form-group">
-                            <div
-                              className={`${
-                                ![1, 2, 3].includes(item.id) ? "orange-border" : ""
-                              } form-control outer-check-input`}
-                            >
-                              <div className="form-check form-switch p-0 m-0">
-                                <input
-                                  className="form-check-input m-0"
-                                  type="checkbox"
-                                  role="switch"
-                                  id={item.id + " ShippingOptions"}
-                                  checked={productPayload.ShippingOptions?.includes(item.id)}
-                                  onChange={() => handleShippingOptions(item.id)}
-                                />
-                                <label htmlFor={item.id + " ShippingOptions"}>{item.shippingOptionName}</label>
-                                <span className="bord" />
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      ))
-                    : shippingOptions
-                        ?.filter((value) => value.id == 1 || value.id == 2 || value.id == 3)
-                        .map((item) => (
+            {shippingOptions?.length > 0 && (
+              <div className="col-lg-12 col-md-12">
+                <div className="form-group">
+                  <label style={{ ...textAlignStyle(locale), display: "block" }}>
+                    {pathOr("", [locale, "Products", "shippingOptions"], t)}
+                    {<RequiredSympol />}
+                  </label>
+                  <div className="row">
+                    {productPayload.ShippingOptions?.includes(2) || productPayload.ShippingOptions?.includes(3)
+                      ? shippingOptions?.map((item) => (
                           <div className="col-lg-6 col-md-6" key={item.id}>
                             <div className="form-group">
-                              <div className="form-control outer-check-input">
+                              <div
+                                className={`${
+                                  ![1, 2, 3].includes(item.id) ? "orange-border" : ""
+                                } form-control outer-check-input`}
+                              >
                                 <div className="form-check form-switch p-0 m-0">
                                   <input
                                     className="form-check-input m-0"
@@ -125,10 +104,33 @@ const ShippingAndDuration = ({
                               </div>
                             </div>
                           </div>
-                        ))}
+                        ))
+                      : shippingOptions
+                          ?.filter((value) => value.id == 1 || value.id == 2 || value.id == 3)
+                          .map((item) => (
+                            <div className="col-lg-6 col-md-6" key={item.id}>
+                              <div className="form-group">
+                                <div className="form-control outer-check-input">
+                                  <div className="form-check form-switch p-0 m-0">
+                                    <input
+                                      className="form-check-input m-0"
+                                      type="checkbox"
+                                      role="switch"
+                                      id={item.id + " ShippingOptions"}
+                                      checked={productPayload.ShippingOptions?.includes(item.id)}
+                                      onChange={() => handleShippingOptions(item.id)}
+                                    />
+                                    <label htmlFor={item.id + " ShippingOptions"}>{item.shippingOptionName}</label>
+                                    <span className="bord" />
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </Row>
         </form>
       </div>

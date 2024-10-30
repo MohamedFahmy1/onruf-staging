@@ -164,8 +164,6 @@ const AddProductStepTwo = ({
       return toast.error(
         locale == "en" ? "Please select the highlighted options!" : "من فضلك اختر وسيلة شحن من الوسايل المحدده اعلاه",
       )
-    } else if (productPayload.ShippingOptions.length === 0) {
-      return toast.error(locale == "en" ? "Please select any shipping options!" : "من فضلك اختر اي وسيلة شحن")
     } else if (
       (productPayload.AuctionClosingTime === "" || !productPayload.AuctionClosingTime) &&
       productPayload.IsAuctionEnabled
