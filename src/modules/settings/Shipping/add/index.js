@@ -9,6 +9,7 @@ import { handleFormErrors } from "../../../../common/functions"
 import { toast } from "react-toastify"
 import { useSelector } from "react-redux"
 import Link from "next/link"
+import Alerto from "../../../../common/Alerto"
 
 const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
   const [image, setImage] = useState(null)
@@ -44,7 +45,7 @@ const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
       router.push({ pathname: "/settings/shipping" })
       toast.success("Shipping Option Added!")
     } catch (error) {
-      toast.error(error.response.data.message)
+      Alerto(error)
     }
   }
 
