@@ -11,7 +11,7 @@ import { useSelector } from "react-redux"
 import Link from "next/link"
 import Alerto from "../../../../common/Alerto"
 
-const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
+const AddShippingOption = () => {
   const [image, setImage] = useState(null)
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
 
@@ -39,9 +39,7 @@ const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
       formData.append("BusinessAccountId", buisnessAccountId)
       formData.append("ShippingOptionTypeId", 1)
       formData.append("ShippingOptionImage", image)
-      const result = await axios.post("/AddEditShippingOptions", formData)
-      setAddConditionModal(false)
-      fetchShippingOptions()
+      await axios.post("/AddEditShippingOptions", formData)
       router.push({ pathname: "/settings/shipping" })
       toast.success("Shipping Option Added!")
     } catch (error) {
