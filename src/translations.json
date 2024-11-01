@@ -46,7 +46,8 @@
       "discountCoupons": "كوبونات الخصم"
     },
     "marketing": {
-      "marketing_with_ownerf": "التسويق مع اونرف",
+      "marketing_with_onruf": "التسويق مع اونرف",
+      "noMarketingCoupons": "لم يتم العثور على اي كوبونات تسويقية",
       "discount_value": "قيمة التخفيض",
       "discount_percentage": "نسبة التخفيض",
       "join_the_coupon": "الانضمام للقسيمة",
@@ -745,6 +746,7 @@
     },
     "marketing": {
       "marketing_with_onruf": "Marketing with Onruf",
+      "noMarketingCoupons": "No Marketing Coupons Found",
       "discount_value": "Discount Value",
       "discount_percentage": "Discount Percentage",
       "join_the_coupon": "Join the Coupon",

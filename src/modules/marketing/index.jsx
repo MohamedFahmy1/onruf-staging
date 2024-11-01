@@ -13,6 +13,14 @@ const Marketing = () => {
 
   if (isLoading) return <LoadingScreen />
 
+  if (!offers || offers?.length === 0) {
+    return (
+      <article className="body-content">
+        <h1 className="text-center my-5">{pathOr("", [locale, "marketing", "noMarketingCoupons"], t)}</h1>
+      </article>
+    )
+  }
+
   return (
     <article className="body-content">
       <section className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
