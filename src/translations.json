@@ -392,6 +392,7 @@
     "Shipping": {
       "shippingCompanies": "خيارات الشحن",
       "addShippingOpt": "اضافة خيار شحن",
+      "noShipping": "لم يتم العثور علي اي شركات شحن",
       "id": "رقم تعريفي",
       "shippingOptionNameAr": "اسم خيار الشحن - العربيه",
       "shippingOptionNameEn": "اسم خيار الشحن - الانجليزيه",
@@ -1089,6 +1090,7 @@
     "Shipping": {
       "shippingCompanies": "Shipping Companies",
       "addShippingOpt": "Add Shipping Option",
+      "noShipping": "No Shipping Options Found!",
       "shippingOptionNameAr": "Shipping Option Name AR",
       "shippingOptionNameEn": "Shipping Option Name EN",
       "shippingOptionDescAr": "Shipping Option Description AR",

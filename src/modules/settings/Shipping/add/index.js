@@ -8,6 +8,7 @@ import SimpleSnackbar from "../../../../common/SnackBar"
 import { handleFormErrors } from "../../../../common/functions"
 import { toast } from "react-toastify"
 import { useSelector } from "react-redux"
+import Link from "next/link"
 
 const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
   const [image, setImage] = useState(null)
@@ -51,8 +52,14 @@ const AddShippingOption = ({ setAddConditionModal, fetchShippingOptions }) => {
     <div className="body-content">
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
-          <h6 className="f-b m-0"> {pathOr("", [locale, "Shipping", "addShippingOpt"], t)}</h6>
+          <h1 className="f-b fs-6 m-0">{pathOr("", [locale, "Shipping", "addShippingOpt"], t)}</h1>
+          <Link href="/settings/shipping">
+            <button className="btn-main btn-main-o" aria-label={pathOr("", [locale, "Products", "cancel"], t)}>
+              {pathOr("", [locale, "Products", "cancel"], t)}
+            </button>
+          </Link>
         </div>
+
         <div className="contint_paner">
           <div className="form-content">
             <form encType="multipart/form-data" onSubmit={handleSubmit(handleAddShippingOption)}>
