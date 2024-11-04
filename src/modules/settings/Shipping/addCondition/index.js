@@ -2,9 +2,8 @@ import axios from "axios"
 import { useRouter } from "next/router"
 import React, { useEffect, useState } from "react"
 import { useForm } from "react-hook-form"
-import { pathOr, product } from "ramda"
+import { pathOr } from "ramda"
 import t from "../../../../translations.json"
-import SimpleSnackbar from "../../../../common/SnackBar"
 import { handleFormErrors } from "../../../../common/functions"
 import { Box, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material"
 import { toast } from "react-toastify"
@@ -83,7 +82,7 @@ const AddShippingCondition = ({
   const fetchRegionsByCountry = async () => {
     const {
       data: { data: regionList },
-    } = await axios.get("/ListRegionsByCountryId", {
+    } = await axios.get("/ListRegionsByCountryIdDDL", {
       params: { currentPage: 1, countriesIds: [watch("countries")], lang: "ar" },
     })
     setRegions(regionList)

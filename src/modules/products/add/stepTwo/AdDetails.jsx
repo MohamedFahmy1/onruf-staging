@@ -16,7 +16,7 @@ import cityImage from "../../../../../public/icons/neighboor.svg"
 
 const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEventKey, regions, setRegions }) => {
   const { locale, pathname } = useRouter()
-  const { data: countries } = useFetch(`/ListCountries?lang=${locale}&currentPage=1`)
+  const { data: countries } = useFetch(`/ListCountryDDL?lang=${locale}`)
   const [neighborhoods, setNeighborhoods] = useState([])
   const [unlimtedQuantity, setUnlimtedQuantity] = useState(productPayload.qty ? false : true)
 
@@ -25,7 +25,7 @@ const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEv
       try {
         const {
           data: { data },
-        } = await axios(`/${url}?${params}=${id}&currentPage=1&lang=${locale}`)
+        } = await axios(`/${url}DDL?${params}=${id}?lang=${locale}`)
         setState(data)
       } catch (e) {
         Alerto(e)

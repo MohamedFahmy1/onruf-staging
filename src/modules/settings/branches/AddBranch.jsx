@@ -35,8 +35,6 @@ const AddBranch = () => {
   } = useRouter()
   const countryId = watch("countryId")
 
-  console.log(watch())
-
   const countryFlag = useMemo(() => {
     return countryId && countries?.find((item) => item.id === countryId)?.countryFlag
   }, [countries, countryId])
@@ -44,7 +42,7 @@ const AddBranch = () => {
   const getCountries = useCallback(async () => {
     const {
       data: { data: countries },
-    } = await axios(`/ListCountries?lang=${locale}`)
+    } = await axios(`/ListCountryDDL?lang=${locale}`)
     setCountries(countries)
   }, [locale])
 
@@ -53,7 +51,7 @@ const AddBranch = () => {
       try {
         const {
           data: { data },
-        } = await axios(`/${url}?${params}=${id}&currentPage=1&lang=${locale}`)
+        } = await axios(`/${url}DDL?${params}=${id}&currentPage=1&lang=${locale}`)
         setState(data)
       } catch (e) {
         Alerto(e)
@@ -139,6 +137,12 @@ const AddBranch = () => {
         lat,
       }
 
+      if (!countryId || !regionId || !neighborhoodId) {
+        return toast.error(
+          locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!",
+        )
+      }
+
       const formData = new FormData()
       for (const key in values) {
         formData.append(key, values[key])
@@ -216,7 +220,7 @@ const AddBranch = () => {
               <div className="form-group">
                 <label htmlFor="branchName">{pathOr("", [locale, "Branch", "branchName"], t)}</label>
                 <input
-                  {...register("name", { required: "This field is required" })}
+                  {...register("name", { required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب" })}
                   id="branchName"
                   type="text"
                   className="form-control"
@@ -244,7 +248,9 @@ const AddBranch = () => {
                         <select
                           id="country"
                           className="form-control form-select"
-                          {...register("countryId", { required: "This field is required" })}
+                          {...register("countryId", {
+                            required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                          })}
                           onChange={(e) => {
                             handleCountries(e)
                           }}
@@ -279,7 +285,9 @@ const AddBranch = () => {
                         <select
                           id="region"
                           className="form-control form-select"
-                          {...register("regionId", { required: "This field is required" })}
+                          {...register("regionId", {
+                            required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                          })}
                           value={selectedBranch?.regionId}
                           onChange={(e) => {
                             handleRegions(e)
@@ -312,7 +320,9 @@ const AddBranch = () => {
                         <select
                           id="neighbourhood"
                           className="form-control form-select"
-                          {...register("neighborhoodId", { required: "This field is required" })}
+                          {...register("neighborhoodId", {
+                            required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                          })}
                           value={selectedBranch?.neighborhoodId}
                           onChange={(e) => {
                             setValue("neighborhoodId", +e.target.value)
@@ -341,7 +351,9 @@ const AddBranch = () => {
                       <input
                         id="neighbourhoodName"
                         type="text"
-                        {...register("location", { required: "This field is required" })}
+                        {...register("location", {
+                          required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                        })}
                         className="form-control"
                       />
                     </div>
@@ -353,7 +365,9 @@ const AddBranch = () => {
                       <input
                         id="streetName"
                         type="text"
-                        {...register("streetName", { required: "This field is required" })}
+                        {...register("streetName", {
+                          required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                        })}
                         className="form-control"
                       />
                     </div>

@@ -26,7 +26,7 @@ import { minDate } from "../../../common/functions"
 import { FaFlag } from "react-icons/fa"
 
 const EditBussinessAccount = () => {
-  const { locale } = useRouter()
+  const { locale, push } = useRouter()
   const [eventKey, setEventKey] = useState("0")
   const [businessAccountImage, setBusinessAccountImage] = useState(null)
   const [accountData, setAccountData] = useState()
@@ -74,7 +74,7 @@ const EditBussinessAccount = () => {
 
   const fetchCountries = useCallback(async () => {
     try {
-      const { data: countriesData } = await axios(`/ListCountries?lang=${locale}&currentPage=1`)
+      const { data: countriesData } = await axios(`/ListCountryDDL?lang=${locale}`)
       const { data: countriesList } = countriesData
       setCountries(countriesList)
     } catch (e) {
@@ -85,7 +85,7 @@ const EditBussinessAccount = () => {
   const fetchRegions = useCallback(
     async (id) => {
       try {
-        const { data: data } = await axios(`/ListRegionsByCountryId?countriesIds=${id}&lang=${locale}&currentPage=1`)
+        const { data: data } = await axios(`/ListRegionsByCountryIdDDL?countriesIds=${id}&lang=${locale}&currentPage=1`)
         const { data: regions } = data
         setRegions(regions)
       } catch (e) {
@@ -98,7 +98,9 @@ const EditBussinessAccount = () => {
   const fetchNeighbourhoods = useCallback(
     async (id) => {
       try {
-        const { data: data } = await axios(`/ListNeighborhoodByRegionId?regionsIds=${id}&lang=${locale}&currentPage=1`)
+        const { data: data } = await axios(
+          `/ListNeighborhoodByRegionIdDDL?regionsIds=${id}&lang=${locale}&currentPage=1`,
+        )
         const { data: neighbourhood } = data
         setNeighbourhoods(neighbourhood)
       } catch (e) {
@@ -168,6 +170,7 @@ const EditBussinessAccount = () => {
           "Content-Type": "multipart/form-data",
         },
       })
+      push("..")
       toast.success(locale === "en" ? "Your account data saved!" : "!تم حفظ البيانات بنجاح")
     } catch (error) {
       toast.error(locale === "en" ? "Please Enter All Required Data!" : "من فضلك ادخل جميع البيانات اللازمة")

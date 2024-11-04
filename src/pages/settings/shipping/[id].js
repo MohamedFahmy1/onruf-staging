@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import { Box, Button, Modal, Typography } from "@mui/material"
+import { Box, Modal } from "@mui/material"
 import axios from "axios"
 import { useRouter } from "next/router"
 import { useForm } from "react-hook-form"
@@ -23,7 +23,7 @@ const ShippingOptionPage = ({}) => {
   const { query } = useRouter()
   const [eventKey, setEventKey] = useState("0")
   const { push, locale } = useRouter()
-  const { register, handleSubmit, setValue } = useForm()
+  const { register, handleSubmit } = useForm()
 
   const ref = useRef(null)
 
@@ -47,7 +47,7 @@ const ShippingOptionPage = ({}) => {
 
   const handleDeleteOption = async (shippingOptionsId) => {
     try {
-      const result = await axios.delete("/DeleteShippingOptions", {
+      await axios.delete("/DeleteShippingOptions", {
         params: {
           shippingOptionsId,
         },
@@ -100,8 +100,8 @@ const ShippingOptionPage = ({}) => {
   const fetchCountries = async () => {
     const {
       data: { data: countriesList },
-    } = await axios.get("/ListCountries", {
-      params: { currentPage: 1, maxRows: 10, lang: "en" },
+    } = await axios.get("/ListCountryDDL", {
+      params: { lang: "en" },
     })
 
     setCountriesList(countriesList)

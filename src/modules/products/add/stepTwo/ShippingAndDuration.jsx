@@ -77,7 +77,6 @@ const ShippingAndDuration = ({
                 <div className="form-group">
                   <label style={{ ...textAlignStyle(locale), display: "block" }}>
                     {pathOr("", [locale, "Products", "shippingOptions"], t)}
-                    {<RequiredSympol />}
                   </label>
                   <div className="row">
                     {productPayload.ShippingOptions?.includes(2) || productPayload.ShippingOptions?.includes(3)

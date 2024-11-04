@@ -43,7 +43,7 @@ function ConditionForm({ fetchedCountries, products, conditions, setAddCondition
   const fetchRegionsByCountry = async () => {
     const {
       data: { data: regionList },
-    } = await axios.get("/ListRegionsByCountryId", {
+    } = await axios.get("/ListRegionsByCountryIdDDL", {
       params: { currentPage: 1, countriesIds: [watch("countries")], lang: "ar" },
     })
     setRegions(regionList)
