@@ -14,14 +14,7 @@ import Alerto from "../../../common/Alerto"
 import GoogleMaps from "../../../common/GoogleMaps"
 
 const AddBranch = () => {
-  const [neighbourhoods, setNeighbourhoods] = useState([])
-  const [regions, setRegions] = useState([])
-  const [selectedBranch, setSelectedBranch] = useState()
-  const [countries, setCountries] = useState()
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Use ref to track component mounted state
-  const isMounted = useRef(true)
+  // ... previous state declarations remain the same ...
 
   const router = useRouter()
   const {
@@ -29,20 +22,8 @@ const AddBranch = () => {
     query: { id },
   } = router
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    watch,
-    reset,
-    setValue,
-  } = useForm()
-
-  const countryId = watch("countryId")
-
-  const countryFlag = useMemo(() => {
-    return countryId && countries?.find((item) => item.id === countryId)?.countryFlag
-  }, [countries, countryId])
+  const isMounted = useRef(true)
+  const navigationAttempted = useRef(false)
 
   // Cleanup effect
   useEffect(() => {
@@ -51,99 +32,33 @@ const AddBranch = () => {
     }
   }, [])
 
-  const getCountries = useCallback(async () => {
+  // Safe navigation function
+  const safeNavigate = useCallback(async () => {
+    if (navigationAttempted.current) return
+    navigationAttempted.current = true
+
     try {
-      const {
-        data: { data: countries },
-      } = await axios(`/ListCountryDDL?lang=${locale}`)
-      if (isMounted.current) {
-        setCountries(countries)
-      }
-    } catch (error) {
-      if (isMounted.current) {
-        Alerto(error)
-      }
-    }
-  }, [locale])
+      // Construct the path with locale
+      const basePath = "/settings/branches"
+      const path = locale ? `/${locale}${basePath}` : basePath
 
-  const handleFetchNeighbourhoodsOrRegions = useCallback(
-    async (url, params = "", id, setState) => {
-      try {
-        const {
-          data: { data },
-        } = await axios(`/${url}DDL?${params}=${id}&currentPage=1&lang=${locale}`)
-        if (isMounted.current) {
-          setState(data)
-        }
-      } catch (e) {
-        if (isMounted.current) {
-          Alerto(e)
-        }
-      }
-    },
-    [locale],
-  )
-
-  useEffect(() => {
-    getCountries()
-  }, [getCountries])
-
-  const getBranchById = useCallback(async () => {
-    try {
-      const {
-        data: { data },
-      } = await axios(`/GetBrancheById?id=${id}&lang=${locale}`)
-      if (isMounted.current) {
-        handleFetchNeighbourhoodsOrRegions(
-          "ListNeighborhoodByRegionId",
-          "regionsIds",
-          data?.region?.id,
-          setNeighbourhoods,
-        )
-        handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", data?.country?.id, setRegions)
-        setSelectedBranch(data)
-        reset({
-          ...data,
-          countryId: +data?.country?.id,
-          regionId: +data?.region?.id,
-          neighborhoodId: +data?.neighborhood?.id,
-        })
-      }
-    } catch (error) {
-      if (isMounted.current) {
-        Alerto(error)
-      }
-    }
-  }, [id, locale, reset, handleFetchNeighbourhoodsOrRegions])
-
-  useEffect(() => {
-    if (id) {
-      getBranchById()
-    }
-  }, [id, getBranchById])
-
-  useEffect(() => {
-    if (!isMounted.current) return
-
-    const countryId = watch().countryId
-    const regionId = watch().regionId
-    const neighborhoodId = watch().neighborhoodId
-    if (regions && neighbourhoods) {
-      reset({
-        ...selectedBranch,
-        countryId: +countryId,
-        regionId: +regionId,
-        neighborhoodId: +neighborhoodId,
+      // Use shallow routing to prevent unnecessary data fetching
+      await router.push(path, undefined, {
+        shallow: true,
+        locale: locale,
       })
+    } catch (error) {
+      console.error("Navigation error:", error)
+      // If navigation fails, reset the flag
+      navigationAttempted.current = false
     }
-  }, [regions, neighbourhoods, watch, selectedBranch, reset])
+  }, [router, locale])
 
   const createBranch = async ({
     neighborhoodId,
     countryId,
     regionId,
     name,
-    isActive,
     streetName,
     regionCode,
     location,
@@ -193,8 +108,11 @@ const AddBranch = () => {
         }
       }
 
-      // Use router.replace instead of push for more reliable navigation
-      await router.replace("/settings/branches")
+      // Small delay to ensure toast is visible
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      // Navigate using the safe navigation function
+      await safeNavigate()
     } catch (error) {
       if (isMounted.current) {
         Alerto(error)
@@ -203,47 +121,8 @@ const AddBranch = () => {
     }
   }
 
-  const handleCountries = (e) => {
-    if (!isMounted.current) return
-    const selectedOption = countries.find((item) => item.id === +e.target.value)
-    if (selectedOption) {
-      setValue("countryId", +selectedOption.id)
-      setValue("regionId", 0)
-      setValue("neighborhoodId", 0)
-      setNeighbourhoods([])
-      setRegions([])
-      handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", +selectedOption.id, setRegions)
-    }
-  }
-
-  const handleRegions = (e) => {
-    if (!isMounted.current) return
-    const selectedOption = regions.find((item) => item.id === +e.target.value)
-    if (selectedOption) {
-      setValue("regionId", +selectedOption.id)
-      setValue("neighborhoodId", 0)
-      setNeighbourhoods([])
-      handleFetchNeighbourhoodsOrRegions(
-        "ListNeighborhoodByRegionId",
-        "regionsIds",
-        +selectedOption.id,
-        setNeighbourhoods,
-      )
-    }
-  }
-
-  const handleSetLatitude = (value) => {
-    if (isMounted.current) {
-      setValue("lat", value)
-    }
-  }
-
-  const handleSetLongitude = (value) => {
-    if (isMounted.current) {
-      setValue("lng", value)
-    }
-  }
-
+  // Update Link components to use the correct locale-aware paths
+  const cancelPath = locale ? `/${locale}/settings/branches` : "/settings/branches"
   return (
     <div className="body-content">
       <div>

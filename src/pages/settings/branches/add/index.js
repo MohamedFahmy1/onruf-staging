@@ -1,19 +1,19 @@
 import React from "react"
-import AddBranch from "./../../../modules/settings/branches/AddBranch"
+import AddBranch from "../../../../modules/settings/branches/AddBranch"
 import Head from "next/head"
 import { pathOr } from "ramda"
 import { useRouter } from "next/router"
-import t from "../../../translations.json"
+import t from "../../../../translations.json"
 
 const AddNewBranch = () => {
   const { locale } = useRouter()
   return (
-    <main>
+    <>
       <Head>
-        <title>{pathOr("", [locale, "websiteTitles", "AddBranch"], t)}</title>
+        <title>{pathOr("Add Branch", [locale, "Branch", "addBranch"], t)}</title>
       </Head>
       <AddBranch />
-    </main>
+    </>
   )
 }
 
