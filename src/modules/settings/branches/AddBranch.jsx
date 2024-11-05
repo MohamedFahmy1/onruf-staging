@@ -19,6 +19,7 @@ const AddBranch = () => {
   const [regions, setRegions] = useState([])
   const [selectedBranch, setSelectedBranch] = useState()
   const [countries, setCountries] = useState()
+
   const {
     register,
     handleSubmit,
@@ -28,11 +29,13 @@ const AddBranch = () => {
     setValue,
     control,
   } = useForm()
+
   const {
     locale,
     query: { id },
     push,
   } = useRouter()
+
   const countryId = watch("countryId")
 
   const countryFlag = useMemo(() => {
@@ -155,7 +158,7 @@ const AddBranch = () => {
         await axios.post("/AddBranche", formData)
         toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
       }
-      push("/settings/branches")
+      await push("/settings/branches")
     } catch (error) {
       Alerto(error)
     }
@@ -398,7 +401,6 @@ const AddBranch = () => {
                 {pathOr("", [locale, "Branch", "branch"], t)}
               </button>
             </form>
-            {process.env.NODE_ENV === "development" && <DevTool control={control} />}
           </div>
         </div>
       </div>
