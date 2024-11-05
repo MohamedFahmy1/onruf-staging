@@ -11,7 +11,6 @@ import t from "../../../translations.json"
 import { FaFlag } from "react-icons/fa"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
-import { DevTool } from "@hookform/devtools"
 import GoogleMaps from "../../../common/GoogleMaps"
 
 const AddBranch = () => {
@@ -19,6 +18,13 @@ const AddBranch = () => {
   const [regions, setRegions] = useState([])
   const [selectedBranch, setSelectedBranch] = useState()
   const [countries, setCountries] = useState()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const router = useRouter()
+  const {
+    locale,
+    query: { id },
+  } = router
 
   const {
     register,
@@ -30,12 +36,6 @@ const AddBranch = () => {
     control,
   } = useForm()
 
-  const {
-    locale,
-    query: { id },
-    push,
-  } = useRouter()
-
   const countryId = watch("countryId")
 
   const countryFlag = useMemo(() => {
@@ -43,10 +43,14 @@ const AddBranch = () => {
   }, [countries, countryId])
 
   const getCountries = useCallback(async () => {
-    const {
-      data: { data: countries },
-    } = await axios(`/ListCountryDDL?lang=${locale}`)
-    setCountries(countries)
+    try {
+      const {
+        data: { data: countries },
+      } = await axios(`/ListCountryDDL?lang=${locale}`)
+      setCountries(countries)
+    } catch (error) {
+      Alerto(error)
+    }
   }, [locale])
 
   const handleFetchNeighbourhoodsOrRegions = useCallback(
@@ -111,6 +115,15 @@ const AddBranch = () => {
     }
   }, [regions, neighbourhoods, watch, selectedBranch, reset])
 
+  const handleNavigation = useCallback(async () => {
+    try {
+      await router.push("/settings/branches")
+    } catch (error) {
+      // Fallback to window.location if Next.js routing fails
+      window.location.href = "/settings/branches"
+    }
+  }, [router])
+
   const createBranch = async ({
     neighborhoodId,
     countryId,
@@ -124,8 +137,11 @@ const AddBranch = () => {
     lat = 0,
     ...values
   }) => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+
     try {
-      const values = {
+      const formValues = {
         id: id,
         isActive: true,
         neighborhoodId: +neighborhoodId,
@@ -141,16 +157,17 @@ const AddBranch = () => {
       }
 
       if (!countryId || !regionId || !neighborhoodId) {
-        return toast.error(
-          locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!",
-        )
+        toast.error(locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!")
+        setIsSubmitting(false)
+        return
       }
 
       const formData = new FormData()
-      for (const key in values) {
-        if (values[key] === null || values[key] === undefined) continue
-        else formData.append(key, values[key])
+      for (const key in formValues) {
+        if (formValues[key] === null || formValues[key] === undefined) continue
+        formData.append(key, formValues[key])
       }
+
       if (id) {
         await axios.put("/EditBranche", formData)
         toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
@@ -158,9 +175,14 @@ const AddBranch = () => {
         await axios.post("/AddBranche", formData)
         toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
       }
-      await push("/settings/branches")
+
+      // Wait for toast to be visible before navigation
+      setTimeout(async () => {
+        await handleNavigation()
+      }, 500)
     } catch (error) {
       Alerto(error)
+      setIsSubmitting(false)
     }
   }
 
@@ -204,12 +226,11 @@ const AddBranch = () => {
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
           <h6 className="f-b m-0">
-            {" "}
             {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
             {pathOr("", [locale, "Branch", "branch"], t)}
           </h6>
-          <Link href="/settings/branches">
-            <span className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</span>
+          <Link href="/settings/branches" legacyBehavior>
+            <a className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</a>
           </Link>
         </div>
         <div className="contint_paner">
