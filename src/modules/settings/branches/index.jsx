@@ -13,9 +13,9 @@ import { pathOr } from "ramda"
 import t from "../../../translations.json"
 import Alerto from "../../../common/Alerto"
 
-const Branches = ({ branches: b = [] }) => {
-  const [allbranches, setAllBranches] = useState(b)
-  const [branches, setBranches] = useState(b.filter((branch) => branch?.isActive))
+const Branches = () => {
+  const [allbranches, setAllBranches] = useState()
+  const [branches, setBranches] = useState()
   const [toggleActiveBtn, setToggleActiveBtn] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const { locale } = useRouter()

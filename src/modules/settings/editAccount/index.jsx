@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 import React, { useCallback, useEffect, useMemo, useState } from "react"
 import axios from "axios"
 import { useForm } from "react-hook-form"

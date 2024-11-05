@@ -5,7 +5,7 @@ import { pathOr } from "ramda"
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
 
-const BranchesPage = ({ branches }) => {
+const BranchesPage = () => {
   const { locale } = useRouter()
   return (
     <main>
