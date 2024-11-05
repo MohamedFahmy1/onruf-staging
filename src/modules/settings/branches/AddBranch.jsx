@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback, useRef } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useRouter } from "next/router"
 import { useForm } from "react-hook-form"
 import axios from "axios"
@@ -14,62 +14,114 @@ import Alerto from "../../../common/Alerto"
 import GoogleMaps from "../../../common/GoogleMaps"
 
 const AddBranch = () => {
-  // ... previous state declarations remain the same ...
+  const [countries, setCountries] = useState()
+  const [neighbourhoods, setNeighbourhoods] = useState([])
+  const [regions, setRegions] = useState([])
+  const [selectedBranch, setSelectedBranch] = useState()
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    reset,
+    setValue,
+  } = useForm()
 
-  const router = useRouter()
   const {
     locale,
     query: { id },
-  } = router
+    push,
+  } = useRouter()
+  const countryId = watch("countryId")
 
-  const isMounted = useRef(true)
-  const navigationAttempted = useRef(false)
+  const countryFlag = useMemo(() => {
+    return countryId && countries?.find((item) => item.id === countryId)?.countryFlag
+  }, [countries, countryId])
 
-  // Cleanup effect
+  const getCountries = useCallback(async () => {
+    const {
+      data: { data: countries },
+    } = await axios(`/ListCountryDDL?lang=${locale}`)
+    setCountries(countries)
+  }, [locale])
+
+  const handleFetchNeighbourhoodsOrRegions = useCallback(
+    async (url, params = "", id, setState) => {
+      try {
+        const {
+          data: { data },
+        } = await axios(`/${url}DDL?${params}=${id}&currentPage=1&lang=${locale}`)
+        setState(data)
+      } catch (e) {
+        Alerto(e)
+      }
+    },
+    [locale],
+  )
+
   useEffect(() => {
-    return () => {
-      isMounted.current = false
-    }
+    getCountries()
   }, [])
 
-  // Safe navigation function
-  const safeNavigate = useCallback(async () => {
-    if (navigationAttempted.current) return
-    navigationAttempted.current = true
-
+  const getBranchById = useCallback(async () => {
     try {
-      // Construct the path with locale
-      const basePath = "/settings/branches"
-      const path = locale ? `/${locale}${basePath}` : basePath
-
-      // Use shallow routing to prevent unnecessary data fetching
-      await router.push(path, undefined, {
-        shallow: true,
-        locale: locale,
+      const {
+        data: { data },
+      } = await axios(`/GetBrancheById?id=${id}&lang=${locale}`)
+      handleFetchNeighbourhoodsOrRegions(
+        "ListNeighborhoodByRegionId",
+        "regionsIds",
+        data?.region?.id,
+        setNeighbourhoods,
+      )
+      handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", data?.country?.id, setRegions)
+      setSelectedBranch(data)
+      reset({
+        ...data,
+        countryId: +data?.country?.id,
+        regionId: +data?.region?.id,
+        neighborhoodId: +data?.neighborhood?.id,
       })
     } catch (error) {
-      console.error("Navigation error:", error)
-      // If navigation fails, reset the flag
-      navigationAttempted.current = false
+      Alerto(error)
     }
-  }, [router, locale])
+  }, [id, locale])
+
+  useEffect(() => {
+    if (id) {
+      getBranchById()
+    }
+  }, [id])
+
+  useEffect(() => {
+    const countryId = watch().countryId
+    const regionId = watch().regionId
+    const neighborhoodId = watch().neighborhoodId
+    if (regions && neighbourhoods) {
+      reset({
+        ...selectedBranch,
+        countryId: +countryId,
+        regionId: +regionId,
+        neighborhoodId: +neighborhoodId,
+      })
+    }
+  }, [regions, neighbourhoods, selectedBranch])
 
   const createBranch = async ({
     neighborhoodId,
     countryId,
     regionId,
     name,
+    isActive,
     streetName,
     regionCode,
     location,
     lng = 0,
     lat = 0,
+    ...values
   }) => {
-    if (isSubmitting || !isMounted.current) return
-    setIsSubmitting(true)
-
     try {
-      const formValues = {
+      const values = {
         id: id,
         isActive: true,
         neighborhoodId: +neighborhoodId,
@@ -85,55 +137,76 @@ const AddBranch = () => {
       }
 
       if (!countryId || !regionId || !neighborhoodId) {
-        toast.error(locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!")
-        setIsSubmitting(false)
-        return
+        return toast.error(
+          locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!",
+        )
       }
 
       const formData = new FormData()
-      for (const key in formValues) {
-        if (formValues[key] === null || formValues[key] === undefined) continue
-        formData.append(key, formValues[key])
+      for (const key in values) {
+        if (values[key] === null || values[key] === undefined) continue
+        else formData.append(key, values[key])
       }
-
       if (id) {
         await axios.put("/EditBranche", formData)
-        if (isMounted.current) {
-          toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
-        }
+        //  toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
       } else {
         await axios.post("/AddBranche", formData)
-        if (isMounted.current) {
-          toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
-        }
+        //  toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
       }
-
-      // Small delay to ensure toast is visible
-      await new Promise((resolve) => setTimeout(resolve, 100))
-
-      // Navigate using the safe navigation function
-      await safeNavigate()
+      window.location.href = `${locale === "en" ? "/en" : ""}/settings/branch`
     } catch (error) {
-      if (isMounted.current) {
-        Alerto(error)
-        setIsSubmitting(false)
-      }
+      Alerto(error)
     }
   }
 
-  // Update Link components to use the correct locale-aware paths
-  const cancelPath = locale ? `/${locale}/settings/branches` : "/settings/branches"
+  const handleCountries = (e) => {
+    const selectedOption = countries.find((item) => item.id === +e.target.value)
+    if (selectedOption) {
+      setValue("countryId", +selectedOption.id)
+      setValue("regionId", 0)
+      setValue("neighborhoodId", 0)
+      setNeighbourhoods([])
+      setRegions([])
+      handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", +selectedOption.id, setRegions)
+    }
+  }
+
+  const handleRegions = (e) => {
+    const selectedOption = regions.find((item) => item.id === +e.target.value)
+    if (selectedOption) {
+      setValue("regionId", +selectedOption.id)
+      setValue("neighborhoodId", 0)
+      setNeighbourhoods([])
+      handleFetchNeighbourhoodsOrRegions(
+        "ListNeighborhoodByRegionId",
+        "regionsIds",
+        +selectedOption.id,
+        setNeighbourhoods,
+      )
+    }
+  }
+
+  const handleSetLatitude = (value) => {
+    setValue("lat", value)
+  }
+
+  const handleSetLongitude = (value) => {
+    setValue("lng", value)
+  }
+
   return (
     <div className="body-content">
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
           <h6 className="f-b m-0">
+            {" "}
             {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
             {pathOr("", [locale, "Branch", "branch"], t)}
           </h6>
-          <Link href="/settings/branches" passHref>
-            <a className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</a>
-          </Link>
+          <a href={`${locale === "en" ? "/en" : ""}/settings/branch`}>
+            <span className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</span>
+          </a>
         </div>
         <div className="contint_paner">
           <div className="form-content">

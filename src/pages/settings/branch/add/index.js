@@ -1,20 +1,20 @@
 import React from "react"
-import AddBranch from "../../../../modules/settings/branches/AddBranch"
+import AddBranchComponent from "../../../../modules/settings/branches/AddBranch"
 import Head from "next/head"
 import { pathOr } from "ramda"
 import { useRouter } from "next/router"
 import t from "../../../../translations.json"
 
-const AddNewBranch = () => {
+const AddBranchPage = (props) => {
   const { locale } = useRouter()
   return (
-    <>
-      <Head>
+    <main>
+      {/* <Head>
         <title>{pathOr("Add Branch", [locale, "Branch", "addBranch"], t)}</title>
-      </Head>
-      <AddBranch />
-    </>
+      </Head> */}
+      <AddBranchComponent {...props} />
+    </main>
   )
 }
 
-export default AddNewBranch
+export default AddBranchPage

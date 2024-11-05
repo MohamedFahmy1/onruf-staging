@@ -14,8 +14,8 @@ import t from "../../../translations.json"
 import Alerto from "../../../common/Alerto"
 
 const Branches = () => {
-  const [allbranches, setAllBranches] = useState()
-  const [branches, setBranches] = useState()
+  const [allbranches, setAllBranches] = useState([])
+  const [branches, setBranches] = useState([])
   const [toggleActiveBtn, setToggleActiveBtn] = useState(true)
   const [openModal, setOpenModal] = useState(false)
   const { locale } = useRouter()
@@ -41,8 +41,8 @@ const Branches = () => {
       try {
         const value = {
           ...values,
-          id: id,
-          isActive: isActive,
+          id,
+          isActive,
           nameAr: values?.name,
           nameEn: values?.name,
           location: values?.location,
@@ -109,36 +109,34 @@ const Branches = () => {
       {
         Header: pathOr("", [locale, "Branch", "actions"], t),
         accessor: "isActive",
-        Cell: ({ row: { original } }) => {
-          return (
-            <div className="d-flex align-items-center gap-2">
-              <Link href={`/settings/branches/add?id=${original?.id}`}>
-                <BiEditAlt className="btn_Measures pointer" />
-              </Link>
-              <button
-                type="button"
-                className="btn_Measures"
-                aria-label="delete branch"
-                onClick={() => handleDeleteBranch(original?.id)}
-              >
-                <RiDeleteBin5Line />
-              </button>
-              <div className="form-check form-switch p-0 m-0">
-                <label htmlFor={`flexSwitchCheckChecked${original?.id}`} className="visually-hidden">
-                  Edit Branch
-                </label>
-                <input
-                  className="form-check-input m-0"
-                  type="checkbox"
-                  role="switch"
-                  id={`flexSwitchCheckChecked${original?.id}`}
-                  defaultChecked={original?.isActive}
-                  onChange={(e) => handleEditBranch(original?.id, e.target.checked, original)}
-                />
-              </div>
+        Cell: ({ row: { original } }) => (
+          <div className="d-flex align-items-center gap-2">
+            <a href={`${locale === "en" ? "/en" : ""}/settings/branch/add?id=${original?.id}`}>
+              <BiEditAlt className="btn_Measures pointer" />
+            </a>
+            <button
+              type="button"
+              className="btn_Measures"
+              aria-label="delete branch"
+              onClick={() => handleDeleteBranch(original?.id)}
+            >
+              <RiDeleteBin5Line />
+            </button>
+            <div className="form-check form-switch p-0 m-0">
+              <label htmlFor={`flexSwitchCheckChecked${original?.id}`} className="visually-hidden">
+                Edit Branch
+              </label>
+              <input
+                className="form-check-input m-0"
+                type="checkbox"
+                role="switch"
+                id={`flexSwitchCheckChecked${original?.id}`}
+                defaultChecked={original?.isActive}
+                onChange={(e) => handleEditBranch(original?.id, e.target.checked, original)}
+              />
             </div>
-          )
-        },
+          </div>
+        ),
       },
     ],
     [locale, handleDeleteBranch, handleEditBranch],
@@ -150,19 +148,23 @@ const Branches = () => {
         <h6 className="f-b m-0">
           {pathOr("", [locale, "Branch", "branches"], t)} ({branches?.length})
         </h6>
-        <Link href="branches/add">
+        {/* <a href={`${locale === "en" ? "/en" : ""}/settings/branch/add`}> */}
+        <Link href={`${locale === "en" ? "/en" : ""}/settings/branch/add`}>
           <span className="btn-main">
             {pathOr("", [locale, "Branch", "addBranch"], t)}
             <AiOutlinePlusCircle />
           </span>
         </Link>
+        {/* </a> */}
       </section>
       <section className="filtter_1">
         <button
           className={`btn-main ${toggleActiveBtn ? "active" : ""}`}
           onClick={() => {
-            setBranches(allbranches.filter((branch) => branch?.isActive))
-            setToggleActiveBtn(true)
+            if (!toggleActiveBtn) {
+              setBranches(allbranches.filter((branch) => branch?.isActive))
+              setToggleActiveBtn(true)
+            }
           }}
         >
           {pathOr("", [locale, "Branch", "activeBranches"], t)}{" "}
@@ -170,8 +172,10 @@ const Branches = () => {
         <button
           className={`btn-main ${!toggleActiveBtn ? "active" : ""}`}
           onClick={() => {
-            setBranches(allbranches.filter((branch) => !branch?.isActive))
-            setToggleActiveBtn(false)
+            if (toggleActiveBtn) {
+              setBranches(allbranches.filter((branch) => !branch?.isActive))
+              setToggleActiveBtn(false)
+            }
           }}
         >
           {pathOr("", [locale, "Branch", "inActiveBranches"], t)}{" "}
@@ -189,20 +193,10 @@ const Branches = () => {
           <button type="button" className="btn-close" onClick={() => setOpenModal(false)}></button>
         </Modal.Header>
         <Modal.Body className="modal-footer">
-          <button
-            className="btn-main w-auto"
-            onClick={() => {
-              setOpenModal(false)
-            }}
-          >
+          <button className="btn-main w-auto" onClick={() => setOpenModal(false)}>
             {pathOr("", [locale, "Branch", "yes"], t)}
           </button>
-          <button
-            className="btn-main w-auto"
-            onClick={() => {
-              setOpenModal(false)
-            }}
-          >
+          <button className="btn-main w-auto" onClick={() => setOpenModal(false)}>
             {pathOr("", [locale, "Branch", "no"], t)}
           </button>
         </Modal.Body>

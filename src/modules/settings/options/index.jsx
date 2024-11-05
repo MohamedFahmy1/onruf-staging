@@ -65,7 +65,7 @@ const Options = ({ userWalletState }) => {
           <div className="box-setting_">
             <Image src={Branch} {...Branch} alt="branches" height={100} />
             <h6 className="f-b">{pathOr("", [locale, "Settings", "branches"], t)}</h6>
-            <Link href="/settings/branches">
+            <Link href="/settings/branch">
               <span className="btn-main">{pathOr("", [locale, "Settings", "manageBranches"], t)}</span>
             </Link>
           </div>
