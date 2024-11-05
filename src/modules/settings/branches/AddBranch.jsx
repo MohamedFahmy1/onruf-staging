@@ -145,7 +145,8 @@ const AddBranch = () => {
 
       const formData = new FormData()
       for (const key in values) {
-        formData.append(key, values[key])
+        if (values[key] === null || values[key] === undefined) continue
+        else formData.append(key, values[key])
       }
       if (id) {
         await axios.put("/EditBranche", formData)
@@ -159,6 +160,7 @@ const AddBranch = () => {
       Alerto(error)
     }
   }
+
   const handleCountries = (e) => {
     const selectedOption = countries.find((item) => item.id === +e.target.value)
     if (selectedOption) {
@@ -170,6 +172,7 @@ const AddBranch = () => {
       handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", +selectedOption.id, setRegions)
     }
   }
+
   const handleRegions = (e) => {
     const selectedOption = regions.find((item) => item.id === +e.target.value)
     if (selectedOption) {
