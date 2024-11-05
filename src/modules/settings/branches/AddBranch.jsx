@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from "react"
+import { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { useRouter } from "next/router"
 import { useForm } from "react-hook-form"
 import axios from "axios"
@@ -18,6 +18,16 @@ const AddBranch = () => {
   const [regions, setRegions] = useState([])
   const [selectedBranch, setSelectedBranch] = useState()
   const [countries, setCountries] = useState()
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Use ref to track component mounted state
+  const isMounted = useRef(true)
+
+  const router = useRouter()
+  const {
+    locale,
+    query: { id },
+  } = router
 
   const {
     register,
@@ -26,14 +36,7 @@ const AddBranch = () => {
     watch,
     reset,
     setValue,
-    control,
   } = useForm()
-
-  const {
-    locale,
-    query: { id },
-    push,
-  } = useRouter()
 
   const countryId = watch("countryId")
 
@@ -41,11 +44,26 @@ const AddBranch = () => {
     return countryId && countries?.find((item) => item.id === countryId)?.countryFlag
   }, [countries, countryId])
 
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
+
   const getCountries = useCallback(async () => {
-    const {
-      data: { data: countries },
-    } = await axios(`/ListCountryDDL?lang=${locale}`)
-    setCountries(countries)
+    try {
+      const {
+        data: { data: countries },
+      } = await axios(`/ListCountryDDL?lang=${locale}`)
+      if (isMounted.current) {
+        setCountries(countries)
+      }
+    } catch (error) {
+      if (isMounted.current) {
+        Alerto(error)
+      }
+    }
   }, [locale])
 
   const handleFetchNeighbourhoodsOrRegions = useCallback(
@@ -54,9 +72,13 @@ const AddBranch = () => {
         const {
           data: { data },
         } = await axios(`/${url}DDL?${params}=${id}&currentPage=1&lang=${locale}`)
-        setState(data)
+        if (isMounted.current) {
+          setState(data)
+        }
       } catch (e) {
-        Alerto(e)
+        if (isMounted.current) {
+          Alerto(e)
+        }
       }
     },
     [locale],
@@ -71,22 +93,26 @@ const AddBranch = () => {
       const {
         data: { data },
       } = await axios(`/GetBrancheById?id=${id}&lang=${locale}`)
-      handleFetchNeighbourhoodsOrRegions(
-        "ListNeighborhoodByRegionId",
-        "regionsIds",
-        data?.region?.id,
-        setNeighbourhoods,
-      )
-      handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", data?.country?.id, setRegions)
-      setSelectedBranch(data)
-      reset({
-        ...data,
-        countryId: +data?.country?.id,
-        regionId: +data?.region?.id,
-        neighborhoodId: +data?.neighborhood?.id,
-      })
+      if (isMounted.current) {
+        handleFetchNeighbourhoodsOrRegions(
+          "ListNeighborhoodByRegionId",
+          "regionsIds",
+          data?.region?.id,
+          setNeighbourhoods,
+        )
+        handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", data?.country?.id, setRegions)
+        setSelectedBranch(data)
+        reset({
+          ...data,
+          countryId: +data?.country?.id,
+          regionId: +data?.region?.id,
+          neighborhoodId: +data?.neighborhood?.id,
+        })
+      }
     } catch (error) {
-      Alerto(error)
+      if (isMounted.current) {
+        Alerto(error)
+      }
     }
   }, [id, locale, reset, handleFetchNeighbourhoodsOrRegions])
 
@@ -97,6 +123,8 @@ const AddBranch = () => {
   }, [id, getBranchById])
 
   useEffect(() => {
+    if (!isMounted.current) return
+
     const countryId = watch().countryId
     const regionId = watch().regionId
     const neighborhoodId = watch().neighborhoodId
@@ -121,10 +149,12 @@ const AddBranch = () => {
     location,
     lng = 0,
     lat = 0,
-    ...values
   }) => {
+    if (isSubmitting || !isMounted.current) return
+    setIsSubmitting(true)
+
     try {
-      const values = {
+      const formValues = {
         id: id,
         isActive: true,
         neighborhoodId: +neighborhoodId,
@@ -140,31 +170,41 @@ const AddBranch = () => {
       }
 
       if (!countryId || !regionId || !neighborhoodId) {
-        return toast.error(
-          locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!",
-        )
+        toast.error(locale === "en" ? "Please select all required fields!" : "الرجاء تحديد جميع الحقول المطلوبة!")
+        setIsSubmitting(false)
+        return
       }
 
       const formData = new FormData()
-      for (const key in values) {
-        if (values[key] === null || values[key] === undefined) continue
-        else formData.append(key, values[key])
+      for (const key in formValues) {
+        if (formValues[key] === null || formValues[key] === undefined) continue
+        formData.append(key, formValues[key])
       }
+
       if (id) {
         await axios.put("/EditBranche", formData)
-        toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
+        if (isMounted.current) {
+          toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
+        }
       } else {
         await axios.post("/AddBranche", formData)
-        toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
+        if (isMounted.current) {
+          toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
+        }
       }
-      // push("/settings/branches")
-      window.location.href = "/settings/branches"
+
+      // Use router.replace instead of push for more reliable navigation
+      await router.replace("/settings/branches")
     } catch (error) {
-      Alerto(error)
+      if (isMounted.current) {
+        Alerto(error)
+        setIsSubmitting(false)
+      }
     }
   }
 
   const handleCountries = (e) => {
+    if (!isMounted.current) return
     const selectedOption = countries.find((item) => item.id === +e.target.value)
     if (selectedOption) {
       setValue("countryId", +selectedOption.id)
@@ -177,6 +217,7 @@ const AddBranch = () => {
   }
 
   const handleRegions = (e) => {
+    if (!isMounted.current) return
     const selectedOption = regions.find((item) => item.id === +e.target.value)
     if (selectedOption) {
       setValue("regionId", +selectedOption.id)
@@ -192,11 +233,15 @@ const AddBranch = () => {
   }
 
   const handleSetLatitude = (value) => {
-    setValue("lat", value)
+    if (isMounted.current) {
+      setValue("lat", value)
+    }
   }
 
   const handleSetLongitude = (value) => {
-    setValue("lng", value)
+    if (isMounted.current) {
+      setValue("lng", value)
+    }
   }
 
   return (
@@ -204,12 +249,11 @@ const AddBranch = () => {
       <div>
         <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
           <h6 className="f-b m-0">
-            {" "}
             {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
             {pathOr("", [locale, "Branch", "branch"], t)}
           </h6>
-          <Link href="/settings/branches">
-            <span className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</span>
+          <Link href="/settings/branches" passHref>
+            <a className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</a>
           </Link>
         </div>
         <div className="contint_paner">

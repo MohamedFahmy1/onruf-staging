@@ -2,6 +2,15 @@
 const nextConfig = {
   reactStrictMode: false,
   trailingSlash: true,
+  async redirects() {
+    return [
+      {
+        source: "/settings/branches",
+        destination: "/settings/branches/",
+        permanent: true,
+      },
+    ]
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },
