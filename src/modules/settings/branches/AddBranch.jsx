@@ -124,7 +124,7 @@ const AddBranch = () => {
     try {
       const values = {
         id: id,
-        isActive: isActive,
+        isActive: true,
         neighborhoodId: +neighborhoodId,
         countryId: +countryId,
         regionId: +regionId,
