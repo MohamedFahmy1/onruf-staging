@@ -44,7 +44,7 @@ const GoogleMaps = ({ lat, lng, setLat, setLng }) => {
       zoom={10}
       onLoad={onLoad}
       onUnmount={onUnmount}
-      onClick={handleMapClick} // Trigger map click event
+      onClick={handleMapClick}
     >
       <Marker position={center} />
     </GoogleMap>

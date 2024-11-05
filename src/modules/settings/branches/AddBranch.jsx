@@ -117,8 +117,8 @@ const AddBranch = () => {
     streetName,
     regionCode,
     location,
-    lng,
-    lat,
+    lng = 0,
+    lat = 0,
     ...values
   }) => {
     try {
