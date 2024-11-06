@@ -20,89 +20,108 @@ const Options = ({ userWalletState }) => {
   const { locale } = useRouter()
   const [manageAccountPop, setManageAccountPop] = useState(false)
   const { data: myPointsData = {} } = useFetch(`/GetUserPointsTransactions`)
+  const { data } = useSelector((state) => state.roles)
+
+  const isExists = (value) => data?.some((item) => item?.roleName === value)
+
   return (
     <section>
       <Row>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Wallet} alt="wallet" {...Wallet} height={82} />
-            <h6 className="f-b">
-              {pathOr("", [locale, "Settings", "myWallet"], t)}{" "}
-              <span className="d-flex justify-content-center">
-                {userWalletState ? userWalletState?.walletBalance : 0} {pathOr("", [locale, "Products", "currency"], t)}
-              </span>
-            </h6>
-            <Link href="/settings/wallet">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "topUpCredit"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Point} {...Point} alt="Points" height={82} />
-            <h6 className="f-b">
-              {pathOr("", [locale, "Settings", "myPoints"], t)}
-              <span className="d-flex justify-content-center">
-                {myPointsData ? myPointsData.pointsBalance : <Skeleton variant="text" width={16} />}{" "}
-                {pathOr("", [locale, "Settings", "point"], t)}
-              </span>
-            </h6>
-            <Link href="/settings/mypoints">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "transferMyPoints"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Point} {...Point} alt="shipping" height={100} />
-            <h6 className="f-b">{pathOr("", [locale, "Settings", "shipping"], t)}</h6>
-            <Link href="/settings/shipping">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "manageShipping"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Branch} {...Branch} alt="branches" height={100} />
-            <h6 className="f-b">{pathOr("", [locale, "Settings", "branches"], t)}</h6>
-            <Link href="/settings/branch">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "manageBranches"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={CompanyWorkers} {...CompanyWorkers} alt="employees" height={100} />
-            <h6 className="f-b">{pathOr("", [locale, "Settings", "employees"], t)}</h6>
-            <Link href="/settings/employees?page=1">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "manageEmployees"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Budget} {...Budget} alt="packages" height={100} />
-            <h6 className="f-b">{pathOr("", [locale, "Settings", "packages"], t)}</h6>
-            <Link href="/settings/packages">
-              <span className="btn-main">{pathOr("", [locale, "Settings", "manageYourPackage"], t)}</span>
-            </Link>
-          </div>
-        </Col>
-        <Col xl={3} lg={4} md={6}>
-          <div className="box-setting_">
-            <Image src={Settings} width={81} height={100} alt="Settings" />
-            <h6 className="f-b">{pathOr("", [locale, "Settings", "account"], t)}</h6>
-            <button
-              onClick={() => setManageAccountPop(true)}
-              className="btn-main"
-              data-bs-dismiss="modal"
-              data-bs-toggle="modal"
-              data-bs-target="#add-new-folder"
-            >
-              {pathOr("", [locale, "Settings", "manageAccount"], t)}
-            </button>
-          </div>
-        </Col>
+        {isExists("ProviderSettingsMyWallet") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Wallet} alt="wallet" {...Wallet} height={82} />
+              <h6 className="f-b">
+                {pathOr("", [locale, "Settings", "myWallet"], t)}{" "}
+                <span className="d-flex justify-content-center">
+                  {userWalletState ? userWalletState?.walletBalance : 0}{" "}
+                  {pathOr("", [locale, "Products", "currency"], t)}
+                </span>
+              </h6>
+              <Link href="/settings/wallet">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "topUpCredit"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsMyPoints") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Point} {...Point} alt="Points" height={82} />
+              <h6 className="f-b">
+                {pathOr("", [locale, "Settings", "myPoints"], t)}
+                <span className="d-flex justify-content-center">
+                  {myPointsData ? myPointsData.pointsBalance : <Skeleton variant="text" width={16} />}{" "}
+                  {pathOr("", [locale, "Settings", "point"], t)}
+                </span>
+              </h6>
+              <Link href="/settings/mypoints">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "transferMyPoints"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsShippingAndDelivery") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Point} {...Point} alt="shipping" height={100} />
+              <h6 className="f-b">{pathOr("", [locale, "Settings", "shipping"], t)}</h6>
+              <Link href="/settings/shipping">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "manageShipping"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsBranches") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Branch} {...Branch} alt="branches" height={100} />
+              <h6 className="f-b">{pathOr("", [locale, "Settings", "branches"], t)}</h6>
+              <Link href="/settings/branch">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "manageBranches"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsEmployees") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={CompanyWorkers} {...CompanyWorkers} alt="employees" height={100} />
+              <h6 className="f-b">{pathOr("", [locale, "Settings", "employees"], t)}</h6>
+              <Link href="/settings/employees?page=1">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "manageEmployees"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsPakages") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Budget} {...Budget} alt="packages" height={100} />
+              <h6 className="f-b">{pathOr("", [locale, "Settings", "packages"], t)}</h6>
+              <Link href="/settings/packages">
+                <span className="btn-main">{pathOr("", [locale, "Settings", "manageYourPackage"], t)}</span>
+              </Link>
+            </div>
+          </Col>
+        )}
+        {isExists("ProviderSettingsAccount") && (
+          <Col xl={3} lg={4} md={6}>
+            <div className="box-setting_">
+              <Image src={Settings} width={81} height={100} alt="Settings" />
+              <h6 className="f-b">{pathOr("", [locale, "Settings", "account"], t)}</h6>
+              <button
+                onClick={() => setManageAccountPop(true)}
+                className="btn-main"
+                data-bs-dismiss="modal"
+                data-bs-toggle="modal"
+                data-bs-target="#add-new-folder"
+              >
+                {pathOr("", [locale, "Settings", "manageAccount"], t)}
+              </button>
+            </div>
+          </Col>
+        )}
       </Row>
       <ManageAccountModal showModal={manageAccountPop} setShowModal={setManageAccountPop} />
     </section>

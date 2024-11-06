@@ -6,6 +6,7 @@ import foldersSlice from "./product/foldersSlice"
 import allProducts from "./product/allProducts"
 import authSlice from "./personalData/AuthSlice"
 import idSlice from "./deviceId/reducer"
+import rolesSlice from "./rolesSlice/rolesSlice"
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
     allProducts,
     authSlice,
     idSlice,
+    roles: rolesSlice,
   },
 })

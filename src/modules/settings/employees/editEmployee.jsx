@@ -1,25 +1,17 @@
-import { Box, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material"
+import React, { useEffect, useState } from "react"
+import Select from "react-select"
+import { Box, Chip, FormControl } from "@mui/material"
 import Link from "next/link"
-import { useState } from "react"
 import { useForm } from "react-hook-form"
-import styles from "../../../styles/AddEmployee.module.css"
 import { useRouter } from "next/router"
 import axios from "axios"
 import { pathOr } from "ramda"
 import t from "../../../translations.json"
 import { toast } from "react-toastify"
 import { useFetch } from "../../../hooks/useFetch"
-
-const ITEM_HEIGHT = 48
-const ITEM_PADDING_TOP = 8
-const MenuProps = {
-  PaperProps: {
-    style: {
-      maxHeight: ITEM_HEIGHT * 4.5 + ITEM_PADDING_TOP,
-      width: 250,
-    },
-  },
-}
+import styles from "../../../styles/AddEmployee.module.css"
+import { useDispatch } from "react-redux"
+import { fetchRoles } from "../../../appState/rolesSlice/rolesSlice"
 
 const EditEmployee = () => {
   const {
@@ -27,9 +19,10 @@ const EditEmployee = () => {
     push,
     query: { id },
   } = useRouter()
+  const dispatch = useDispatch()
   const [selectedRoles, setSelectedRoles] = useState([])
   const { data: branches = [] } = useFetch(`/GetListBranche?lang=${locale}`)
-  const { data: userData } = useFetch(`/GetBusinessAccountEmployeeById?employeeId=${id}`, true)
+  const { data: userData, isSuccess } = useFetch(`/GetBusinessAccountEmployeeById?employeeId=${id}`, true)
   const { data: roles = [] } = useFetch(`/GetBusinessAccountRoles?lang=${locale}`)
 
   const {
@@ -38,9 +31,17 @@ const EditEmployee = () => {
     formState: { errors },
   } = useForm()
 
-  const handleFormErrors = (name) => {
-    return <h2 className={styles.formError}>{errors[name] && errors[name].message}</h2>
-  }
+  useEffect(() => {
+    if (isSuccess) {
+      setSelectedRoles(
+        userData.employeeRoles.map((role) => {
+          return { value: role.roleId, label: role.roleName }
+        }),
+      )
+    }
+  }, [isSuccess])
+
+  const handleFormErrors = (name) => <h2 className={styles.formError}>{errors[name] && errors[name].message}</h2>
 
   const handleEditEmployee = async ({ userName, mobileNumber, email, branchId }) => {
     try {
@@ -50,7 +51,7 @@ const EditEmployee = () => {
         email,
         branchId: parseInt(branchId),
         businessAccountEmployeeRoles: selectedRoles.map((role) => ({
-          roleId: role.id,
+          roleId: role.value,
         })),
         id: parseInt(id),
       })
@@ -58,10 +59,12 @@ const EditEmployee = () => {
         data: { status_code },
       } = result
       if (status_code === 200) {
+        dispatch(fetchRoles())
         toast.success(locale === "en" ? "Employee Data Edited Successfully!" : "!تم تعديل معلومات الموظف")
         push("/settings/employees")
       }
     } catch (error) {
+      console.log(error)
       toast.error(
         locale === "en"
           ? "Please recheck the data of your employee and try again!"
@@ -69,8 +72,9 @@ const EditEmployee = () => {
       )
     }
   }
+
   if (!userData) {
-    return
+    return null
   }
 
   return (
@@ -145,49 +149,36 @@ const EditEmployee = () => {
               {handleFormErrors("branchId")}
             </div>
             <div className="form-group">
-              <label id="selectedRoles-label">{pathOr("", [locale, "Employee", "role"], t)}</label>
-              <FormControl
-                sx={{
-                  m: 1,
-                  width: "100%",
-                  fontSize: "1rem",
-                  fontWeight: "400",
-                  lineHeight: 1.5,
-                  color: "#495057",
-                  backgroundColor: "#fff",
-                  border: "1px solid #ced4da",
-                  borderRadius: "50px !important",
-                  textIndent: 10,
-                }}
-                className="no-outline"
-              >
+              <label>{pathOr("", [locale, "Employee", "role"], t)}</label>
+              <FormControl sx={{ width: "100%" }}>
                 <Select
-                  multiple
+                  isMulti
                   value={selectedRoles}
-                  onChange={({ target: { value } }) => {
-                    setSelectedRoles(value)
+                  onChange={setSelectedRoles}
+                  options={roles.map((role) => ({
+                    value: role.id,
+                    label: role.name,
+                  }))}
+                  classNamePrefix="react-select"
+                  placeholder="Select roles"
+                  styles={{
+                    control: (provided) => ({
+                      ...provided,
+                      width: "100%",
+                      fontSize: "1rem",
+                      fontWeight: "400",
+                      lineHeight: 1.5,
+                      color: "#495057",
+                      backgroundColor: "#fff",
+                      border: "1px solid #ced4da",
+                      borderRadius: "50px",
+                      textIndent: 10,
+                      padding: "5px 10px",
+                    }),
                   }}
-                  labelId="selectedRoles-label"
-                  id="selectedRoles"
-                  input={<OutlinedInput />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value, index) => (
-                        <Chip key={index} label={value.name} />
-                      ))}
-                    </Box>
-                  )}
-                  MenuProps={MenuProps}
-                >
-                  {roles.map((role) => (
-                    <MenuItem key={role.id} value={role}>
-                      {role.name}
-                    </MenuItem>
-                  ))}
-                </Select>
+                />
               </FormControl>
             </div>
-
             <button className="btn-main mt-3" type="submit">
               {pathOr("", [locale, "Employee", "editEmployee"], t)}{" "}
             </button>

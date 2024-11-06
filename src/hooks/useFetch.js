@@ -6,6 +6,7 @@ import { useRouter } from "next/router"
 export const useFetch = (apiPath, dynamicPage) => {
   const [data, setData] = useState()
   const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
   const {
     locale,
     query: { id },
@@ -16,9 +17,11 @@ export const useFetch = (apiPath, dynamicPage) => {
       setIsLoading(true)
       const response = await axios.get(`${apiPath}`)
       setData(response.data.data)
+      setIsSuccess(true)
       setIsLoading(false)
     } catch (error) {
       setIsLoading(false)
+      setIsSuccess(false)
       Alerto(error)
     }
   }, [apiPath])
@@ -33,5 +36,5 @@ export const useFetch = (apiPath, dynamicPage) => {
     }
   }, [locale, fetchData, dynamicPage, id])
 
-  return { data, fetchData, isLoading: isLoading }
+  return { data, fetchData, isLoading: isLoading, isSuccess }
 }

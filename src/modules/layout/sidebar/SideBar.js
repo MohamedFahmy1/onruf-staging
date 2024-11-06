@@ -27,6 +27,7 @@ import {
 import "react-toastify/dist/ReactToastify.css"
 import Image from "next/image"
 import Link from "next/link"
+import { useSelector } from "react-redux"
 
 const Sidebar = () => {
   const { locale } = useRouter()
@@ -97,6 +98,52 @@ const Sidebar = () => {
       darkIcon: SettingDarkIcon,
     },
   ]
+
+  const { data, isAdmin } = useSelector((state) => state.roles)
+
+  const userRoles = data.map((role) => role.roleName)
+
+  const roleToLinkMap = {
+    ProviderProduct: "/products",
+    ProviderOrder: "/orders",
+    ProviderClient: "/users",
+    ProviderNegotiation: "/negotiation",
+    ProviderReports: "/reports",
+    "ProviderRating& Questions": "/reviews?tab=ratings",
+    ProviderMarktingDiscountCoupons: "/coupons",
+    ProviderMarktingWithOnRuf: "/marketing",
+    ProviderSettingsEditProfile: "/settings",
+    ProviderSettingsYourbankAccounts: "/settings",
+    ProviderSettingsMyWallet: "/settings",
+    ProviderSettingsMyPoints: "/settings",
+    ProviderSettingsShippingAndDelivery: "/settings",
+    ProviderSettingsBranches: "/settings",
+    ProviderSettingsEmployees: "/settings",
+    ProviderSettingsPakages: "/settings",
+    ProviderSettingsAccount: "/settings",
+  }
+
+  // Filter navBarItems based on the roles
+  const filteredNavBarItems = isAdmin
+    ? navBarItems
+    : navBarItems.filter((item) => {
+        if (item.link === "/") {
+          return true
+        }
+        // Check if the main item link matches any role
+        const mainItemAllowed = userRoles.some((role) => roleToLinkMap[role] === item.link)
+
+        // If the item has subItems, filter them based on roles
+        if (item.subItems) {
+          item.subItems = item.subItems.filter((subItem) =>
+            userRoles.some((role) => roleToLinkMap[role] === subItem.link),
+          )
+        }
+
+        // Include the main item if it's allowed or has any allowed subItems
+        return mainItemAllowed || (item.subItems && item.subItems.length > 0)
+      })
+
   return (
     <StyledSidebar variant={"permanent"} component={"aside"} anchor={locale === "en" ? "left" : "right"}>
       <StyledLogo>
@@ -106,7 +153,7 @@ const Sidebar = () => {
       </StyledLogo>
       <List component={"nav"}>
         <Box component={"ul"}>
-          {navBarItems.map((listItem) => (
+          {filteredNavBarItems?.map((listItem) => (
             <ListItem key={listItem.name} {...listItem} />
           ))}
         </Box>
