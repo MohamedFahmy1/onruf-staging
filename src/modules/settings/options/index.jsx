@@ -20,9 +20,12 @@ const Options = ({ userWalletState }) => {
   const { locale } = useRouter()
   const [manageAccountPop, setManageAccountPop] = useState(false)
   const { data: myPointsData = {} } = useFetch(`/GetUserPointsTransactions`)
-  const { data } = useSelector((state) => state.roles)
+  const { data, isAdmin } = useSelector((state) => state.roles)
 
-  const isExists = (value) => data?.some((item) => item?.roleName === value)
+  const isExists = (value) => {
+    if (isAdmin) return true
+    else return data?.some((item) => item?.roleName === value)
+  }
 
   return (
     <section>
