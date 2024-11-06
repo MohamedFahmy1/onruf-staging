@@ -111,9 +111,9 @@ const Branches = () => {
         accessor: "isActive",
         Cell: ({ row: { original } }) => (
           <div className="d-flex align-items-center gap-2">
-            <a href={`${locale === "en" ? "/en" : ""}/settings/branch/add?id=${original?.id}`}>
+            <Link href={`${locale === "en" ? "/en" : ""}/settings/branch/add?id=${original?.id}`}>
               <BiEditAlt className="btn_Measures pointer" />
-            </a>
+            </Link>
             <button
               type="button"
               className="btn_Measures"
@@ -148,14 +148,12 @@ const Branches = () => {
         <h6 className="f-b m-0">
           {pathOr("", [locale, "Branch", "branches"], t)} ({branches?.length})
         </h6>
-        {/* <a href={`${locale === "en" ? "/en" : ""}/settings/branch/add`}> */}
         <Link href={`${locale === "en" ? "/en" : ""}/settings/branch/add`}>
           <span className="btn-main">
             {pathOr("", [locale, "Branch", "addBranch"], t)}
             <AiOutlinePlusCircle />
           </span>
         </Link>
-        {/* </a> */}
       </section>
       <section className="filtter_1">
         <button

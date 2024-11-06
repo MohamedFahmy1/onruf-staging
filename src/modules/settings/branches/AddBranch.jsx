@@ -149,12 +149,12 @@ const AddBranch = () => {
       }
       if (id) {
         await axios.put("/EditBranche", formData)
-        //  toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
+        toast.success(locale === "en" ? "Branch has been edited successfully!" : "تم تعديل الفرع بنجاح")
       } else {
         await axios.post("/AddBranche", formData)
-        //  toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
+        toast.success(locale === "en" ? "Branch has been created successfully!" : "تم انشاء الفرع بنجاح")
       }
-      window.location.href = `${locale === "en" ? "/en" : ""}/settings/branch`
+      push(`${locale === "en" ? "/en" : ""}/settings/branch`)
     } catch (error) {
       Alerto(error)
     }
@@ -204,9 +204,9 @@ const AddBranch = () => {
             {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
             {pathOr("", [locale, "Branch", "branch"], t)}
           </h6>
-          <a href={`${locale === "en" ? "/en" : ""}/settings/branch`}>
+          <Link href={`${locale === "en" ? "/en" : ""}/settings/branch`}>
             <span className="btn-main btn-main-o">{pathOr("", [locale, "Branch", "cancel"], t)}</span>
-          </a>
+          </Link>
         </div>
         <div className="contint_paner">
           <div className="form-content">
