@@ -110,14 +110,6 @@ const AddCoupon = () => {
       return toast.error(locale === "en" ? "Please enter a valid discount amount" : "من فضلك ادخل قيمة خصم صحيحة")
     }
 
-    if (couponPayload.maximumDiscount <= 0) {
-      return toast.error(
-        locale === "en" ? "Please enter a valid minimum purchase amount" : "من فضلك ادخل مبلغ الشراء الأدنى الصحيح",
-      )
-    }
-
-    console.log(couponPayload)
-
     const form_data = new FormData()
     for (let key in couponPayload) {
       if (key === "Image") {
