@@ -28,7 +28,7 @@ const Navbar = () => {
 
   const getAllBuisnessAccounts = async (id) => {
     try {
-      const { data } = await axios.get(`/GatAllBusinessAccounts`)
+      const { data } = await axios.get(`/GetEmployeeBusinessAccounts`)
       setBusinessAccountList(data.data)
     } catch (error) {
       Alerto(error)
