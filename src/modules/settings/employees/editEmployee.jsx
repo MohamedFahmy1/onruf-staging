@@ -140,6 +140,9 @@ const EditEmployee = () => {
                 {...register("branchId", { required: "This field is required", value: userData?.branchId })}
                 className="form-control form-select"
               >
+                <option value="" disabled hidden>
+                  {pathOr("", [locale, "Orders", "selectBranch"], t)}
+                </option>
                 {branches?.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.name}

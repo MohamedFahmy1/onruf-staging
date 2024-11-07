@@ -33,7 +33,6 @@ const AddEmployee = () => {
     formState: { errors },
   } = useForm()
 
-  // Submitting Employee To Endpoint
   const handleAddEmployee = async ({ userName, mobileNumber, email, branchId }) => {
     try {
       const result = await axios.post(
@@ -49,9 +48,7 @@ const AddEmployee = () => {
         },
         { params: { lang: "en" } },
       )
-      const {
-        data: { status_code },
-      } = result
+
       push("/settings/employees")
       toast.success(locale === "en" ? "Employee Added" : "تم اضافة الموظف")
     } catch (e) {
@@ -115,14 +112,21 @@ const AddEmployee = () => {
             </div>
             <div className="form-group">
               <label htmlFor="branch">{pathOr("", [locale, "Employee", "branch"], t)}</label>
-              <select id="branch" {...register("branchId")} className="form-control form-select">
+              <select
+                id="branch"
+                {...register("branchId", { required: "Branch is a required field" })}
+                className="form-control form-select"
+              >
+                <option value="" disabled hidden>
+                  {pathOr("", [locale, "Orders", "selectBranch"], t)}
+                </option>
                 {branches?.map((branch) => (
                   <option key={branch.id} value={branch.id}>
                     {branch.name}
                   </option>
                 ))}
               </select>
-              {handleFormErrors("branchId")}
+              <p className="errorMsg">{handleFormErrors(errors, "branchId")}</p>
             </div>
             <div className="form-group">
               <label id="selectedRoles-label">{pathOr("", [locale, "Employee", "role"], t)}</label>
