@@ -25,7 +25,7 @@ const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEv
       try {
         const {
           data: { data },
-        } = await axios(`/${url}DDL?${params}=${id}?lang=${locale}`)
+        } = await axios(`/${url}DDL?${params}=${id}&lang=${locale}`)
         setState(data)
       } catch (e) {
         Alerto(e)
