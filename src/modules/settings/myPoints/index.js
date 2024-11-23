@@ -8,7 +8,6 @@ import { toast } from "react-toastify"
 import PointsIcon from "../../../assets/images/point_icon.svg"
 import Image from "next/image"
 import ShareModal from "./ShareModal"
-import { multiFormData } from "../../../common/axiosHeaders"
 import { useFetch } from "../../../hooks/useFetch"
 import Alerto from "../../../common/Alerto"
 
@@ -22,13 +21,7 @@ const MyPoints = () => {
 
   const handleTransferPointsToMoney = async () => {
     try {
-      await axios.post(
-        "/TransferPointsToMoney",
-        {
-          params: { transactionPointsAmount: parseInt(points) },
-        },
-        multiFormData,
-      )
+      await axios.post(`/TransferPointsToMoney?transactionPointsAmount=${parseInt(points)}`)
       toast.success(locale === "en" ? "Transaction Successfull" : "تمت العملية بنجاح")
       fetchMyPointsData()
     } catch (error) {
