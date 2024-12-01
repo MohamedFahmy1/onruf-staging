@@ -65,7 +65,10 @@ const MyPoints = () => {
                 </div>
                 <div className="shared d-flex gap-2 align-items-center">
                   <div className="num">{newInvitationCode}</div>
-                  <div className="img_" onClick={() => setIsModalOpen(true)}>
+                  <div
+                    className="img_ pointer d-flex align-content-center justify-content-center"
+                    onClick={() => setIsModalOpen(true)}
+                  >
                     <Image src={require("../../../assets/images/share.svg")} className="img-fluid" alt="share" />
                   </div>
                 </div>
