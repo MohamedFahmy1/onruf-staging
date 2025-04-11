@@ -125,6 +125,7 @@ const ProductImages = ({ productPayload, setProductPayload, validateProductImage
       MainImageIndex: index,
     }))
   }
+
   return (
     <Accordion.Body className={`${styles["accordion-body"]} accordion-body`}>
       {pathname.includes("add") ? (

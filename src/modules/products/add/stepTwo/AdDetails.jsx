@@ -14,7 +14,15 @@ import { useFetch } from "../../../../hooks/useFetch"
 import regionImage from "../../../../../public/icons/008-maps.svg"
 import cityImage from "../../../../../public/icons/neighboor.svg"
 
-const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEventKey, regions, setRegions }) => {
+const AdDetails = ({
+  productPayload,
+  setProductPayload,
+  validateAdDetails,
+  setEventKey,
+  regions,
+  setRegions,
+  selectedCatProps,
+}) => {
   const { locale, pathname } = useRouter()
   const { data: countries } = useFetch(`/ListCountryDDL?lang=${locale}`)
   const [neighborhoods, setNeighborhoods] = useState([])
@@ -95,6 +103,12 @@ const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEv
               <label htmlFor="subTitleAr" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productSecondaryAddressAr"], t)}
               </label>
+              {selectedCatProps?.subTitleFee && (
+                <p style={{ color: "blue" }}>
+                  {pathOr("", [locale, "Products", "SubtitleFeeDesc"], t)} {selectedCatProps?.subTitleFee}{" "}
+                  {pathOr("", [locale, "Products", "currency"], t)}
+                </p>
+              )}
               <input
                 type="text"
                 id="subTitleAr"
@@ -119,6 +133,7 @@ const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEv
             <div className="form-group">
               <label htmlFor="descriptionAr" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productDetailsAr"], t)}
+                <RequiredSympol />
               </label>
               <textarea
                 id="descriptionAr"
@@ -179,6 +194,7 @@ const AdDetails = ({ productPayload, setProductPayload, validateAdDetails, setEv
             <div className="form-group">
               <label htmlFor="descriptionEn" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productDetailsEn"], t)}
+                <RequiredSympol />
               </label>
               <textarea
                 id="descriptionEn"

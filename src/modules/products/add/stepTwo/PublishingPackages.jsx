@@ -21,7 +21,7 @@ const PublishingPackages = ({
 }) => {
   const { locale, pathname } = useRouter()
   const { data: packat } = useFetch(
-    `/getAllPakatsList?lang=${locale}&categoryId=${catId}&isAdmin=${false}&PakatType=Additional`,
+    `/getAllPakatsList?lang=${locale}&categoryId=${catId}&isAdmin=${true}&PakatType=Additional`,
   )
   const [selectedPack, setselectedPack] = useState(packat?.length ? packat[0]?.id : 0)
 

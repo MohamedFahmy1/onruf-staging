@@ -129,9 +129,14 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
             checked={productPayload.IsAuctionClosingTimeFixed === false}
           />
         </div>
-        <p style={{ ...textAlignStyle(locale), display: "block" }}>{`+ ${
-          selectedCatProps.auctionClosingTimeFee
-        } ${pathOr("", [locale, "Products", "currency"], t)}`}</p>
+        <p
+          className="mb-2"
+          style={{ ...textAlignStyle(locale), display: "block", color: "blue", fontWeight: "normal" }}
+        >
+          {`${pathOr("", [locale, "Products", "AuctionTimeDesc"], t)} ${
+            selectedCatProps.auctionClosingTimeFee
+          } ${pathOr("", [locale, "Products", "currency"], t)}`}
+        </p>
         <input
           type="datetime-local"
           ref={dateTimeInput}

@@ -143,6 +143,9 @@ const ProductDetails = ({
   return (
     <Accordion.Body className={`${styles["accordion-body"]} accordion-body`}>
       <section className="form-content">
+        {!specifications?.length && (
+          <h4 className="text-center">{locale === "en" ? "No Required Data Available" : "لا توجد بيانات مطلوبة"}</h4>
+        )}
         {!!specifications?.length &&
           specifications.map((spesfication, index) => (
             <div className="form-group" key={spesfication?.id}>

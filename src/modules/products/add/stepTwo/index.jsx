@@ -43,11 +43,21 @@ const AddProductStepTwo = ({
 
   // All Validation Functions
   const validateProductImages = () => {
+    const isValidUrl = (url) => {
+      try {
+        new URL(url.trim())
+        return true
+      } catch (_) {
+        return false
+      }
+    }
     if (
       productPayload?.listImageFile.length > 0 &&
       productPayload?.MainImageIndex !== null &&
-      // check that videoUrl array doesn't have empty fileds or user didn't enter any then it's accepted
-      (productPayload.videoUrl.every((url) => url.trim() !== "") || productPayload.videoUrl.length === 1)
+      // Allow videoUrl to be empty OR ensure all URLs are valid
+      (productPayload.videoUrl.length === 0 ||
+        !!(productPayload.videoUrl.length === 1 && productPayload.videoUrl[0] === "") ||
+        productPayload.videoUrl.every((url) => isValidUrl(url)))
     ) {
       return true
     } else {
@@ -58,14 +68,20 @@ const AddProductStepTwo = ({
           productPayload?.MainImageIndex !== null
         ) {
           return true
-        } else return toast.error(locale === "en" ? "No photo uploaded for the product" : "لايوجد صور للمنتج")
+        } else {
+          return toast.error(locale === "en" ? "No photo uploaded for the product" : "لايوجد صور للمنتج")
+        }
       } else if (productPayload?.MainImageIndex === null) {
         return toast.error(locale === "en" ? "No main photo selected" : "لم يتم اختيار صورة رئيسية")
-      } else if (!productPayload.videoUrl.every((url) => url.trim() !== "")) {
+      } else if (
+        // Only show video URL error if the array is NOT empty and has invalid URLs
+        productPayload.videoUrl.length > 0 &&
+        !productPayload.videoUrl.every((url) => isValidUrl(url))
+      ) {
         return toast.error(
           locale === "en"
-            ? "Please Enter Video Url or Remove the empty field it!"
-            : "رجاء أدخل لينك الفيديو او امسح الحقل الفارغ",
+            ? "Please enter valid Video URLs or remove all fields"
+            : "رجاء أدخل روابط فيديو صحيحة أو امسح الحقول الفارغة",
         )
       }
     }
@@ -110,6 +126,8 @@ const AddProductStepTwo = ({
     const productDetailsInputs = [
       productPayload.nameAr,
       productPayload.nameEn,
+      productPayload.descriptionAr,
+      productPayload.descriptionEn,
       productPayload.countryId,
       productPayload.regionId,
       productPayload.neighborhoodId,
@@ -187,6 +205,7 @@ const AddProductStepTwo = ({
   }
 
   console.log("productPayload", productPayload)
+  console.log("selectedCatProps", selectedCatProps)
 
   return (
     <Accordion activeKey={eventKey} flush>
@@ -194,6 +213,15 @@ const AddProductStepTwo = ({
         <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("0")}>
           <span>1</span>
           {pathOr("", [locale, "Products", "productImages"], t)}
+          {eventKey === "0" && (
+            <p style={{ fontSize: "14px", fontWeight: "normal", color: "blue" }}>
+              {pathOr("", [locale, "Products", "Desc1"], t)} {selectedCatProps?.freeProductImagesCount}{" "}
+              {pathOr("", [locale, "Products", "Desc2"], t)} {selectedCatProps?.freeProductVidoesCount}{" "}
+              {pathOr("", [locale, "Products", "Desc3"], t)} {selectedCatProps?.extraProductImageFee}{" "}
+              {pathOr("", [locale, "Products", "Desc4"], t)} {selectedCatProps?.extraProductVidoeFee}{" "}
+              {pathOr("", [locale, "Products", "currency"], t)}
+            </p>
+          )}
         </Accordion.Button>
         <ProductImages
           productPayload={productPayload}
@@ -230,6 +258,7 @@ const AddProductStepTwo = ({
           setEventKey={setEventKey}
           regions={regions}
           setRegions={setRegions}
+          selectedCatProps={selectedCatProps}
         />
       </Accordion.Item>
 

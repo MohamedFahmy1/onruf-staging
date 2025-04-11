@@ -1,37 +1,14 @@
 import { pathOr } from "ramda"
 import { Accordion, Row } from "react-bootstrap"
-import React, { useEffect, useState } from "react"
+import React, { useEffect } from "react"
 import styles from "./stepTwo.module.css"
 import { useRouter } from "next/router"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
 import t from "../../../../translations.json"
 import { onlyNumbersInInputs } from "../../../../common/functions"
-import { useFetch } from "../../../../hooks/useFetch"
-import BanksData from "./BanksData"
 
 const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, setEventKey, selectedCatProps }) => {
   const { locale, pathname } = useRouter()
-  const { data: userBanksData } = useFetch("/BankTransfersList")
-  const [showBanksData, setShowBanksData] = useState(false)
-
-  const paymentOptionsHandler = (optionIndex) => {
-    if (optionIndex === 2) {
-      setProductPayload((prev) => ({
-        ...prev,
-        PaymentOptions: [...prev.PaymentOptions, 2],
-      }))
-    } else if (!productPayload.PaymentOptions?.includes(optionIndex)) {
-      setProductPayload((prev) => ({
-        ...prev,
-        PaymentOptions: [...prev.PaymentOptions, optionIndex],
-      }))
-    } else if (productPayload.PaymentOptions?.includes(optionIndex)) {
-      setProductPayload((prev) => ({
-        ...prev,
-        PaymentOptions: prev.PaymentOptions.filter((value) => value !== optionIndex),
-      }))
-    }
-  }
 
   const handleSendNegotiationOffer = () => {
     if (productPayload.SendOfferForAuction === true) {
@@ -117,6 +94,10 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
+                        <p className="mb-2 text-center" style={{ color: "blue" }}>
+                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableFixedPriceSaleFee}{" "}
+                          {pathOr("", [locale, "Products", "currency"], t)}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -143,6 +124,10 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
+                        <p className="mb-2 text-center" style={{ color: "blue" }}>
+                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableAuctionFee}{" "}
+                          {pathOr("", [locale, "Products", "currency"], t)}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -174,6 +159,10 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
+                        <p className="mb-2 text-center" style={{ color: "blue" }}>
+                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableNegotiationFee}{" "}
+                          {pathOr("", [locale, "Products", "currency"], t)}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -394,102 +383,6 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                 </div>
               </div>
             )}
-          </Row>
-          <Row>
-            <div className="col-12">
-              <div className="form-group">
-                <label style={{ textAlign: locale === "en" ? "left" : undefined, display: "block" }}>
-                  {pathOr("", [locale, "Products", "paymentOptions"], t)}
-                  <RequiredSympol />
-                </label>
-                <div className="row">
-                  <div className="col-lg-6 col-md-6">
-                    <div className="form-group">
-                      <div className="form-control outer-check-input">
-                        <div className="form-check form-switch p-0 m-0">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="cash"
-                            checked={productPayload.PaymentOptions?.includes(1) ? true : false}
-                            onChange={() => paymentOptionsHandler(1)}
-                          />
-                          <label htmlFor="cash">{pathOr("", [locale, "Products", "cash"], t)}</label>
-                          <span className="bord" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <div className="form-group">
-                      <div className="form-control outer-check-input">
-                        <div className="form-check form-switch p-0 m-0">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="bankTransfer"
-                            checked={productPayload.PaymentOptions?.includes(2) ? true : false}
-                            onChange={() => paymentOptionsHandler(2)}
-                            onClick={() => setShowBanksData(true)}
-                          />
-                          <label htmlFor="bankTransfer">{pathOr("", [locale, "Products", "bankTransfer"], t)}</label>
-                          <span className="bord" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                {showBanksData && (
-                  <BanksData
-                    data={userBanksData}
-                    setShowBanksData={setShowBanksData}
-                    productPayload={productPayload}
-                    setProductPayload={setProductPayload}
-                  />
-                )}
-                <div className="row">
-                  <div className="col-lg-6 col-md-6">
-                    <div className="form-group">
-                      <div className="form-control outer-check-input">
-                        <div className="form-check form-switch p-0 m-0">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            checked={true}
-                            disabled
-                            readOnly
-                          />
-                          <label>{pathOr("", [locale, "Products", "creditCard"], t)}</label>
-                          <span className="bord" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="col-lg-6 col-md-6">
-                    <div className="form-group">
-                      <div className="form-control outer-check-input">
-                        <div className="form-check form-switch p-0 m-0">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="flexSwitchCheckChecked"
-                            checked={true}
-                            disabled
-                            readOnly
-                          />
-                          <label>{pathOr("", [locale, "Products", "mada"], t)}</label>
-                          <span className="bord" />
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </Row>
         </form>
       </div>

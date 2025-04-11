@@ -283,7 +283,14 @@
       "write_quantity": "من فضلك اكتب الكمية",
       "edit_product": "تعديل المنتج",
       "repost_product": "إعادة نشر المنتج",
-      "ProductId": "رقم المنتج"
+      "ProductId": "رقم المنتج",
+      "Desc1": "يمكنك رفع",
+      "Desc2": "صور/ة و",
+      "Desc3": "رابط/روابط فيديو مجانًا. كل صورة إضافية بـ ",
+      "Desc4": " ريال ورابط إضافي بـ",
+      "SubtitleFeeDesc": "يرجى العلم أن إضافة عنوان فرعي باللغة العربية لإعلان المنتج ستكلفك ",
+      "ItWillCost": "علما بأنه سوف يكلفك",
+      "AuctionTimeDesc": "يرجى العلم ان اختيار تاريخ مخصص لوقت نهاية المزاد سيكلفك  "
     },
     "Users": {
       "users": "العملاء",
@@ -886,7 +893,7 @@
       "adAuct": "Auction",
       "negotiation": "Negotiation",
       "productPrice": "Product Price",
-      "currency": "S.R",
+      "currency": "SAR",
       "paymentOptions": "Payment Options",
       "cash": "Cash",
       "bankTransfer": "Bank Transfer",
@@ -982,7 +989,13 @@
       "write_quantity": "Please Write Quantity",
       "edit_product": "Edit Product",
       "repost_product": "Repost Product",
-      "ProductId": "Product Id"
+      "ProductId": "Product Id",
+      "Desc1": "You Can Upload",
+      "Desc2": "Image\\S And",
+      "Desc3": "Video Link\\S For Free. Each Additional Image Costs ",
+      "Desc4": " SAR, And Each Additional Link Costs",
+      "SubtitleFeeDesc": "Please Note That Adding An Arabic Subtitle To Your Product Ad Will Cost You ",
+      "ItWillCost": "Please note that it Will Cost You"
     },
     "Users": {
       "users": "Clients",
