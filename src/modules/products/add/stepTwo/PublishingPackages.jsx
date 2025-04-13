@@ -13,6 +13,7 @@ import { useState } from "react"
 import { useFetch } from "../../../../hooks/useFetch"
 import { useSelector } from "react-redux"
 import common from "../../../../../public/images/common.png"
+import commonEn from "../../../../../public/images/commonEn.png"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
 
@@ -190,7 +191,7 @@ const PublishingPackages = ({
                       >
                         {pack.common && (
                           <div style={{ position: "absolute", top: -16, left: -17, zIndex: 10 }}>
-                            <Image src={common} alt="border" width={140} height={140} />
+                            <Image src={locale === "en" ? commonEn : common} alt="border" width={140} height={140} />
                           </div>
                         )}
                         <div className={styles["head2"]}>
@@ -327,7 +328,7 @@ const PublishingPackages = ({
                       >
                         {pack.common && (
                           <div style={{ position: "absolute", top: -16, left: -17, zIndex: 10 }}>
-                            <Image src={common} alt="border" width={140} height={140} />
+                            <Image src={locale === "en" ? commonEn : common} alt="border" width={140} height={140} />
                           </div>
                         )}
                         <div className={styles["head"]}>
