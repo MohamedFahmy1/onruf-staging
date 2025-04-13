@@ -257,6 +257,15 @@ const PublishingPackages = ({
                             option={pathOr("", [locale, "Products", "AuctionClosingTimeOption"], t)}
                             value={pack.auctionClosingTimeOption ? pathOr("", [locale, "Products", "Yes"], t) : false}
                           />
+
+                          <div
+                            className="d-flex justify-content-between bg-white rounded-4 p-2 mt-3"
+                            style={{ border: "1px solid #EE6C4D" }}
+                          >
+                            <p>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                            {console.log(pack)}
+                            <p>{moment(pack.endDate).format("L")}</p>
+                          </div>
                         </ul>
 
                         <input
