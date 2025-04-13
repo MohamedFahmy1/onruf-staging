@@ -147,6 +147,7 @@ const EditProduct = () => {
             "ProductPaymentDetailsDto.ExtraProductVidoeFee": productData.categoryDto.extraProductVidoeFee,
             "ProductPaymentDetailsDto.SubTitleFee": productData.categoryDto.subTitleFee,
             "ProductPaymentDetailsDto.AdditionalPakatId": productData.categoryDto.additionalPakatId || null,
+            "ProductPaymentDetailsDto.PakatId": productData.categoryDto.pakatId || null,
             IsAuctionClosingTimeFixed: productData.isAuctionClosingTimeFixed,
           }))
         }

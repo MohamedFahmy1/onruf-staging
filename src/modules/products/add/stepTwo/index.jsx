@@ -171,6 +171,13 @@ const AddProductStepTwo = ({
       return toast.error(
         locale === "en" ? "Please enter negotiation price and for whom!" : "!من فضلك ادخل سعر التفاوض ولمن",
       )
+    } else if (
+      (productPayload.AuctionClosingTime === "" || !productPayload.AuctionClosingTime) &&
+      productPayload.IsAuctionEnabled
+    ) {
+      return toast.error(
+        locale === "en" ? "Error Please Choose Auction Closing Time!" : "حدث خطأ برجاء تحديد موعد انتهاء المزاد",
+      )
     } else return true
   }
 
@@ -178,16 +185,11 @@ const AddProductStepTwo = ({
     // if you choosed shipping options 2 or 3 you must choose highlighted options
     const hasTwoOrThree = productPayload.ShippingOptions.includes(2) || productPayload.ShippingOptions.includes(3)
     const hasHighlighted = productPayload.ShippingOptions.some((id) => id > 3)
-    if (hasTwoOrThree && !hasHighlighted) {
+    if (productPayload?.ShippingOptions?.length === 0) {
+      return toast.error(locale == "en" ? "Please select shipping option!" : "من فضلك اختر وسيلة شحن")
+    } else if (hasTwoOrThree && !hasHighlighted) {
       return toast.error(
         locale == "en" ? "Please select the highlighted options!" : "من فضلك اختر وسيلة شحن من الوسايل المحدده اعلاه",
-      )
-    } else if (
-      (productPayload.AuctionClosingTime === "" || !productPayload.AuctionClosingTime) &&
-      productPayload.IsAuctionEnabled
-    ) {
-      return toast.error(
-        locale === "en" ? "Error Please Choose Auction Closing Time!" : "حدث خطأ برجاء تحديد موعد انتهاء المزاد",
       )
     } else return true
   }

@@ -38,7 +38,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   const fixedFee = productFullData?.IsFixedPriceEnabled ? selectedCatProps?.enableFixedPriceSaleFee : 0
 
-  const pakaFee = productFullData?.pakatId ? packageDetails?.price : 0
+  const pakaFee = !!(productFullData?.pakatId && productFullData?.isNewPackage) ? packageDetails?.price : 0
+
+  const auctionClosingTime = !productFullData?.IsAuctionClosingTimeFixed ? selectedCatProps?.auctionClosingTimeFee : 0
 
   const couponDiscount = couponData ? couponData.discountValue : 0
 
@@ -55,7 +57,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     +negotiationFee +
     +fixedFee +
     +pakaFee -
-    +couponDiscount
+    +couponDiscount +
+    +auctionClosingTime
 
   const aditionalImagesFee =
     selectedCatProps?.extraProductImageFee *
@@ -74,11 +77,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   }, [productFullData.ShippingOptions])
 
   const getPackage = useCallback(async () => {
-    if (productFullData.pakatId || productFullData["ProductPaymentDetailsDto.AdditionalPakatId"]) {
+    if (productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]) {
       const data = await axios.get(
-        `/GetPakaById?Pakatid=${
-          productFullData.pakatId || productFullData["ProductPaymentDetailsDto.AdditionalPakatId"]
-        }
+        `/GetPakaById?Pakatid=${productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]}
       `,
       )
       setPackageDetails(data?.data?.data)
@@ -114,7 +115,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   useEffect(() => {
     productFullData.pakatId && getPackage()
-  }, [productFullData.pakatId, getPackage])
+  }, [productFullData.pakatId])
 
   useEffect(() => {
     setProductPayload((prev) => ({
@@ -337,7 +338,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   </span>
                 </div>
               </Col>
-              {Boolean(productFullData && productFullData.IsAuctionEnabled) && (
+              {!!(productFullData && productFullData.IsAuctionEnabled) && (
                 <Fragment>
                   <Col md={6}>
                     <div className={styles["info_boxo_"]}>
@@ -546,7 +547,15 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                       </span>
                     </li>
                   )}
-                  {productFullData.pakatId && (
+                  {auctionClosingTime > 0 && (
+                    <li>
+                      <span>{pathOr("", [locale, "Products", "AuctionClosingTimeFee"], t)}</span>{" "}
+                      <span>
+                        {auctionClosingTime} {pathOr("", [locale, "Products", "currency"], t)}
+                      </span>
+                    </li>
+                  )}
+                  {!!(productFullData?.pakatId && productFullData?.isNewPackage) && (
                     <li>
                       <span>{pathOr("", [locale, "Products", "package_price"], t)}</span>{" "}
                       <span>

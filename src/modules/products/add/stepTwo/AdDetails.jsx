@@ -103,7 +103,7 @@ const AdDetails = ({
               <label htmlFor="subTitleAr" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productSecondaryAddressAr"], t)}
               </label>
-              {selectedCatProps?.subTitleFee && (
+              {!!selectedCatProps?.subTitleFee && (
                 <p style={{ color: "blue" }}>
                   {pathOr("", [locale, "Products", "SubtitleFeeDesc"], t)} {selectedCatProps?.subTitleFee}{" "}
                   {pathOr("", [locale, "Products", "currency"], t)}

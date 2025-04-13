@@ -6,6 +6,7 @@ import { useRouter } from "next/router"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
 import t from "../../../../translations.json"
 import { onlyNumbersInInputs } from "../../../../common/functions"
+import AuctionClosingTimeComp from "./AuctionClosingTimeComp"
 
 const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, setEventKey, selectedCatProps }) => {
   const { locale, pathname } = useRouter()
@@ -265,6 +266,19 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                     </div>
                   </div>
                 </div>
+                {productPayload?.IsAuctionEnabled && !pathname.includes("edit") && (
+                  <>
+                    <h5 className="f-b" style={{ ...textAlignStyle(locale), display: "block" }}>
+                      {pathOr("", [locale, "Products", "offer_duration"], t)}
+                      <RequiredSympol />
+                    </h5>
+                    <AuctionClosingTimeComp
+                      productPayload={productPayload}
+                      setProductPayload={setProductPayload}
+                      selectedCatProps={selectedCatProps}
+                    />
+                  </>
+                )}
                 <div className="contint_paner">
                   <div className="row">
                     <div className="col-12 d-flex align-items-center justify-content-between flex-wrap mb-4 px-3">

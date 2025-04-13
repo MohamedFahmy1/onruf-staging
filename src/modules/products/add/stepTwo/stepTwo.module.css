@@ -138,6 +138,17 @@
   padding: 23px 20px;
   display: flex;
   justify-content: space-between;
+  flex-wrap: wrap;
+  color: #fff;
+  font-size: 18px;
+}
+
+.box-Bouquet .head2 {
+  background: #45495e;
+  border-radius: 15px 15px 0 0;
+  padding: 17px 20px 23px;
+  display: block;
+  text-align: center;
   color: #fff;
   font-size: 18px;
 }
@@ -150,8 +161,10 @@
 
 .box-Bouquet .info li {
   position: relative;
-  margin: 5px 10px;
-  padding-inline-start: 20px;
+  font-size: 18px;
+  font-weight: normal;
+  padding-inline-end: 50px;
+  width: 100%;
 }
 
 .box-Bouquet .info li > svg {
@@ -163,6 +176,12 @@
 
 .box-Bouquet-gold .head {
   background: var(--main);
+}
+.box-Bouquet-gold .head2 {
+  background: var(--main);
+}
+.box-Bouquet-gold ul {
+  background-color: #fff1ee;
 }
 .selectedIcon {
   border-radius: 50%;

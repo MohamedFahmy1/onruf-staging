@@ -131,7 +131,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
         </div>
         <p
           className="mb-2"
-          style={{ ...textAlignStyle(locale), display: "block", color: "blue", fontWeight: "normal" }}
+          style={{ ...textAlignStyle(locale), display: "block", color: "blue", fontWeight: "normal", fontSize: 14 }}
         >
           {`${pathOr("", [locale, "Products", "AuctionTimeDesc"], t)} ${
             selectedCatProps.auctionClosingTimeFee

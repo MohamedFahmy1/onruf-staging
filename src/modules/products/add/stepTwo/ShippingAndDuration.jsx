@@ -59,24 +59,12 @@ const ShippingAndDuration = ({
       <div className="form-content">
         <form>
           <Row>
-            {productPayload?.IsAuctionEnabled && !pathname.includes("edit") && (
-              <Fragment>
-                <h5 className="f-b" style={{ ...textAlignStyle(locale), display: "block" }}>
-                  {pathOr("", [locale, "Products", "offer_duration"], t)}
-                  <RequiredSympol />
-                </h5>
-                <AuctionClosingTimeComp
-                  productPayload={productPayload}
-                  setProductPayload={setProductPayload}
-                  selectedCatProps={selectedCatProps}
-                />
-              </Fragment>
-            )}
             {shippingOptions?.length > 0 && (
               <div className="col-lg-12 col-md-12">
                 <div className="form-group">
                   <label style={{ ...textAlignStyle(locale), display: "block" }}>
                     {pathOr("", [locale, "Products", "shippingOptions"], t)}
+                    <RequiredSympol />
                   </label>
                   <div className="row">
                     {productPayload.ShippingOptions?.includes(2) || productPayload.ShippingOptions?.includes(3)
