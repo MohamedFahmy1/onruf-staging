@@ -3,6 +3,7 @@ import { Accordion, Col, Row } from "react-bootstrap"
 import styles from "./stepTwo.module.css"
 import { useRouter } from "next/router"
 import bigger from "../../../../../public/images/screencaptur.png"
+import biggerEn from "../../../../../public/images/biggerEn.png"
 import t from "../../../../translations.json"
 import { FaCheckCircle, FaRegStar } from "react-icons/fa"
 import packStar from "../../../../assets/images/pack_star.png"
@@ -182,12 +183,12 @@ const PublishingPackages = ({
                   myPackat.map((pack) => (
                     <Col md={6} key={pack?.pakaId}>
                       <div
-                        className={`${styles["box-Bouquet"]} ${pack.commen ? styles["box-Bouquet-gold"] : ""} ${
+                        className={`${styles["box-Bouquet"]} ${pack.common ? styles["box-Bouquet-gold"] : ""} ${
                           productPayload?.pakaId == pack.pakaId ? styles["activePack"] : ""
                         }`}
                         onClick={() => handleChoosePackat(pack, false)}
                       >
-                        {pack.commen && (
+                        {pack.common && (
                           <div style={{ position: "absolute", top: -16, left: -17, zIndex: 10 }}>
                             <Image src={common} alt="border" width={140} height={140} />
                           </div>
@@ -225,7 +226,9 @@ const PublishingPackages = ({
 
                           <PackageOption
                             option={pathOr("", [locale, "Products", "LargerAdSize"], t)}
-                            value={pack.productPosition === "VIP" ? pathOr("", [locale, "Products", "Yes"], t) : false}
+                            value={
+                              pack.productPosition === "StarRuf" ? pathOr("", [locale, "Products", "Yes"], t) : false
+                            }
                           />
 
                           <PackageOption
@@ -317,12 +320,12 @@ const PublishingPackages = ({
                   packat.map((pack) => (
                     <Col md={6} key={pack?.id}>
                       <div
-                        className={`${styles["box-Bouquet"]} ${pack.commen ? styles["box-Bouquet-gold"] : ""} ${
+                        className={`${styles["box-Bouquet"]} ${pack.common ? styles["box-Bouquet-gold"] : ""} ${
                           productPayload?.pakatId == pack.id ? styles["activePack"] : ""
                         }`}
                         onClick={() => handleChoosePackat(pack, true)}
                       >
-                        {pack.commen && (
+                        {pack.common && (
                           <div style={{ position: "absolute", top: -16, left: -17, zIndex: 10 }}>
                             <Image src={common} alt="border" width={140} height={140} />
                           </div>
@@ -365,7 +368,9 @@ const PublishingPackages = ({
 
                           <PackageOption
                             option={pathOr("", [locale, "Products", "LargerAdSize"], t)}
-                            value={pack.productPosition === "VIP" ? pathOr("", [locale, "Products", "Yes"], t) : false}
+                            value={
+                              pack.productPosition === "StarRuf" ? pathOr("", [locale, "Products", "Yes"], t) : false
+                            }
                           />
 
                           <PackageOption
@@ -430,20 +435,24 @@ const PublishingPackages = ({
             </Col>
           </Row>
 
-          {selectedPack?.productPosition === "VIP" && (
+          {selectedPack?.productPosition === "StarRuf" && (
             <div className="mt-4">
               <h5 className="mb-3 f-b text-center">{pathOr("", [locale, "Products", "findChange"], t)}</h5>
               <Row className="align-items-center">
                 <Col md={5} lg={4}>
-                  <ProductBox isLargerImage={false} />
+                  <ProductBox isLargerImage={locale === "en" ? true : false} />
                 </Col>
                 <Col lg={2}>
                   <div className="text-center mt-3">
-                    <Image src={bigger} className="img-fluid" alt="bigger" width={130} height={180} />
+                    {locale === "en" ? (
+                      <Image src={biggerEn} className="img-fluid" alt="bigger" width={130} height={180} />
+                    ) : (
+                      <Image src={bigger} className="img-fluid" alt="bigger" width={130} height={180} />
+                    )}
                   </div>
                 </Col>
                 <Col md={5}>
-                  <ProductBox isLargerImage={true} />
+                  <ProductBox isLargerImage={locale === "en" ? false : true} />
                 </Col>
               </Row>
             </div>
