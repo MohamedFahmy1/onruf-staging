@@ -95,10 +95,12 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
-                        <p className="mb-2 text-center" style={{ color: "blue" }}>
-                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableFixedPriceSaleFee}{" "}
-                          {pathOr("", [locale, "Products", "currency"], t)}
-                        </p>
+                        {!!selectedCatProps?.enableFixedPriceSaleFee && (
+                          <p className="mb-2 text-center" style={{ color: "blue" }}>
+                            {pathOr("", [locale, "Products", "ItWillCost"], t)}{" "}
+                            {selectedCatProps.enableFixedPriceSaleFee} {pathOr("", [locale, "Products", "currency"], t)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -125,10 +127,12 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
-                        <p className="mb-2 text-center" style={{ color: "blue" }}>
-                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableAuctionFee}{" "}
-                          {pathOr("", [locale, "Products", "currency"], t)}
-                        </p>
+                        {selectedCatProps?.enableAuctionFee && (
+                          <p className="mb-2 text-center" style={{ color: "blue" }}>
+                            {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableAuctionFee}{" "}
+                            {pathOr("", [locale, "Products", "currency"], t)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
@@ -160,10 +164,12 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                             <span className="bord" />
                           </div>
                         </div>
-                        <p className="mb-2 text-center" style={{ color: "blue" }}>
-                          {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableNegotiationFee}{" "}
-                          {pathOr("", [locale, "Products", "currency"], t)}
-                        </p>
+                        {selectedCatProps?.enableNegotiationFee && (
+                          <p className="mb-2 text-center" style={{ color: "blue" }}>
+                            {pathOr("", [locale, "Products", "ItWillCost"], t)} {selectedCatProps.enableNegotiationFee}{" "}
+                            {pathOr("", [locale, "Products", "currency"], t)}
+                          </p>
+                        )}
                       </div>
                     </div>
                   )}
