@@ -14,6 +14,7 @@ import { multiFormData } from "../../../../common/axiosHeaders"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname, push } = useRouter()
+  const [paymentOption, setPaymentOption] = useState([])
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
   const [couponData, setCouponData] = useState()
@@ -594,39 +595,67 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   </li>
                 </ul>
                 <hr />
-                {/*<div className="f-b mb-2">طرق الدفع</div>
-                <div className="payment-methods">
-                  <label className={`${styles["method_check"]}, ${styles["method_check1"]}`}>
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "Cash" ? true : false}
-                      onClick={() => setPaymentMethod("Cash")}
-                    />
-                    <span className={styles["bord"]} />
-                    <span>Cash </span>
-                  </label>
-                  <label className="method_check">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "Online" ? true : false}
-                      onClick={() => setPaymentMethod("Online")}
-                    />
-                    <span className={styles["bord"]} />
-                    <span className="mx-2">Online</span>
-                  </label>
-                  <label className="method_check">
-                    <input
-                      type="radio"
-                      name="payment"
-                      checked={paymentMethod === "Banking Transfer" ? true : false}
-                      onClick={() => setPaymentMethod("Banking Transfer")}
-                    />
-                    <span className={styles["bord"]} />
-                    <span className="mx-2">Banking Transfer</span>
-                  </label>
-                </div>*/}
+                <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
+                <div className="row">
+                  <div className="col-lg-12">
+                    <div className="form-group">
+                      <div className="form-control outer-check-input  d-flex justify-content-between">
+                        <div className="form-check form-switch p-0 m-0 d-flex w-auto">
+                          <input
+                            className="form-check-input m-0"
+                            type="checkbox"
+                            role="switch"
+                            id="IsFixedPriceEnabled"
+                            checked={paymentOption === 1}
+                            onChange={() => setPaymentOption(1)}
+                          />
+                          <span className="bord" />
+                        </div>
+                        <label htmlFor="IsFixedPriceEnabled">
+                          {pathOr("", [locale, "Products", "Visa_MasterCard"], t)}
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-12">
+                    <div className="form-group">
+                      <div className="form-control outer-check-input d-flex justify-content-between">
+                        <div className="form-check form-switch p-0 m-0 w-auto">
+                          <input
+                            className="form-check-input m-0"
+                            type="checkbox"
+                            role="switch"
+                            id="IsAuctionEnabled"
+                            checked={paymentOption === 2}
+                            onChange={() => setPaymentOption(2)}
+                          />
+                          <span className="bord" />
+                        </div>
+                        <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "Mada"], t)}</label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-lg-12">
+                    <div className="form-group">
+                      <div className="form-control outer-check-input d-flex justify-content-between">
+                        <div className="form-check form-switch p-0 m-0 w-auto">
+                          <input
+                            className="form-check-input m-0"
+                            type="checkbox"
+                            role="switch"
+                            id="IsNegotiationEnabled"
+                            checked={paymentOption === 3}
+                            onChange={() => setPaymentOption(3)}
+                          />
+                          <span className="bord" />
+                        </div>
+                        <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "MyWallet"], t)}</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
             <button

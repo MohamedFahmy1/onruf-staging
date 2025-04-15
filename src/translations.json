@@ -309,7 +309,10 @@
       "AuctionClosingTimeOption": "خيار وقت اغلاق المزاد (حدد تاريخك ووقتك الخاص)",
       "Yes": "نعم",
       "No": "لا",
-      "AuctionClosingTimeFee": "رسوم وقت اغلاق المزاد"
+      "AuctionClosingTimeFee": "رسوم وقت اغلاق المزاد",
+      "Visa_MasterCard": "فيزا / ماستركارد",
+      "Mada": "مدى",
+      "MyWallet": "محفظتي"
     },
     "Users": {
       "users": "العملاء",
@@ -465,7 +468,15 @@
       "ChoosePaka": "أختر الباقة التي تريد التغيير اليها",
       "noPaka": "لا يوجد باقات للاشتراك بقا",
       "lastPackageUpdate": "اخر تجديد للباقة",
-      "nextRenewalDate": "موعد التجديد القادم"
+      "nextRenewalDate": "موعد التجديد القادم",
+      "Category": "الفئة",
+      "PackageType": "نوع الباقة",
+      "NumberOfSMS": "عدد الرسائل",
+      "PackageDetails": "تفاصيل الباقة",
+      "ChossenPackageDetails": "تفاصيل الباقة المختارة",
+      "EndDate": "تاريخ الانتهاء",
+      "Subscribe": "اشترك",
+      "Cancel": "الغاء"
     },
     "questionsAndReviews": {
       "all": "الكل",
@@ -1034,7 +1045,10 @@
       "AuctionClosingTimeOption": "Auction Closing Time Option (Choose Your Own Date and Time)",
       "Yes": "Yes",
       "No": "No",
-      "AuctionClosingTimeFee": "Auction Closing Time Fee"
+      "AuctionClosingTimeFee": "Auction Closing Time Fee",
+      "Visa_MasterCard": "Visa / MasterCard",
+      "Mada": "Mada",
+      "MyWallet": "My Wallet"
     },
     "Users": {
       "users": "Clients",
@@ -1189,7 +1203,15 @@
       "ChoosePaka": "Choose the package you want to subscribe to!",
       "noPaka": "No Packages To Subscribe!",
       "lastPackageUpdate": "Last Package Update",
-      "nextRenewalDate": "Next Renewal Date"
+      "nextRenewalDate": "Next Renewal Date",
+      "Category": "Category",
+      "PackageType": "Package Type",
+      "NumberOfSMS": "Number of SMS",
+      "PackageDetails": "Package Details",
+      "ChossenPackageDetails": "Chossen Package Details",
+      "EndDate": "End Date",
+      "Subscribe": "Subscribe",
+      "Cancel": "Cancel"
     },
     "questionsAndReviews": {
       "all": "All",

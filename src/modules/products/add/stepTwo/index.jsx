@@ -217,11 +217,19 @@ const AddProductStepTwo = ({
           {pathOr("", [locale, "Products", "productImages"], t)}
           {eventKey === "0" && (
             <p style={{ fontSize: "14px", fontWeight: "normal", color: "blue" }}>
-              {pathOr("", [locale, "Products", "Desc1"], t)} {selectedCatProps?.freeProductImagesCount}{" "}
-              {pathOr("", [locale, "Products", "Desc2"], t)} {selectedCatProps?.freeProductVidoesCount}{" "}
-              {pathOr("", [locale, "Products", "Desc3"], t)} {selectedCatProps?.extraProductImageFee}{" "}
-              {pathOr("", [locale, "Products", "Desc4"], t)} {selectedCatProps?.extraProductVidoeFee}{" "}
-              {pathOr("", [locale, "Products", "currency"], t)}
+              {!!(selectedCatProps?.freeProductImagesCount || selectedCatProps?.freeProductVidoesCount) &&
+                pathOr("", [locale, "Products", "Desc1"], t) + " "}
+              {!!selectedCatProps?.freeProductImagesCount &&
+                " " + selectedCatProps?.freeProductImagesCount + " " + pathOr("", [locale, "Products", "Desc2"], t)}
+              {!!selectedCatProps?.freeProductVidoesCount && locale === "en"
+                ? " " + selectedCatProps?.freeProductVidoesCount + " Video Link\\S For Free."
+                : " " + selectedCatProps?.freeProductVidoesCount + "رابط/روابط فيديو مجانًا."}
+              {!!selectedCatProps?.extraProductImageFee && locale === "en"
+                ? " Each Additional Image Costs " + selectedCatProps?.extraProductImageFee + " SAR."
+                : "كل صورة إضافية بـ " + selectedCatProps?.extraProductImageFee + " ريال."}
+              {!!selectedCatProps?.extraProductVidoeFee && locale === "en"
+                ? " Each Additional Video Costs " + selectedCatProps?.extraProductVidoeFee + " SAR."
+                : "كل رابط فيديو إضافي بـ " + selectedCatProps?.extraProductVidoeFee + " ريال."}
             </p>
           )}
         </Accordion.Button>
