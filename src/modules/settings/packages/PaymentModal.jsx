@@ -40,7 +40,7 @@ const PaymentModal = ({ showModal = true, setShowModal, pakaID, handleSubscribeP
                   <span>تكلفة الباقة</span> <span>1600 ر.س</span>
                 </li>
                 <li>
-                  <span>الضريبة المضافة (12%)</span> <span>1600 ر.س</span>
+                  <span>الضريبة المضافة (15%)</span> <span>1600 ر.س</span>
                 </li>
                 <li>
                   <span>الاجمالي</span> <span className="f-b">1600 ر.س</span>

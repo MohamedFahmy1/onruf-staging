@@ -2,7 +2,7 @@ import React from "react"
 import { CircularProgress, Box, Typography } from "@mui/material"
 import { useRouter } from "next/router"
 
-export const LoadingScreen = () => {
+export const LoadingScreen = ({ height = "100vh" }) => {
   const { locale } = useRouter()
 
   return (
@@ -12,7 +12,7 @@ export const LoadingScreen = () => {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        height: "100vh",
+        height,
         backgroundColor: "#f0f0f0",
       }}
     >

@@ -52,11 +52,11 @@ const PaymentCards = ({ bankTransfers }) => {
     reset({
       ...getSelectedBankTransfer,
       paymentAccountType:
-        getSelectedBankTransfer.paymentAccountType === "CreditCard"
-          ? 3
-          : getSelectedBankTransfer.paymentAccountType === "STCPay"
-          ? 5
-          : 1,
+        getSelectedBankTransfer.paymentAccountType === "VisaMasterCard"
+          ? 1
+          : getSelectedBankTransfer.paymentAccountType === "Mada"
+          ? 2
+          : 3,
     })
   }
 
@@ -159,8 +159,8 @@ const PaymentCards = ({ bankTransfers }) => {
                 className="box-bank-account"
                 key={bank?.id}
                 style={{
-                  color: bank.paymentAccountType === "BankDeposit" ? "black" : undefined,
-                  border: bank.paymentAccountType === "BankDeposit" ? "1px solid #ccc" : undefined,
+                  color: bank.paymentAccountType === "BankAccount" ? "black" : undefined,
+                  border: bank.paymentAccountType === "BankAccount" ? "1px solid #ccc" : undefined,
                 }}
               >
                 <div>
@@ -168,7 +168,7 @@ const PaymentCards = ({ bankTransfers }) => {
                     className="d-flex align-items-center justify-content-between mb-10 gap-3"
                     style={{ maxWidth: "85%" }}
                   >
-                    {bank.paymentAccountType === "CreditCard" && (
+                    {bank.paymentAccountType === "VisaMasterCard" && (
                       <Image
                         src={VisaImg}
                         className="img_"
@@ -179,7 +179,7 @@ const PaymentCards = ({ bankTransfers }) => {
                         priority
                       />
                     )}
-                    {bank.paymentAccountType === "STCPay" && (
+                    {bank.paymentAccountType === "Mada" && (
                       <Image
                         src={stcPayImg}
                         className="img_"
@@ -216,7 +216,7 @@ const PaymentCards = ({ bankTransfers }) => {
                     </div>
                     <div>{bank?.bankHolderName}</div>
                   </div>
-                  {bank.paymentAccountType === "BankDeposit" ? (
+                  {bank.paymentAccountType === "BankAccount" ? (
                     <div className="mt-10">
                       <div>{bank?.swiftCode}</div>
                     </div>
@@ -227,12 +227,12 @@ const PaymentCards = ({ bankTransfers }) => {
                     </div>
                   )}
                 </div>
-                {bank.paymentAccountType === "CreditCard" && (
+                {bank.paymentAccountType === "VisaMasterCard" && (
                   <div className="baner">
                     <Image src={BoxBankImg} alt="visa" width={188} height={285} layout="fixed" priority />
                   </div>
                 )}
-                {bank.paymentAccountType === "STCPay" && (
+                {bank.paymentAccountType === "Mada" && (
                   <div className="baner">
                     <Image src={stc} alt="stc pay" width={188} height={285} layout="fixed" priority />
                   </div>
@@ -264,8 +264,8 @@ const PaymentCards = ({ bankTransfers }) => {
                   <input
                     type="radio"
                     name="paymentAccountType"
-                    value={3}
-                    defaultChecked={paymentAccountTypeValue === 3}
+                    value={1}
+                    defaultChecked={paymentAccountTypeValue === 1}
                     {...register("paymentAccountType", {
                       required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
                     })}
@@ -277,8 +277,8 @@ const PaymentCards = ({ bankTransfers }) => {
                   <input
                     type="radio"
                     name="paymentAccountType"
-                    value={5}
-                    defaultChecked={paymentAccountTypeValue === 5}
+                    value={2}
+                    defaultChecked={paymentAccountTypeValue === 2}
                     {...register("paymentAccountType", {
                       required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
                     })}
@@ -290,8 +290,8 @@ const PaymentCards = ({ bankTransfers }) => {
                   <input
                     type="radio"
                     name="paymentAccountType"
-                    value={1}
-                    defaultChecked={paymentAccountTypeValue === 1}
+                    value={3}
+                    defaultChecked={paymentAccountTypeValue === 3}
                     {...register("paymentAccountType", {
                       required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
                     })}

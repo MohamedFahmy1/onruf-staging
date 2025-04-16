@@ -11,6 +11,9 @@ import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
+import WalletModal from "./WalletModal"
+import VisaModal from "./VisaModal"
+import MadaModal from "./MadaModal"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname, push } = useRouter()
@@ -20,34 +23,63 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [couponData, setCouponData] = useState()
   const [couponCode, setCouponCode] = useState("")
   const [loading, setLoading] = useState(false)
+  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
+  const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
+  const [selectedCard, setSelectedCard] = useState(null)
+
+  console.log(selectedCard)
 
   const totalImageFee =
-    productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount
+    productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + packageDetails?.countImage
       ? selectedCatProps?.extraProductImageFee *
-        (productFullData?.listImageFile.length - selectedCatProps?.freeProductImagesCount)
+        (productFullData?.listImageFile.length - selectedCatProps?.freeProductImagesCount - packageDetails?.countImage)
       : 0
 
   const totalVideoFee =
-    productFullData?.videoUrl?.length > selectedCatProps?.freeProductVidoesCount
+    productFullData?.videoUrl?.length > selectedCatProps?.freeProductVidoesCount + packageDetails?.countVideo
       ? selectedCatProps?.extraProductVidoeFee *
-        (productFullData?.videoUrl?.length - selectedCatProps?.freeProductVidoesCount)
+        (productFullData?.videoUrl?.length - selectedCatProps?.freeProductVidoesCount - packageDetails?.countVideo)
       : 0
 
-  const auctionFee = productFullData?.IsAuctionEnabled ? selectedCatProps?.enableAuctionFee : 0
+  const auctionFee =
+    packageDetails?.enableAuction === true
+      ? 0
+      : productFullData?.IsAuctionEnabled
+      ? selectedCatProps?.enableAuctionFee
+      : 0
 
-  const negotiationFee = productFullData?.IsNegotiationEnabled ? selectedCatProps?.enableNegotiationFee : 0
+  const negotiationFee =
+    packageDetails?.enableNegotiable === true
+      ? 0
+      : productFullData?.IsNegotiationEnabled
+      ? selectedCatProps?.enableNegotiationFee
+      : 0
 
-  const fixedFee = productFullData?.IsFixedPriceEnabled ? selectedCatProps?.enableFixedPriceSaleFee : 0
+  const fixedFee =
+    packageDetails?.enableFixedPrice === true
+      ? 0
+      : productFullData?.IsFixedPriceEnabled
+      ? selectedCatProps?.enableFixedPriceSaleFee
+      : 0
 
   const pakaFee = !!(productFullData?.pakatId && productFullData?.isNewPackage) ? packageDetails?.price : 0
 
-  const auctionClosingTime = !productFullData?.IsAuctionClosingTimeFixed ? selectedCatProps?.auctionClosingTimeFee : 0
+  const auctionClosingTime =
+    packageDetails?.auctionClosingTimeOption === true
+      ? 0
+      : !productFullData?.IsAuctionClosingTimeFixed
+      ? selectedCatProps?.auctionClosingTimeFee
+      : 0
 
   const couponDiscount = couponData ? couponData.discountValue : 0
 
-  const subtitleFee = !!(productFullData?.subTitleAr?.trim() !== "" || productFullData?.subTitleEn?.trim() !== "")
-    ? selectedCatProps?.subTitleFee
-    : 0
+  const subtitleFee =
+    packageDetails?.showSupTitle === true
+      ? 0
+      : !!(productFullData?.subTitleAr?.trim() !== "" || productFullData?.subTitleEn?.trim() !== "")
+      ? selectedCatProps?.subTitleFee
+      : 0
 
   const totalCost =
     +selectedCatProps?.productPublishPrice +
@@ -63,13 +95,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   const aditionalImagesFee =
     selectedCatProps?.extraProductImageFee *
-    (productFullData.listImageFile.length - selectedCatProps?.freeProductImagesCount)
+    (productFullData.listImageFile.length - selectedCatProps?.freeProductImagesCount - packageDetails?.countImage)
 
   const aditionalVideoFee =
     selectedCatProps?.extraProductVidoeFee *
-    (productFullData.videoUrl.length - selectedCatProps?.freeProductVidoesCount)
+    (productFullData.videoUrl.length - selectedCatProps?.freeProductVidoesCount - packageDetails?.countVideo)
 
-  const taxValue = (totalCost * (12 / 100)).toFixed(2)
+  const taxValue = (totalCost * (15 / 100)).toFixed(2)
 
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
@@ -210,6 +242,20 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     } else {
       imageSrc = numberOfOldImages[productFullData.MainImageIndex]?.url
     }
+  }
+
+  const handleAcceptWallet = () => {
+    setPaymentOption(3)
+  }
+
+  const handleAcceptVisa = (selectedCard) => {
+    setSelectedCard(selectedCard)
+    setPaymentOption(1)
+  }
+
+  const handleAcceptMada = (selectedCard) => {
+    setSelectedCard(selectedCard)
+    setPaymentOption(2)
   }
 
   return (
@@ -506,7 +552,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                       </span>
                     </li>
                   )}
-                  {!!(productFullData.listImageFile.length > selectedCatProps?.freeProductImagesCount) &&
+                  {!!(
+                    productFullData.listImageFile.length >
+                    selectedCatProps?.freeProductImagesCount + packageDetails?.countImage
+                  ) &&
                     !!(aditionalImagesFee > 0) && (
                       <li>
                         <span>{pathOr("", [locale, "Products", "additional_product_images_fee"], t)}</span>{" "}
@@ -515,7 +564,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         </span>
                       </li>
                     )}
-                  {!!(productFullData.videoUrl?.length > selectedCatProps?.freeProductVidoesCount) &&
+                  {!!(
+                    productFullData.videoUrl?.length >
+                    selectedCatProps?.freeProductVidoesCount + packageDetails?.countVideo
+                  ) &&
                     !!(aditionalVideoFee > 0) && (
                       <li>
                         <span>{pathOr("", [locale, "Products", "additional_product_videos_fee"], t)}</span>{" "}
@@ -524,7 +576,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         </span>
                       </li>
                     )}
-                  {productFullData.IsAuctionEnabled && (
+                  {auctionFee > 0 && (
                     <li>
                       <span>{pathOr("", [locale, "Products", "auction_fee"], t)}</span>{" "}
                       <span>
@@ -532,7 +584,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                       </span>
                     </li>
                   )}
-                  {productFullData.IsNegotiationEnabled && (
+                  {negotiationFee > 0 && (
                     <li>
                       <span>{pathOr("", [locale, "Products", "negotiation_fee"], t)}</span>{" "}
                       <span>
@@ -540,7 +592,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                       </span>
                     </li>
                   )}
-                  {productFullData.IsFixedPriceEnabled && selectedCatProps?.enableFixedPriceSaleFee > 0 && (
+                  {fixedFee > 0 && (
                     <li>
                       <span>{pathOr("", [locale, "Products", "fixed_price_selling_fee"], t)}</span>{" "}
                       <span>
@@ -599,7 +651,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 <div className="row">
                   <div className="col-lg-12">
                     <div className="form-group">
-                      <div className="form-control outer-check-input  d-flex justify-content-between">
+                      <div
+                        className="form-control outer-check-input  d-flex justify-content-between"
+                        style={{ borderColor: paymentOption === 1 ? "var(--main)" : null }}
+                      >
                         <div className="form-check form-switch p-0 m-0 d-flex w-auto">
                           <input
                             className="form-check-input m-0"
@@ -607,7 +662,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="IsFixedPriceEnabled"
                             checked={paymentOption === 1}
-                            onChange={() => setPaymentOption(1)}
+                            onChange={() => setIsVisaModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
@@ -616,11 +671,44 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         </label>
                       </div>
                     </div>
+                    {!!(paymentOption === 1 && selectedCard) && (
+                      <div className="form-group">
+                        <div
+                          style={{
+                            borderColor: paymentOption === 1 ? "var(--main)" : null,
+                            height: "100%",
+                            backgroundColor: "#F8F8F8",
+                            border: "1px solid var(--main)",
+                            padding: "20px",
+                            borderRadius: "19px",
+                          }}
+                          className="d-flex flex-column gap-2"
+                        >
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>
+                              {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   <div className="col-lg-12">
                     <div className="form-group">
-                      <div className="form-control outer-check-input d-flex justify-content-between">
+                      <div
+                        className="form-control outer-check-input d-flex justify-content-between"
+                        style={{ borderColor: paymentOption === 2 ? "var(--main)" : null }}
+                      >
                         <div className="form-check form-switch p-0 m-0 w-auto">
                           <input
                             className="form-check-input m-0"
@@ -628,7 +716,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="IsAuctionEnabled"
                             checked={paymentOption === 2}
-                            onChange={() => setPaymentOption(2)}
+                            onChange={() => setIsMadaModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
@@ -637,9 +725,43 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     </div>
                   </div>
 
+                  {!!(paymentOption === 2 && selectedCard) && (
+                    <div className="form-group">
+                      <div
+                        style={{
+                          borderColor: paymentOption === 2 ? "var(--main)" : null,
+                          height: "100%",
+                          backgroundColor: "#F8F8F8",
+                          border: "1px solid var(--main)",
+                          padding: "20px",
+                          borderRadius: "19px",
+                        }}
+                        className="d-flex flex-column gap-2"
+                      >
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>
+                            {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   <div className="col-lg-12">
                     <div className="form-group">
-                      <div className="form-control outer-check-input d-flex justify-content-between">
+                      <div
+                        className="form-control outer-check-input d-flex justify-content-between"
+                        style={{ borderColor: paymentOption === 3 ? "var(--main)" : null }}
+                      >
                         <div className="form-check form-switch p-0 m-0 w-auto">
                           <input
                             className="form-check-input m-0"
@@ -647,7 +769,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="IsNegotiationEnabled"
                             checked={paymentOption === 3}
-                            onChange={() => setPaymentOption(3)}
+                            onChange={() => setIsWalletModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
@@ -671,6 +793,28 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             </button>
           </div>
         </Col>
+        {isWalletModalOpen && (
+          <WalletModal
+            isWalletModalOpen={isWalletModalOpen}
+            setIsWalletModalOpen={setIsWalletModalOpen}
+            totalCost={totalCost}
+            handleAccept={handleAcceptWallet}
+          />
+        )}
+        {isVisaModalOpen && (
+          <VisaModal
+            isVisaModalOpen={isVisaModalOpen}
+            setIsVisaModalOpen={setIsVisaModalOpen}
+            handleAccept={handleAcceptVisa}
+          />
+        )}
+        {isMadaModalOpen && (
+          <MadaModal
+            isVisaModalOpen={isMadaModalOpen}
+            setIsVisaModalOpen={setIsMadaModalOpen}
+            handleAccept={handleAcceptMada}
+          />
+        )}
       </Row>
     </div>
   )

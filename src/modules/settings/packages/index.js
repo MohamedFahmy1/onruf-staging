@@ -24,8 +24,6 @@ const Packages = () => {
   const [allCategories, setAllCategories] = useState([])
   const [selectedCategories, setSelectedCategories] = useState([null])
 
-  console.log(PublishPakat)
-
   const fetchCategories = useCallback(async () => {
     try {
       const {
