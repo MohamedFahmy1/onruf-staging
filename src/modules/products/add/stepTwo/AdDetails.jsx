@@ -463,7 +463,7 @@ const AdDetails = ({
                 </div>
               </div>
             </Col>
-            <Col md={6}>
+            {/* <Col md={6}>
               <div className="form-group">
                 <div className="po_R">
                   <label htmlFor="District">{pathOr("", [locale, "Products", "area"], t)}</label>
@@ -505,7 +505,7 @@ const AdDetails = ({
                   />
                 </div>
               </div>
-            </Col>
+            </Col> */}
           </Row>
         </div>
         <div className="d-flex align-items-center justify-content-between flex-wrap mb-2">
