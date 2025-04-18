@@ -312,10 +312,10 @@
       "AuctionClosingTimeFee": "رسوم وقت اغلاق المزاد",
       "Visa_MasterCard": "فيزا / ماستركارد",
       "Mada": "مدى",
-      "MyWallet": "محفظتي",
-      "WalletBalance": "رصيد المحفظة",
-      "SuccessWalletDesc": "الرصيد كاف لإتمام عملية الدفع",
-      "ErrorWalletDesc": "الرصيد غير كافٍ لإتمام عملية الدفع. يُرجى اختيار طريقة دفع بديلة.",
+      "MyPoints": "نقاطي",
+      "PointsBalance": "رصيد النقاط",
+      "SuccessPointsDesc": "النقاط كافية لإتمام عملية الدفع",
+      "ErrorPointsDesc": "النقاط غير كافية لإتمام عملية الدفع. يُرجى اختيار طريقة دفع بديلة.",
       "Accept": "موافق",
       "ChooseCard": "اختر البطاقة",
       "Choose": "اختيار",
@@ -323,7 +323,9 @@
       "CardNumber": "رقم البطاقة",
       "AddNewCard": "اضافة بطاقة جديده",
       "Add": "اضافة",
-      "CVV": "رمز الأمان"
+      "CVV": "رمز الأمان",
+      "ChooseAnotherCard": "اختر بطاقة اخرى",
+      "PaymentDetails": "تفاصيل الدفع"
     },
     "Users": {
       "users": "العملاء",
@@ -1059,10 +1061,10 @@
       "AuctionClosingTimeFee": "Auction Closing Time Fee",
       "Visa_MasterCard": "Visa / MasterCard",
       "Mada": "Mada",
-      "MyWallet": "My Wallet",
-      "WalletBalance": "Wallet Balance",
-      "SuccessWalletDesc": "The Balance is sufficient to complete the payment",
-      "ErrorWalletDesc": "The Balance is insufficient to complete the payment. Please select an alternative payment method",
+      "MyPoints": "My Points",
+      "PointsBalance": "Points Balance",
+      "SuccessPointsDesc": "The Points are sufficient to complete the payment",
+      "ErrorPointsDesc": "The Points are insufficient to complete the payment. Please select an alternative payment method",
       "Accept": "Accept",
       "ChooseCard": "Choose Card",
       "Choose": "Choose",
@@ -1070,7 +1072,9 @@
       "CardNumber": "Card Number",
       "AddNewCard": "Add New Card",
       "Add": "Add",
-      "CVV": "CVV"
+      "CVV": "CVV",
+      "ChooseAnotherCard": "Choose Another Card",
+      "PaymentDetails": "Payment Details"
     },
     "Users": {
       "users": "Clients",

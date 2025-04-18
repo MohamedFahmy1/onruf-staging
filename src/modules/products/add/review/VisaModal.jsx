@@ -13,8 +13,7 @@ import { toast } from "react-toastify"
 
 const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const { locale } = useRouter()
-  const { data: visaListData, isLoading, fetchData } = useFetch(`/ListBankTransfers?currentPage=1`)
-  const visaList = visaListData?.filter((item) => item.paymentAccountType == "VisaMasterCard")
+  const { data: visaList, isLoading, fetchData } = useFetch(`/BankTransfersList?PaymentAccountType=1`)
 
   const [selectedCard, setSelectedCard] = useState(null)
   const [cvvValues, setCvvValues] = useState({})
@@ -33,7 +32,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const handleChooseCard = () => {
     const updatedData = {
       ...selectedCard,
-      CVV: cvvValues[selectedCard.id],
+      cvv: cvvValues[selectedCard.id],
     }
     handleAccept(updatedData)
     closeModal()
@@ -94,7 +93,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                       checked={selectedCard?.id === card.id}
                       onChange={() => handleSelectCard(card)}
                       label=""
-                      style={{ left: 10, top: 5 }}
+                      style={{ insetInlineEnd: 10, top: 5 }}
                       className="mb-2 position-absolute"
                     />
                     <Row className="mb-4">

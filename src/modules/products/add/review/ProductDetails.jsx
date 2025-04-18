@@ -1,7 +1,7 @@
 import { Fragment, useCallback, useEffect, useState } from "react"
 import styles from "./productReview.module.css"
 import { useRouter } from "next/router"
-import { Row, Col } from "react-bootstrap"
+import { Row, Col, Button } from "react-bootstrap"
 import dateImage from "../../../../../public/icons/Copyright_expiry.svg"
 import { FaCheckCircle } from "react-icons/fa"
 import axios from "axios"
@@ -11,22 +11,24 @@ import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
-import WalletModal from "./WalletModal"
+import PointsModal from "./PointsModal"
 import VisaModal from "./VisaModal"
 import MadaModal from "./MadaModal"
+import wallet from "../../../../../public/images/wallet.png"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname, push } = useRouter()
-  const [paymentOption, setPaymentOption] = useState([])
+  const [paymentOption, setPaymentOption] = useState()
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
   const [couponData, setCouponData] = useState()
   const [couponCode, setCouponCode] = useState("")
   const [loading, setLoading] = useState(false)
-  const [isWalletModalOpen, setIsWalletModalOpen] = useState(false)
+  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
   const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
+  const [pointsBalance, setPointsBalance] = useState(0)
 
   console.log(selectedCard)
 
@@ -68,7 +70,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const auctionClosingTime =
     packageDetails?.auctionClosingTimeOption === true
       ? 0
-      : !productFullData?.IsAuctionClosingTimeFixed
+      : productFullData?.IsAuctionClosingTimeFixed === false
       ? selectedCatProps?.auctionClosingTimeFee
       : 0
 
@@ -103,6 +105,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   const taxValue = (totalCost * (15 / 100)).toFixed(2)
 
+  const totalWithTax = +totalCost + +taxValue
+
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
     const shippingNames = (data?.data?.data).filter((item) => productFullData.ShippingOptions.includes(item.id))
@@ -129,8 +133,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         ...prev,
         "ProductPaymentDetailsDto.CouponId": couponData.id,
         "ProductPaymentDetailsDto.CouponDiscountValue": couponData.discountValue,
-        "ProductPaymentDetailsDto.TotalAmountBeforeCoupon": totalCost,
-        "ProductPaymentDetailsDto.TotalAmountAfterCoupon": totalCost - couponData.discountValue,
+        "ProductPaymentDetailsDto.TotalAmountBeforeCoupon": totalWithTax,
+        "ProductPaymentDetailsDto.TotalAmountAfterCoupon": totalWithTax - couponData.discountValue,
       }))
     } catch (err) {
       if (err.response.status === 400) {
@@ -154,11 +158,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setProductPayload((prev) => ({
       ...prev,
       "ProductPaymentDetailsDto.TotalAmountBeforeCoupon": couponData?.discountValue
-        ? totalCost + couponData?.discountValue
-        : totalCost,
-      "ProductPaymentDetailsDto.TotalAmountAfterCoupon": totalCost,
+        ? totalWithTax + couponData?.discountValue
+        : totalWithTax,
+      "ProductPaymentDetailsDto.TotalAmountAfterCoupon": totalWithTax,
     }))
-  }, [totalCost, setProductPayload, couponData?.discountValue])
+  }, [totalWithTax, setProductPayload, couponData?.discountValue])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -203,6 +207,15 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       }
     }
     if (pathname.includes("add")) {
+      formData.append("ExecutePaymentDto.PaymentCard.PaymentMethodId", paymentOption)
+      formData.append("ExecutePaymentDto.PaymentCard.TotalAmount", totalWithTax)
+      if (paymentOption === 1 || paymentOption === 2) {
+        formData.append("ExecutePaymentDto.PaymentCard.Number", selectedCard?.accountNumber)
+        formData.append("ExecutePaymentDto.PaymentCard.ExpiryMonth", selectedCard?.expiaryDate.split("/")[0])
+        formData.append("ExecutePaymentDto.PaymentCard.ExpiryYear", selectedCard?.expiaryDate.split("/")[1])
+        formData.append("ExecutePaymentDto.PaymentCard.SecurityCode", selectedCard?.cvv)
+        formData.append("ExecutePaymentDto.PaymentCard.HolderName", selectedCard?.bankHolderName)
+      }
       try {
         await axios.post("/AddProduct", formData, multiFormData)
         toast.success(locale === "en" ? "Products has been created successfully!" : "تم اضافة المنتج بنجاح")
@@ -244,8 +257,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }
   }
 
-  const handleAcceptWallet = () => {
+  const handleAcceptPoints = (pointsBalance) => {
     setPaymentOption(3)
+    setPointsBalance(pointsBalance)
   }
 
   const handleAcceptVisa = (selectedCard) => {
@@ -456,24 +470,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               </Col>
             </Row>
           </div>
-          {packageDetails && (
-            <div className="contint_paner">
-              <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
-                <h6 className="f-b fs-4  m-0">{pathOr("", [locale, "Products", "selected_package"], t)}</h6>
-                <button>
-                  <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
-                    {pathOr("", [locale, "Products", "editFolder"], t)}
-                  </p>
-                </button>
-              </div>
-              <div className={styles["info_boxo_"]}>
-                <span>{productFullData && (locale == "en" ? packageDetails?.nameEn : packageDetails?.nameAr)}</span>
-                <span className="font-18 main-color">
-                  <FaCheckCircle />
-                </span>
-              </div>
-            </div>
-          )}
+
           <div className="contint_paner">
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "shippingAndDuration"], t)}</h6>
@@ -508,7 +505,26 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               ))}
             </Row>
           </div>
+          {packageDetails && (
+            <div className="contint_paner">
+              <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
+                <h6 className="f-b fs-4  m-0">{pathOr("", [locale, "Products", "selected_package"], t)}</h6>
+                <button>
+                  <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
+                    {pathOr("", [locale, "Products", "editFolder"], t)}
+                  </p>
+                </button>
+              </div>
+              <div className={styles["info_boxo_"]}>
+                <span>{productFullData && (locale == "en" ? packageDetails?.nameEn : packageDetails?.nameAr)}</span>
+                <span className="font-18 main-color">
+                  <FaCheckCircle />
+                </span>
+              </div>
+            </div>
+          )}
         </Col>
+
         <Col lg={3}>
           <div className="contint_paner p-2">
             {!pathname.includes("edit") && (
@@ -530,6 +546,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     {pathOr("", [locale, "Products", "activate"], t)}
                   </button>
                 </div>
+                <h6 component="h1">{pathOr("", [locale, "Products", "PaymentDetails"], t)}</h6>
                 <ul className={styles["list_salary"]}>
                   {selectedCatProps?.productPublishPrice > 0 && (
                     <li>
@@ -638,10 +655,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     <span>
                       {couponData && (
                         <span style={{ textDecoration: couponData ? "line-through" : undefined }}>
-                          {totalCost + couponDiscount} {pathOr("", [locale, "Products", "currency"], t)}
+                          {totalWithTax + couponDiscount} {pathOr("", [locale, "Products", "currency"], t)}
                         </span>
                       )}{" "}
-                      {totalCost && <span>{totalCost <= 0 ? 0 : totalCost}</span>}{" "}
+                      {totalWithTax && <span>{totalWithTax <= 0 ? 0 : totalWithTax}</span>}{" "}
                       {pathOr("", [locale, "Products", "currency"], t)}
                     </span>
                   </li>
@@ -660,15 +677,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             className="form-check-input m-0"
                             type="checkbox"
                             role="switch"
-                            id="IsFixedPriceEnabled"
+                            id="visa"
                             checked={paymentOption === 1}
                             onChange={() => setIsVisaModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
-                        <label htmlFor="IsFixedPriceEnabled">
-                          {pathOr("", [locale, "Products", "Visa_MasterCard"], t)}
-                        </label>
+                        <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
                       </div>
                     </div>
                     {!!(paymentOption === 1 && selectedCard) && (
@@ -677,27 +692,38 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                           style={{
                             borderColor: paymentOption === 1 ? "var(--main)" : null,
                             height: "100%",
-                            backgroundColor: "#F8F8F8",
                             border: "1px solid var(--main)",
-                            padding: "20px",
+
                             borderRadius: "19px",
                           }}
                           className="d-flex flex-column gap-2"
                         >
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                          <div
+                            style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}
+                          >
+                            <div>
+                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                              <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                              <p style={{ fontSize: 12, color: "#8B959E" }}>
+                                {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                              </p>
+                            </div>
+                            <div>
+                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                              <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>
-                              {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
-                            </p>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                          </div>
+                          <Button
+                            variant="light"
+                            className="rounded-pill mb-3"
+                            style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
+                            onClick={() => setIsVisaModalOpen(true)}
+                          >
+                            {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
+                          </Button>
                         </div>
                       </div>
                     )}
@@ -714,13 +740,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             className="form-check-input m-0"
                             type="checkbox"
                             role="switch"
-                            id="IsAuctionEnabled"
+                            id="mada"
                             checked={paymentOption === 2}
                             onChange={() => setIsMadaModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
-                        <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "Mada"], t)}</label>
+                        <label htmlFor="mada">{pathOr("", [locale, "Products", "Mada"], t)}</label>
                       </div>
                     </div>
                   </div>
@@ -731,27 +757,36 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         style={{
                           borderColor: paymentOption === 2 ? "var(--main)" : null,
                           height: "100%",
-                          backgroundColor: "#F8F8F8",
                           border: "1px solid var(--main)",
-                          padding: "20px",
+
                           borderRadius: "19px",
                         }}
                         className="d-flex flex-column gap-2"
                       >
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                        <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>
+                              {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                          </div>
                         </div>
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>
-                            {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
-                          </p>
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                        </div>
+                        <Button
+                          variant="light"
+                          className="rounded-pill mb-3"
+                          style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
+                          onClick={() => setIsMadaModalOpen(true)}
+                        >
+                          {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
+                        </Button>
                       </div>
                     </div>
                   )}
@@ -760,23 +795,51 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     <div className="form-group">
                       <div
                         className="form-control outer-check-input d-flex justify-content-between"
-                        style={{ borderColor: paymentOption === 3 ? "var(--main)" : null }}
+                        style={{
+                          borderColor: paymentOption === 3 ? "var(--main)" : null,
+                          backgroundColor: "#ccc !important",
+                        }}
                       >
                         <div className="form-check form-switch p-0 m-0 w-auto">
                           <input
                             className="form-check-input m-0"
                             type="checkbox"
                             role="switch"
-                            id="IsNegotiationEnabled"
+                            id="wallet"
                             checked={paymentOption === 3}
-                            onChange={() => setIsWalletModalOpen(true)}
+                            onChange={() => setIsPointsModalOpen(true)}
                           />
                           <span className="bord" />
                         </div>
-                        <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "MyWallet"], t)}</label>
+                        <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
                       </div>
                     </div>
                   </div>
+
+                  {!!(paymentOption === 3) && (
+                    <div className="form-group">
+                      <div
+                        style={{
+                          borderColor: paymentOption === 1 ? "var(--main)" : null,
+                          height: "100%",
+                          border: "1px solid var(--main)",
+                          borderRadius: "19px",
+                        }}
+                        className="d-flex flex-column gap-2"
+                      >
+                        <div
+                          className="d-flex justify-content-center align-items-center gap-2"
+                          style={{ padding: "20px" }}
+                        >
+                          <p style={{ fontSize: "16px" }}>
+                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsBalance}{" "}
+                            {pathOr("", [locale, "Products", "currency"], t)}
+                          </p>
+                          <Image src={wallet} alt="wallet" width={55} height={55} />
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -784,7 +847,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               data-bs-toggle="modal"
               data-bs-target="#add-product_"
-              disabled={loading}
+              disabled={loading || !paymentOption}
               onClick={(e) => handleSubmit(e)}
             >
               {pathname.includes("add") && pathOr("", [locale, "Products", "addNewProduct"], t)}
@@ -793,12 +856,12 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             </button>
           </div>
         </Col>
-        {isWalletModalOpen && (
-          <WalletModal
-            isWalletModalOpen={isWalletModalOpen}
-            setIsWalletModalOpen={setIsWalletModalOpen}
-            totalCost={totalCost}
-            handleAccept={handleAcceptWallet}
+        {isPointsModalOpen && (
+          <PointsModal
+            isPointsModalOpen={isPointsModalOpen}
+            setIsPointsModalOpen={setIsPointsModalOpen}
+            totalCost={totalWithTax}
+            handleAccept={handleAcceptPoints}
           />
         )}
         {isVisaModalOpen && (

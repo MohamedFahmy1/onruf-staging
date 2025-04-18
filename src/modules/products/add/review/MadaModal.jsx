@@ -13,8 +13,7 @@ import { toast } from "react-toastify"
 
 const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const { locale } = useRouter()
-  const { data: visaListData, isLoading, fetchData } = useFetch(`/ListBankTransfers?currentPage=1`)
-  const visaList = visaListData?.filter((item) => item.paymentAccountType == "Mada")
+  const { data: madaList, isLoading, fetchData } = useFetch(`/BankTransfersList?PaymentAccountType=2`)
 
   const [selectedCard, setSelectedCard] = useState(null)
   const [cvvValues, setCvvValues] = useState({})
@@ -33,7 +32,7 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const handleChooseCard = () => {
     const updatedData = {
       ...selectedCard,
-      CVV: cvvValues[selectedCard.id],
+      cvv: cvvValues[selectedCard.id],
     }
     handleAccept(updatedData)
     closeModal()
@@ -83,9 +82,9 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
 
             {isLoading && <LoadingScreen height="300px" />}
 
-            {!!visaList?.length > 0 ? (
+            {!!madaList?.length > 0 ? (
               <Form style={{ overflowY: "scroll", maxHeight: "450px" }} className="px-2">
-                {visaList?.map((card, idx) => (
+                {madaList?.map((card, idx) => (
                   <div key={card.id || idx} className={`p-3 mb-3 border rounded-4 position-relative`}>
                     <Form.Check
                       type="radio"
@@ -94,7 +93,7 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                       checked={selectedCard?.id === card.id}
                       onChange={() => handleSelectCard(card)}
                       label=""
-                      style={{ left: 10, top: 5 }}
+                      style={{ insetInlineEnd: 10, top: 5 }}
                       className="mb-2 position-absolute"
                     />
                     <Row className="mb-4">

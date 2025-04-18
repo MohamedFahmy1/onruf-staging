@@ -8,26 +8,28 @@ import { useEffect } from "react"
 import { useFetch } from "../../../../hooks/useFetch"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
 
-const WalletModal = ({ isWalletModalOpen, setIsWalletModalOpen, totalCost, handleAccept }) => {
+const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handleAccept }) => {
   const { locale } = useRouter()
-  const { data: walletData } = useFetch(`/GetUserWalletTransactions`)
+  const { data: points } = useFetch(`/GetUserPointsTransactions`)
 
-  const isSufficient = walletData?.walletBalance > totalCost
+  const pointsValue = points?.pointsBalance * (points?.monyOfPointsTransfered / points?.pointsCountToTransfer)
+
+  const isSufficient = pointsValue > totalCost
 
   const closeModal = () => {
-    setIsWalletModalOpen(false)
+    setIsPointsModalOpen(false)
   }
 
   useEffect(() => {
-    if (walletData) {
-      isSufficient ? handleAccept() : null
+    if (points) {
+      isSufficient ? handleAccept(points?.walletBalance) : null
     }
-  }, [isSufficient, walletData])
+  }, [isSufficient, points])
 
   return (
     <Modal
-      show={isWalletModalOpen && walletData}
-      onHide={() => setIsWalletModalOpen(false)}
+      show={isPointsModalOpen && points}
+      onHide={() => setIsPointsModalOpen(false)}
       centered
       className="unique-send-offer-modal"
       style={textAlignStyle(locale)}
@@ -37,23 +39,23 @@ const WalletModal = ({ isWalletModalOpen, setIsWalletModalOpen, totalCost, handl
           type="button"
           className="btn-close"
           aria-label="close modal"
-          onClick={() => setIsWalletModalOpen(false)}
+          onClick={() => setIsPointsModalOpen(false)}
         ></button>
       </Modal.Header>
       <Modal.Body className="py-0">
         <h1 className="disc-header fs-4 text-center  p-0" style={{ marginBottom: "50px" }}>
-          {pathOr("", [locale, "Products", "MyWallet"], t)}
+          {pathOr("", [locale, "Products", "MyPoints"], t)}
         </h1>
         <div className="d-flex flex-column justify-content-center text-center">
           <Image src={wallet} alt="wallet" width={230} height={230} />
           <p style={{ fontSize: "26px", marginTop: "40px" }}>
-            {pathOr("", [locale, "Products", "WalletBalance"], t)} {walletData?.walletBalance}{" "}
+            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsValue}{" "}
             {pathOr("", [locale, "Products", "currency"], t)}
           </p>
           {isSufficient ? (
-            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "SuccessWalletDesc"], t)}</p>
+            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "SuccessPointsDesc"], t)}</p>
           ) : (
-            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "ErrorWalletDesc"], t)}</p>
+            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "ErrorPointsDesc"], t)}</p>
           )}
         </div>
       </Modal.Body>
@@ -66,4 +68,4 @@ const WalletModal = ({ isWalletModalOpen, setIsWalletModalOpen, totalCost, handl
   )
 }
 
-export default WalletModal
+export default PointsModal
