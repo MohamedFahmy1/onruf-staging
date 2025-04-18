@@ -6,7 +6,7 @@ import dateImage from "../../../../../public/icons/Copyright_expiry.svg"
 import { FaCheckCircle } from "react-icons/fa"
 import axios from "axios"
 import { toast } from "react-toastify"
-import { pathOr } from "ramda"
+import { path, pathOr } from "ramda"
 import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
@@ -206,7 +206,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         formData.append(key, value)
       }
     }
-    if (pathname.includes("add")) {
+    // append payment details to the form data in case of add or repost
+    if (pathname.includes("add") || pathname.includes("repost")) {
       formData.append("ExecutePaymentDto.PaymentCard.PaymentMethodId", paymentOption)
       formData.append("ExecutePaymentDto.PaymentCard.TotalAmount", totalWithTax)
       if (paymentOption === 1 || paymentOption === 2) {
@@ -216,6 +217,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         formData.append("ExecutePaymentDto.PaymentCard.SecurityCode", selectedCard?.cvv)
         formData.append("ExecutePaymentDto.PaymentCard.HolderName", selectedCard?.bankHolderName)
       }
+    }
+    // Add product
+    if (pathname.includes("add")) {
       try {
         await axios.post("/AddProduct", formData, multiFormData)
         toast.success(locale === "en" ? "Products has been created successfully!" : "تم اضافة المنتج بنجاح")
@@ -228,7 +232,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             : "حدث خطأ برجاء مراجعة البيانات و اعادة المحاولة",
         )
       }
-    } else {
+    }
+    // Edit or repost product
+    else {
       try {
         await axios.post("/EditProduct", formData, multiFormData)
         toast.success(locale === "en" ? "Products has been created successfully!" : "تم اضافة المنتج بنجاح")
