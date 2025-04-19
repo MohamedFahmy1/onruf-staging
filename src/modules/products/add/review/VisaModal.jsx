@@ -9,7 +9,6 @@ import { useForm } from "react-hook-form"
 import { LoadingScreen } from "../../../../common/Loading"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
-import { toast } from "react-toastify"
 import RequiredSympol from "../../../../common/RequiredSympol"
 
 const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
@@ -80,7 +79,9 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
       {step === 1 && (
         <>
           <Modal.Body className="py-0">
-            <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
+            {!!(madaList?.length > 0) && (
+              <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
+            )}
 
             {isLoading && <LoadingScreen height="300px" />}
 
