@@ -10,6 +10,7 @@ import { LoadingScreen } from "../../../../common/Loading"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
 import { toast } from "react-toastify"
+import RequiredSympol from "../../../../common/RequiredSympol"
 
 const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const { locale } = useRouter()
@@ -22,8 +23,9 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-  } = useForm()
+    setValue,
+    formState: { errors, isSubmitting },
+  } = useForm({ defaultValues: { saveForLaterUse: true } })
 
   const closeModal = () => {
     setIsVisaModalOpen(false)
@@ -49,15 +51,15 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
       ...data,
       PaymentAccountType: 1,
     }
-    const formData = new FormData()
-    for (let key in updatedData) {
-      formData.append(key, updatedData[key])
-    }
+
     try {
-      await axios.post("/AddBankTransfer", formData, { headers: { "Content-Type": "multipart/form-data" } })
-      fetchData()
-      toast.success(locale === "en" ? "Card has been added successfully!" : "تم اضافة البطاقة بنجاح")
-      setStep(1)
+      const saveForLater = data.saveForLaterUse
+      if (saveForLater) {
+        await axios.post("/AddBankTransfer", updatedData)
+        fetchData()
+      }
+      handleAccept(updatedData)
+      closeModal()
     } catch (error) {
       Alerto(error)
     }
@@ -103,7 +105,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                       </Col>
                       <Col md={6}>
                         <p className="fw-bold">{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                        <div className="text-muted"> {card.accountNumber?.slice(0, 10)}XXXXXX </div>
+                        <div className="text-muted"> {card.accountNumber?.slice(0, 12)}XXXX</div>
                       </Col>
                     </Row>
                     <Row className="mb-2">
@@ -136,7 +138,11 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                 </Button>
               </Form>
             ) : (
-              <p>{locale === "en" ? "No cards found" : "لا يوجد بطاقات"}</p>
+              <>
+                {!isLoading && (
+                  <h4 className="text-center my-5">{locale === "en" ? "No cards found" : "لا يوجد بطاقات"}</h4>
+                )}
+              </>
             )}
           </Modal.Body>
           <Modal.Footer>
@@ -161,6 +167,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold">
                   {pathOr("الاسم على البطاقة", [locale, "Products", "NameOnCard"], t)}
+                  <RequiredSympol />
                 </Form.Label>
                 <Form.Control
                   type="text"
@@ -175,6 +182,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold">
                   {pathOr("رقم البطاقة", [locale, "Products", "CardNumber"], t)}
+                  <RequiredSympol />
                 </Form.Label>
                 <Form.Control
                   type="number"
@@ -182,8 +190,11 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                   {...register("accountNumber", {
                     required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
                     minLength: {
-                      value: 12,
-                      message: locale === "en" ? "Card number is too short" : "رقم البطاقة قصير جداً",
+                      value: 16,
+                      message:
+                        locale === "en"
+                          ? "Card number must be at least 16 numbers"
+                          : "رقم البطاقة يجب ان يكون على الاقل 16 رقم",
                     },
                   })}
                 />
@@ -193,10 +204,12 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
               <Form.Group className="mb-3">
                 <Form.Label className="fw-bold">
                   {pathOr("تاريخ الانتهاء", [locale, "Products", "expiryDate"], t)}
+                  <RequiredSympol />
                 </Form.Label>
                 <Form.Control
                   type="text"
                   placeholder="MM/YYYY"
+                  maxLength={7}
                   {...register("expiaryDate", {
                     required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
                     pattern: {
@@ -207,8 +220,43 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                           : "تنسيق التاريخ غير صحيح (شهر/سنة، الأشهر من 01 إلى 12)",
                     },
                   })}
+                  onKeyDown={(e) =>
+                    !!(e.key === "Backspace" && e.target.value.length == 3) && setValue("expiaryDate", "")
+                  }
+                  onChange={(e) => {
+                    if (e.target.value.length > 7) return
+                    else if (e.target.value.length == 2) setValue("expiaryDate", e.target.value + "/20")
+                    else setValue("expiaryDate", e.target.value)
+                  }}
                 />
                 {errors.expiaryDate && <p className="text-danger">{errors.expiaryDate.message}</p>}
+              </Form.Group>
+
+              <Form.Group className="mb-3">
+                <Form.Label className="fw-bold">
+                  CVV
+                  <RequiredSympol />
+                </Form.Label>
+                <Form.Control
+                  type="password"
+                  placeholder="***"
+                  maxLength={4}
+                  {...register("cvv", {
+                    required:
+                      locale === "en"
+                        ? "CVV is required when not saving the card"
+                        : "يجب إدخال CVV في حال عدم حفظ البطاقة",
+                    minLength: {
+                      value: 3,
+                      message: locale === "en" ? "CVV is too short" : "رمز CVV قصير جداً",
+                    },
+                    maxLength: {
+                      value: 4,
+                      message: locale === "en" ? "CVV is too long" : "رمز CVV طويل جداً",
+                    },
+                  })}
+                />
+                {errors.cvv && <p className="text-danger">{errors.cvv.message}</p>}
               </Form.Group>
 
               <Form.Group className="mb-4 d-flex align-items-center gap-2 justify-content-between">
@@ -220,7 +268,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
             </Form>
           </Modal.Body>
           <Modal.Footer>
-            <button className="w-100 btn-main" type="submit" onClick={handleSubmit(onSubmit)}>
+            <button className="w-100 btn-main" type="submit" onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
               {pathOr("إضافة", [locale, "Products", "Add"], t)}
             </button>
           </Modal.Footer>

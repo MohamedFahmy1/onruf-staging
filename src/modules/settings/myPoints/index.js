@@ -115,7 +115,6 @@ const MyPoints = () => {
           </div>
           <div className="mt-4">
             <h5 className="mb-4">{pathOr("", [locale, "Points", "lastProcesses"], t)}</h5>
-            {console.log(pointsTransactionslist)}
             {pointsTransactionslist?.length > 0 ? (
               pointsTransactionslist?.map((transaction) => (
                 <div key={transaction.id} className="item_Processes">

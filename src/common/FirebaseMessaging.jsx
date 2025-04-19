@@ -39,7 +39,6 @@ const FirebaseMessaging = () => {
     if (messaging) {
       generateToken()
       onMessage(messaging, (payload) => {
-        console.log(payload)
         showNotification(payload)
       })
     }

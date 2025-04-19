@@ -53,7 +53,6 @@ const ChangeBranchModal = ({
           {branchesData?.map((item, index) => (
             <Col md={12} key={index}>
               <div className="mb-2 text-center">
-                {console.log(item.branchId, orderBranch)}
                 <button
                   className={`fs-5 f-b ${item?.branchId == orderBranch ? `main-color` : ``}`}
                   disabled={isLoading}

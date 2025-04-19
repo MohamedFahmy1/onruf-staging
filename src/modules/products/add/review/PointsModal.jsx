@@ -2,15 +2,29 @@ import { Modal } from "react-bootstrap"
 import t from "../../../../translations.json"
 import { pathOr } from "ramda"
 import { useRouter } from "next/router"
-import wallet from "../../../../../public/images/wallet.png"
+import failed from "../../../../../public/images/failed.png"
 import Image from "next/image"
-import { useEffect } from "react"
-import { useFetch } from "../../../../hooks/useFetch"
+import { useEffect, useState } from "react"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
+import axios from "axios"
+import Alerto from "../../../../common/Alerto"
 
 const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handleAccept }) => {
   const { locale } = useRouter()
-  const { data: points } = useFetch(`/GetUserPointsTransactions`)
+  const [points, setPoints] = useState()
+
+  const fetchMyPointsData = async () => {
+    try {
+      const response = await axios.post(`/GetPointsBalance`)
+      setPoints(response?.data?.data)
+    } catch (error) {
+      Alerto(error)
+    }
+  }
+
+  useEffect(() => {
+    isPointsModalOpen && fetchMyPointsData()
+  }, [isPointsModalOpen])
 
   const pointsValue = points?.pointsBalance * (points?.monyOfPointsTransfered / points?.pointsCountToTransfer)
 
@@ -22,7 +36,7 @@ const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handl
 
   useEffect(() => {
     if (points) {
-      isSufficient ? handleAccept(points?.walletBalance) : null
+      isSufficient ? handleAccept(pointsValue, points?.pointsBalance) : null
     }
   }, [isSufficient, points])
 
@@ -47,16 +61,12 @@ const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handl
           {pathOr("", [locale, "Products", "MyPoints"], t)}
         </h1>
         <div className="d-flex flex-column justify-content-center text-center">
-          <Image src={wallet} alt="wallet" width={230} height={230} />
+          <Image src={failed} alt="wallet" width={150} height={150} />
           <p style={{ fontSize: "26px", marginTop: "40px" }}>
             {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsValue}{" "}
             {pathOr("", [locale, "Products", "currency"], t)}
           </p>
-          {isSufficient ? (
-            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "SuccessPointsDesc"], t)}</p>
-          ) : (
-            <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "ErrorPointsDesc"], t)}</p>
-          )}
+          <p style={{ marginBottom: "20px" }}>{pathOr("", [locale, "Products", "ErrorPointsDesc"], t)}</p>
         </div>
       </Modal.Body>
       <Modal.Footer className="modal-footer">

@@ -267,7 +267,6 @@ const PublishingPackages = ({
                             style={{ border: "1px solid #EE6C4D" }}
                           >
                             <p>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                            {console.log(pack)}
                             <p>{moment(pack.endDate).format("L")}</p>
                           </div>
                         </ul>

@@ -313,9 +313,9 @@
       "Visa_MasterCard": "فيزا / ماستركارد",
       "Mada": "مدى",
       "MyPoints": "نقاطي",
-      "PointsBalance": "رصيد النقاط",
+      "PointsBalance": "رصيد النقاط الحالي يكافئ ",
       "SuccessPointsDesc": "النقاط كافية لإتمام عملية الدفع",
-      "ErrorPointsDesc": "النقاط غير كافية لإتمام عملية الدفع. يُرجى اختيار طريقة دفع بديلة.",
+      "ErrorPointsDesc": "الرصيد غير كافٍ لإتمام عملية الدفع. يُرجى اختيار طريقة دفع بديلة.",
       "Accept": "موافق",
       "ChooseCard": "اختر البطاقة",
       "Choose": "اختيار",
@@ -325,7 +325,13 @@
       "Add": "اضافة",
       "CVV": "رمز الأمان",
       "ChooseAnotherCard": "اختر بطاقة اخرى",
-      "PaymentDetails": "تفاصيل الدفع"
+      "PaymentDetails": "تفاصيل الدفع",
+      "PaymentLoading": "جاري التأكد من عملية الدفع...",
+      "PaymentSuccess": "تمت إضافة المنتج بنجاح",
+      "PaymentError": "فشلت عملية الدفع، تحقق من التفاصيل أو حاول مرة أخرى",
+      "Ok": "موافق",
+      "ViewTheProduct": "عرض المنتج",
+      "BackToShopping": "اكمال التسوق"
     },
     "Users": {
       "users": "العملاء",
@@ -1064,7 +1070,7 @@
       "MyPoints": "My Points",
       "PointsBalance": "Points Balance",
       "SuccessPointsDesc": "The Points are sufficient to complete the payment",
-      "ErrorPointsDesc": "The Points are insufficient to complete the payment. Please select an alternative payment method",
+      "ErrorPointsDesc": "The Balance is insufficient to complete the payment. Please select an alternative payment method",
       "Accept": "Accept",
       "ChooseCard": "Choose Card",
       "Choose": "Choose",
@@ -1074,7 +1080,13 @@
       "Add": "Add",
       "CVV": "CVV",
       "ChooseAnotherCard": "Choose Another Card",
-      "PaymentDetails": "Payment Details"
+      "PaymentDetails": "Payment Details",
+      "PaymentLoading": "Payment is being processed....",
+      "PaymentSuccess": "Your product has been successfully added",
+      "PaymentError": "Payment failed, check details or try again",
+      "Ok": "Ok",
+      "ViewTheProduct": "View The Product",
+      "BackToShopping": "Back To Shopping"
     },
     "Users": {
       "users": "Clients",

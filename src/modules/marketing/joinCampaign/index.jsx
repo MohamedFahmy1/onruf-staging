@@ -67,8 +67,6 @@ const JoinCampaign = () => {
     setOfferPayload({ ...offerPayload, productIds: [] })
   }
 
-  console.log(offerPayload)
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     const joinOffer = await axios.post(`/BusinessAccountSubscribeInCoupon`, offerPayload)

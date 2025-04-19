@@ -6,7 +6,7 @@ import dateImage from "../../../../../public/icons/Copyright_expiry.svg"
 import { FaCheckCircle } from "react-icons/fa"
 import axios from "axios"
 import { toast } from "react-toastify"
-import { path, pathOr } from "ramda"
+import { pathOr, set } from "ramda"
 import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
@@ -15,6 +15,7 @@ import PointsModal from "./PointsModal"
 import VisaModal from "./VisaModal"
 import MadaModal from "./MadaModal"
 import wallet from "../../../../../public/images/wallet.png"
+import CheckoutModal from "./CheckoutModal"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname, push } = useRouter()
@@ -27,21 +28,24 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
   const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
-  const [pointsBalance, setPointsBalance] = useState(0)
-
-  console.log(selectedCard)
+  const [pointsData, setPointsData] = useState({})
 
   const totalImageFee =
-    productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + packageDetails?.countImage
+    productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
       ? selectedCatProps?.extraProductImageFee *
-        (productFullData?.listImageFile.length - selectedCatProps?.freeProductImagesCount - packageDetails?.countImage)
+        (productFullData?.listImageFile.length -
+          selectedCatProps?.freeProductImagesCount -
+          (packageDetails?.countImage || 0))
       : 0
 
   const totalVideoFee =
-    productFullData?.videoUrl?.length > selectedCatProps?.freeProductVidoesCount + packageDetails?.countVideo
+    productFullData?.videoUrl?.length > selectedCatProps?.freeProductVidoesCount + (packageDetails?.countVideo || 0)
       ? selectedCatProps?.extraProductVidoeFee *
-        (productFullData?.videoUrl?.length - selectedCatProps?.freeProductVidoesCount - packageDetails?.countVideo)
+        (productFullData?.videoUrl?.length -
+          selectedCatProps?.freeProductVidoesCount -
+          (packageDetails?.countVideo || 0))
       : 0
 
   const auctionFee =
@@ -97,11 +101,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   const aditionalImagesFee =
     selectedCatProps?.extraProductImageFee *
-    (productFullData.listImageFile.length - selectedCatProps?.freeProductImagesCount - packageDetails?.countImage)
+    (productFullData.listImageFile.length -
+      selectedCatProps?.freeProductImagesCount -
+      (packageDetails?.countImage || 0))
 
   const aditionalVideoFee =
     selectedCatProps?.extraProductVidoeFee *
-    (productFullData.videoUrl.length - selectedCatProps?.freeProductVidoesCount - packageDetails?.countVideo)
+    (productFullData.videoUrl.length - selectedCatProps?.freeProductVidoesCount - (packageDetails?.countVideo || 0))
 
   const taxValue = (totalCost * (15 / 100)).toFixed(2)
 
@@ -167,6 +173,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const handleSubmit = async (e) => {
     e.preventDefault()
 
+    setIsCheckoutModalOpen("loading")
     setLoading(true)
 
     let formData = new FormData()
@@ -208,44 +215,36 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }
     // append payment details to the form data in case of add or repost
     if (pathname.includes("add") || pathname.includes("repost")) {
-      formData.append("ExecutePaymentDto.PaymentCard.PaymentMethodId", paymentOption)
-      formData.append("ExecutePaymentDto.PaymentCard.TotalAmount", totalWithTax)
+      formData.append("ExecutePaymentDto.PaymentMethodId", paymentOption)
+      formData.append("ExecutePaymentDto.TotalAmount", totalWithTax)
       if (paymentOption === 1 || paymentOption === 2) {
         formData.append("ExecutePaymentDto.PaymentCard.Number", selectedCard?.accountNumber)
         formData.append("ExecutePaymentDto.PaymentCard.ExpiryMonth", selectedCard?.expiaryDate.split("/")[0])
         formData.append("ExecutePaymentDto.PaymentCard.ExpiryYear", selectedCard?.expiaryDate.split("/")[1])
         formData.append("ExecutePaymentDto.PaymentCard.SecurityCode", selectedCard?.cvv)
         formData.append("ExecutePaymentDto.PaymentCard.HolderName", selectedCard?.bankHolderName)
+      } else {
+        formData.append("ExecutePaymentDto.PointsNumber", pointsData?.pointsNumber)
       }
     }
     // Add product
     if (pathname.includes("add")) {
       try {
         await axios.post("/AddProduct", formData, multiFormData)
-        toast.success(locale === "en" ? "Products has been created successfully!" : "تم اضافة المنتج بنجاح")
-        push(`/${locale}/products`)
+        setIsCheckoutModalOpen("success")
       } catch (error) {
         setLoading(false)
-        toast.error(
-          locale === "en"
-            ? "Error Please recheck the data you entered!"
-            : "حدث خطأ برجاء مراجعة البيانات و اعادة المحاولة",
-        )
+        setIsCheckoutModalOpen("failed")
       }
     }
     // Edit or repost product
     else {
       try {
         await axios.post("/EditProduct", formData, multiFormData)
-        toast.success(locale === "en" ? "Products has been created successfully!" : "تم اضافة المنتج بنجاح")
-        push(`/${locale}/products`)
+        setIsCheckoutModalOpen("success")
       } catch (error) {
         setLoading(false)
-        toast.error(
-          locale === "en"
-            ? "Error Please recheck the data you entered!"
-            : "حدث خطأ برجاء مراجعة البيانات و اعادة المحاولة",
-        )
+        setIsCheckoutModalOpen("failed")
       }
     }
   }
@@ -263,9 +262,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }
   }
 
-  const handleAcceptPoints = (pointsBalance) => {
+  const handleAcceptPoints = (pointsValue, pointsNumber) => {
     setPaymentOption(3)
-    setPointsBalance(pointsBalance)
+    setIsPointsModalOpen(false)
+    setPointsData({
+      pointsValue: pointsValue,
+      pointsNumber: pointsNumber,
+    })
   }
 
   const handleAcceptVisa = (selectedCard) => {
@@ -280,13 +283,24 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   return (
     <div className="body-content">
+      <div className="d-flex justify-content-between align-items-center">
+        <h5>{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h5>
+        <button
+          onClick={handleBack}
+          className="btn-main btn-main-o"
+          style={{ width: "100px" }}
+          aria-label={pathOr("", [locale, "Products", "cancel"], t)}
+        >
+          {pathOr("", [locale, "Products", "cancel"], t)}
+        </button>
+      </div>
       <Row>
         <Col lg={9}>
           <div className="contint_paner">
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "productDetails"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
+                <p className="f-b fs-5 main-color" onClick={handleBack}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -358,7 +372,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "sellingDetails"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
+                <p className="f-b fs-5 main-color" onClick={handleBack}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -481,7 +495,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "shippingAndDuration"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
+                <p className="f-b fs-5 main-color" onClick={handleBack}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -516,7 +530,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
                 <h6 className="f-b fs-4  m-0">{pathOr("", [locale, "Products", "selected_package"], t)}</h6>
                 <button>
-                  <p className="f-b fs-5 main-color" onClick={() => handleBack()}>
+                  <p className="f-b fs-5 main-color" onClick={handleBack}>
                     {pathOr("", [locale, "Products", "editFolder"], t)}
                   </p>
                 </button>
@@ -577,7 +591,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   )}
                   {!!(
                     productFullData.listImageFile.length >
-                    selectedCatProps?.freeProductImagesCount + packageDetails?.countImage
+                    selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
                   ) &&
                     !!(aditionalImagesFee > 0) && (
                       <li>
@@ -589,7 +603,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     )}
                   {!!(
                     productFullData.videoUrl?.length >
-                    selectedCatProps?.freeProductVidoesCount + packageDetails?.countVideo
+                    selectedCatProps?.freeProductVidoesCount + (packageDetails?.countVideo || 0)
                   ) &&
                     !!(aditionalVideoFee > 0) && (
                       <li>
@@ -714,7 +728,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             <div>
                               <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
                               <p style={{ fontSize: 12, color: "#8B959E" }}>
-                                {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                                {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
                               </p>
                             </div>
                             <div>
@@ -777,7 +791,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                           <div>
                             <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
                             <p style={{ fontSize: 12, color: "#8B959E" }}>
-                              {selectedCard.accountNumber?.slice(0, 10)}XXXXXX{" "}
+                              {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
                             </p>
                           </div>
                           <div>
@@ -838,7 +852,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                           style={{ padding: "20px" }}
                         >
                           <p style={{ fontSize: "16px" }}>
-                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsBalance}{" "}
+                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData?.pointsValue}{" "}
                             {pathOr("", [locale, "Products", "currency"], t)}
                           </p>
                           <Image src={wallet} alt="wallet" width={55} height={55} />
@@ -859,6 +873,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               {pathname.includes("add") && pathOr("", [locale, "Products", "addNewProduct"], t)}
               {pathname.includes("edit") && pathOr("", [locale, "Products", "save"], t)}
               {pathname.includes("repost") && pathOr("", [locale, "Products", "repost_product"], t)}
+            </button>
+            <button
+              className={`${styles["btn-main"]} btn-main mt-2 w-100`}
+              style={{ backgroundColor: "#45495E" }}
+              onClick={handleBack}
+            >
+              {pathOr("", [locale, "Packages", "Cancel"], t)}
             </button>
           </div>
         </Col>
@@ -883,6 +904,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsVisaModalOpen={setIsMadaModalOpen}
             handleAccept={handleAcceptMada}
           />
+        )}
+        {isCheckoutModalOpen && (
+          <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
         )}
       </Row>
     </div>

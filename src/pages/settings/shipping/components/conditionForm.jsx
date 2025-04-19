@@ -115,7 +115,6 @@ function ConditionForm({ fetchedCountries, products, conditions, setAddCondition
   useEffect(() => {
     fetchRegionsByCountry()
   }, [watch("countries")])
-  console.log(fields)
   return (
     <>
       {fields.map((field, index) => (
