@@ -409,16 +409,33 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   </div>
                 </div>
               </Col>
-              <Col md={6}>
-                <div className={styles["info_boxo_"]}>
-                  <span>
-                    <p>{pathOr("", [locale, "Products", "purchasingPrice"], t)}</p>
-                  </span>
-                  <span>
-                    {productFullData && productFullData?.Price} {pathOr("", [locale, "Products", "currency"], t)}
-                  </span>
-                </div>
-              </Col>
+              {productFullData?.IsFixedPriceEnabled && (
+                <Col md={6}>
+                  <div className={styles["info_boxo_"]}>
+                    <span>
+                      <p>{pathOr("", [locale, "Products", "purchasingPrice"], t)}</p>
+                    </span>
+                    <span>
+                      {productFullData && productFullData?.Price} {pathOr("", [locale, "Products", "currency"], t)}
+                    </span>
+                  </div>
+                </Col>
+              )}
+              {productFullData?.IsNegotiationEnabled && (
+                <Col md={6}>
+                  <div className={styles["info_boxo_"]}>
+                    <span>{pathOr("", [locale, "Products", "PriceIsNegotiable"], t)}</span>
+                    <div className="d-flex gap-2">
+                      <span>
+                        {pathOr("", [locale, "Products", "Yes"], t)}
+                        <span className="font-18 main-color mx-1">
+                          <FaCheckCircle />
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+                </Col>
+              )}
               {!!(productFullData && productFullData.IsAuctionEnabled) && (
                 <Fragment>
                   <Col md={6}>

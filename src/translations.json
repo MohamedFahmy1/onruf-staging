@@ -331,7 +331,8 @@
       "PaymentError": "فشلت عملية الدفع، تحقق من التفاصيل أو حاول مرة أخرى",
       "Ok": "موافق",
       "ViewTheProduct": "عرض المنتج",
-      "BackToShopping": "اكمال التسوق"
+      "BackToShopping": "اكمال التسوق",
+      "PriceIsNegotiable": "السعر قابل للتفاوض"
     },
     "Users": {
       "users": "العملاء",
@@ -1086,7 +1087,8 @@
       "PaymentError": "Payment failed, check details or try again",
       "Ok": "Ok",
       "ViewTheProduct": "View The Product",
-      "BackToShopping": "Back To Shopping"
+      "BackToShopping": "Back To Shopping",
+      "PriceIsNegotiable": "Price is negotiable"
     },
     "Users": {
       "users": "Clients",
