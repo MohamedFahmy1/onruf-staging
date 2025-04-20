@@ -12,9 +12,13 @@ import Alerto from "../../../../common/Alerto"
 import RequiredSympol from "../../../../common/RequiredSympol"
 import moment from "moment"
 
-const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
+const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentAccountType }) => {
   const { locale } = useRouter()
-  const { data: visaList, isLoading, fetchData } = useFetch(`/BankTransfersList?PaymentAccountType=1`)
+  const {
+    data: cardList,
+    isLoading,
+    fetchData,
+  } = useFetch(`/BankTransfersList?PaymentAccountType=${PaymentAccountType}`)
 
   const [selectedCard, setSelectedCard] = useState(null)
   const [cvvValues, setCvvValues] = useState({})
@@ -28,7 +32,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   } = useForm({ defaultValues: { saveForLaterUse: true } })
 
   const closeModal = () => {
-    setIsVisaModalOpen(false)
+    setIsCardModalOpen(false)
   }
 
   const handleChooseCard = () => {
@@ -49,7 +53,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const onSubmit = async (data) => {
     const updatedData = {
       ...data,
-      PaymentAccountType: 1,
+      PaymentAccountType: PaymentAccountType,
     }
 
     try {
@@ -67,7 +71,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
 
   return (
     <Modal
-      show={isVisaModalOpen}
+      show={isCardModalOpen}
       onHide={closeModal}
       centered
       className="unique-send-offer-modal"
@@ -80,15 +84,15 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
       {step === 1 && (
         <>
           <Modal.Body className="py-0">
-            {!!(visaList?.length > 0 && step === 1) && (
+            {!!(cardList?.length > 0 && step === 1) && (
               <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
             )}
 
             {isLoading && <LoadingScreen height="300px" />}
 
-            {!!visaList?.length > 0 ? (
+            {!!cardList?.length > 0 ? (
               <Form style={{ overflowY: "scroll", height: "450px" }} className="px-2">
-                {visaList?.map((card, idx) => (
+                {cardList?.map((card, idx) => (
                   <div key={card.id || idx} className={`p-3 mb-3 border rounded-4 position-relative`}>
                     <Form.Check
                       type="radio"
@@ -297,4 +301,4 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   )
 }
 
-export default VisaModal
+export default CardModal

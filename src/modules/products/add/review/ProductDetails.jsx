@@ -6,14 +6,13 @@ import dateImage from "../../../../../public/icons/Copyright_expiry.svg"
 import { FaCheckCircle } from "react-icons/fa"
 import axios from "axios"
 import { toast } from "react-toastify"
-import { pathOr, set } from "ramda"
+import { pathOr } from "ramda"
 import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
 import PointsModal from "./PointsModal"
-import VisaModal from "./VisaModal"
-import MadaModal from "./MadaModal"
+import CardModal from "./VisaModal"
 import wallet from "../../../../../public/images/wallet.png"
 import CheckoutModal from "./CheckoutModal"
 
@@ -909,17 +908,19 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
           />
         )}
         {isVisaModalOpen && (
-          <VisaModal
-            isVisaModalOpen={isVisaModalOpen}
-            setIsVisaModalOpen={setIsVisaModalOpen}
+          <CardModal
+            isCardModalOpen={isVisaModalOpen}
+            setIsCardModalOpen={setIsVisaModalOpen}
             handleAccept={handleAcceptVisa}
+            PaymentAccountType={1}
           />
         )}
         {isMadaModalOpen && (
-          <MadaModal
-            isVisaModalOpen={isMadaModalOpen}
-            setIsVisaModalOpen={setIsMadaModalOpen}
+          <CardModal
+            isCardModalOpen={isMadaModalOpen}
+            setIsCardModalOpen={setIsMadaModalOpen}
             handleAccept={handleAcceptMada}
+            PaymentAccountType={2}
           />
         )}
         {isCheckoutModalOpen && (
