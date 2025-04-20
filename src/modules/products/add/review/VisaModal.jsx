@@ -79,7 +79,7 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
       {step === 1 && (
         <>
           <Modal.Body className="py-0">
-            {!!(madaList?.length > 0) && (
+            {!!(visaList?.length > 0) && (
               <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
             )}
 
