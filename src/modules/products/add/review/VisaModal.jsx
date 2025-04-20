@@ -10,6 +10,7 @@ import { LoadingScreen } from "../../../../common/Loading"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
 import RequiredSympol from "../../../../common/RequiredSympol"
+import moment from "moment"
 
 const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
   const { locale } = useRouter()
@@ -228,6 +229,17 @@ const VisaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                         locale === "en"
                           ? "Invalid date format (MM/YYYY, months from 01 to 12)"
                           : "تنسيق التاريخ غير صحيح (شهر/سنة، الأشهر من 01 إلى 12)",
+                    },
+                    validate: (value) => {
+                      const date = moment(value, "MM/YYYY")
+                      if (!date.isValid()) {
+                        return locale === "en" ? "Invalid date" : "تاريخ غير صحيح"
+                      }
+                      const now = moment().startOf("month")
+                      if (date.isBefore(now)) {
+                        return locale === "en" ? "Expiry date has passed" : "تاريخ الانتهاء قد مضى"
+                      }
+                      return true
                     },
                   })}
                   onKeyDown={(e) =>
