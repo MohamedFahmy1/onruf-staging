@@ -1068,7 +1068,7 @@
       "Visa_MasterCard": "Visa / MasterCard",
       "Mada": "Mada",
       "MyPoints": "My Points",
-      "PointsBalance": "Points Balance",
+      "PointsBalance": "The Points balance equals ",
       "SuccessPointsDesc": "The Points are sufficient to complete the payment",
       "ErrorPointsDesc": "The Balance is insufficient to complete the payment. Please select an alternative payment method",
       "Accept": "Accept",

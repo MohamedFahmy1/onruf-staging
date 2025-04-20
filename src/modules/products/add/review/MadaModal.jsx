@@ -121,12 +121,14 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                           className="mt-1 p-0 h-75"
                           disabled={selectedCard?.id !== card.id}
                           value={cvvValues[card.id] || ""}
-                          onChange={(e) =>
-                            setCvvValues((prev) => ({
-                              ...prev,
-                              [card.id]: e.target.value,
-                            }))
-                          }
+                          onChange={(e) => {
+                            if (e.target.value.length > 4) return
+                            else
+                              setCvvValues((prev) => ({
+                                ...prev,
+                                [card.id]: e.target.value,
+                              }))
+                          }}
                         />
                       </Col>
                     </Row>
