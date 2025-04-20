@@ -160,7 +160,7 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
       {step === 2 && (
         <>
           <Modal.Body className="py-0">
-            <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
+            <h1 className="fs-4 text-center mb-4">{pathOr("", [locale, "Products", "AddNewCard"], t)}</h1>
 
             <Form onSubmit={handleSubmit(onSubmit)}>
               <Form.Group className="mb-3">
@@ -184,8 +184,15 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                   <RequiredSympol />
                 </Form.Label>
                 <Form.Control
-                  type="number"
+                  type="text"
                   placeholder="1234 5678 9012 3456"
+                  maxLength={16}
+                  onKeyDown={(e) => {
+                    const allowedKeys = ["Backspace", "ArrowLeft", "ArrowRight", "Tab", "Delete"]
+                    if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) {
+                      e.preventDefault()
+                    }
+                  }}
                   {...register("accountNumber", {
                     required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
                     minLength: {
