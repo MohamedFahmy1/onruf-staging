@@ -262,10 +262,7 @@ const MadaModal = ({ isVisaModalOpen, setIsVisaModalOpen, handleAccept }) => {
                   placeholder="***"
                   maxLength={4}
                   {...register("cvv", {
-                    required:
-                      locale === "en"
-                        ? "CVV is required when not saving the card"
-                        : "يجب إدخال CVV في حال عدم حفظ البطاقة",
+                    required: locale === "en" ? "CVV is required" : "يجب إدخال CVV",
                     minLength: {
                       value: 3,
                       message: locale === "en" ? "CVV is too short" : "رمز CVV قصير جداً",
