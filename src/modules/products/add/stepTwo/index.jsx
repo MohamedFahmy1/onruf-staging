@@ -221,15 +221,18 @@ const AddProductStepTwo = ({
                 pathOr("", [locale, "Products", "Desc1"], t) + " "}
               {!!selectedCatProps?.freeProductImagesCount &&
                 " " + selectedCatProps?.freeProductImagesCount + " " + pathOr("", [locale, "Products", "Desc2"], t)}
-              {!!selectedCatProps?.freeProductVidoesCount && locale === "en"
-                ? " " + selectedCatProps?.freeProductVidoesCount + " Video Link\\S For Free."
-                : " " + selectedCatProps?.freeProductVidoesCount + "رابط/روابط فيديو مجانًا."}
-              {!!selectedCatProps?.extraProductImageFee && locale === "en"
-                ? " Each Additional Image Costs " + selectedCatProps?.extraProductImageFee + " SAR."
-                : "كل صورة إضافية بـ " + selectedCatProps?.extraProductImageFee + " ريال."}
-              {!!selectedCatProps?.extraProductVidoeFee && locale === "en"
-                ? " Each Additional Video Costs " + selectedCatProps?.extraProductVidoeFee + " SAR."
-                : "كل رابط فيديو إضافي بـ " + selectedCatProps?.extraProductVidoeFee + " ريال."}
+              {!!selectedCatProps?.freeProductVidoesCount &&
+                (locale === "en"
+                  ? " " + selectedCatProps?.freeProductVidoesCount + " Video Link\\S For Free."
+                  : " " + selectedCatProps?.freeProductVidoesCount + "رابط/روابط فيديو مجانًا.")}
+              {!!selectedCatProps?.extraProductImageFee &&
+                (locale === "en"
+                  ? " Each Additional Image Costs " + selectedCatProps?.extraProductImageFee + " SAR."
+                  : "كل صورة إضافية بـ " + selectedCatProps?.extraProductImageFee + " ريال.")}
+              {!!selectedCatProps?.extraProductVidoeFee &&
+                (locale === "en"
+                  ? " Each Additional Video Costs " + selectedCatProps?.extraProductVidoeFee + " SAR."
+                  : "كل رابط فيديو إضافي بـ " + selectedCatProps?.extraProductVidoeFee + " ريال.")}
             </p>
           )}
         </Accordion.Button>
