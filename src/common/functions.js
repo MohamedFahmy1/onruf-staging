@@ -152,3 +152,16 @@ export const handleDownloadInvoice = (invoiceLink, locale) => {
     })
     .catch(() => toast.error(locale === "en" ? "Error downloading invoice" : "فشل تحميل الفاتورة"))
 }
+
+export const getProductPositionName = (value, locale) => {
+  switch (value) {
+    case "StarRuf":
+      return locale === "en" ? value : "رف النجوم"
+    case "MoonRuf":
+      return locale === "en" ? value : "رف القمر"
+    case "CloudRuf":
+      return locale === "en" ? value : "رف السحاب"
+    default:
+      return value
+  }
+}

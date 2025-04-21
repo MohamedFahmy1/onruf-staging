@@ -16,6 +16,7 @@ import common from "../../../../../public/images/common.png"
 import commonEn from "../../../../../public/images/commonEn.png"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
+import { getProductPositionName } from "../../../../common/functions"
 
 const PublishingPackages = ({
   productPayload,
@@ -222,7 +223,7 @@ const PublishingPackages = ({
 
                           <PackageOption
                             option={pathOr("", [locale, "Products", "AdDisplayPriority"], t)}
-                            value={pack.productPosition}
+                            value={getProductPositionName(pack.productPosition, locale)}
                           />
 
                           <PackageOption
@@ -363,7 +364,7 @@ const PublishingPackages = ({
 
                           <PackageOption
                             option={pathOr("", [locale, "Products", "AdDisplayPriority"], t)}
-                            value={pack.productPosition}
+                            value={getProductPositionName(pack.productPosition, locale)}
                           />
 
                           <PackageOption

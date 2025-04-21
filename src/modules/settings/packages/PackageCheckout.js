@@ -30,12 +30,6 @@ const PackageCheckout = () => {
   const [pointsData, setPointsData] = useState({})
   const [selectedCard, setSelectedCard] = useState({})
 
-  // const { data: packageDetails } = useFetch(`/GetPakaById?Pakatid=${id}`, true)
-
-  // const { data: CurrentPakat, fetchData: fetchCurrentPakat } = useFetch(
-  //   `/GetClientSubcripePakats?clientId=${providerId}`,
-  // )
-
   const fetchCurrentPackages = async () => {
     try {
       const { data } = await axios.get(`/GetClientSubcripePakats?clientId=${providerId}`)

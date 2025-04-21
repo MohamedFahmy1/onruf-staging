@@ -7,6 +7,7 @@ import packStar from "../../../assets/images/pack_star.png"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
 import t from "../../../translations.json"
+import { getProductPositionName } from "../../../common/functions"
 
 const PackageOption = ({ option, value }) => {
   if (value) {
@@ -61,7 +62,7 @@ const PackageCard = ({ pack, isCurrent, handleSubscribePackage }) => {
         {!pack?.smSsCount && (
           <PackageOption
             option={pathOr("", [locale, "Products", "AdDisplayPriority"], t)}
-            value={pack.productPosition}
+            value={getProductPositionName(pack.productPosition, locale)}
           />
         )}
 
