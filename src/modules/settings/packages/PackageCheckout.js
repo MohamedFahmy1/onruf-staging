@@ -1,8 +1,8 @@
-import { is, pathOr } from "ramda"
+import { pathOr } from "ramda"
 import React, { useEffect, useState } from "react"
-import { Col, Row } from "react-bootstrap"
+import { Button, Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import { useFetch } from "../../../hooks/useFetch"
+import wallet from "../../../../public/images/wallet.png"
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
 import styles from "./package.module.css"
@@ -11,6 +11,9 @@ import PackageCard from "./PackageCard"
 import Alerto from "../../../common/Alerto"
 import { useSelector } from "react-redux"
 import moment from "moment"
+import Image from "next/image"
+import PointsModal from "../../products/add/review/PointsModal"
+import CardModal from "../../products/add/review/VisaModal"
 
 const PackageCheckout = () => {
   const providerId = useSelector((state) => state.authSlice.providerId)
@@ -21,6 +24,11 @@ const PackageCheckout = () => {
   const [couponData, setCouponData] = useState()
   const [couponCode, setCouponCode] = useState("")
   const [packageDetails, setPackageDetails] = useState()
+  const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
+  const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
+  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
+  const [pointsData, setPointsData] = useState({})
+  const [selectedCard, setSelectedCard] = useState({})
 
   // const { data: packageDetails } = useFetch(`/GetPakaById?Pakatid=${id}`, true)
 
@@ -89,6 +97,25 @@ const PackageCheckout = () => {
         return toast.error(message)
       } else toast.error(locale === "en" ? "Please enter correct coupon!" : "من فضلك ادخل الكوبون بشكل صحيح")
     }
+  }
+
+  const handleAcceptPoints = (pointsValue, pointsNumber) => {
+    setPaymentOption(3)
+    setIsPointsModalOpen(false)
+    setPointsData({
+      pointsValue: pointsValue,
+      pointsNumber: pointsNumber,
+    })
+  }
+
+  const handleAcceptVisa = (selectedCard) => {
+    setSelectedCard(selectedCard)
+    setPaymentOption(1)
+  }
+
+  const handleAcceptMada = (selectedCard) => {
+    setSelectedCard(selectedCard)
+    setPaymentOption(2)
   }
 
   return (
@@ -190,64 +217,179 @@ const PackageCheckout = () => {
               <div className="row">
                 <div className="col-lg-12">
                   <div className="form-group">
-                    <div className="form-control outer-check-input  d-flex justify-content-between">
+                    <div
+                      className="form-control outer-check-input  d-flex justify-content-between"
+                      style={{ borderColor: paymentOption === 1 ? "var(--main)" : null }}
+                    >
                       <div className="form-check form-switch p-0 m-0 d-flex w-auto">
                         <input
                           className="form-check-input m-0"
                           type="checkbox"
                           role="switch"
-                          id="IsFixedPriceEnabled"
+                          id="visa"
                           checked={paymentOption === 1}
-                          onChange={() => setPaymentOption(1)}
+                          onChange={() => setIsVisaModalOpen(true)}
                         />
                         <span className="bord" />
                       </div>
-                      <label htmlFor="IsFixedPriceEnabled">
-                        {pathOr("", [locale, "Products", "Visa_MasterCard"], t)}
-                      </label>
+                      <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
                     </div>
                   </div>
+                  {!!(paymentOption === 1 && selectedCard) && (
+                    <div className="form-group">
+                      <div
+                        style={{
+                          borderColor: paymentOption === 1 ? "var(--main)" : null,
+                          height: "100%",
+                          border: "1px solid var(--main)",
+
+                          borderRadius: "19px",
+                        }}
+                        className="d-flex flex-column gap-2"
+                      >
+                        <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>
+                              {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
+                            </p>
+                          </div>
+                          <div>
+                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                          </div>
+                        </div>
+                        <Button
+                          variant="light"
+                          className="rounded-pill mb-3"
+                          style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
+                          onClick={() => setIsVisaModalOpen(true)}
+                        >
+                          {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="col-lg-12">
                   <div className="form-group">
-                    <div className="form-control outer-check-input d-flex justify-content-between">
+                    <div
+                      className="form-control outer-check-input d-flex justify-content-between"
+                      style={{ borderColor: paymentOption === 2 ? "var(--main)" : null }}
+                    >
                       <div className="form-check form-switch p-0 m-0 w-auto">
                         <input
                           className="form-check-input m-0"
                           type="checkbox"
                           role="switch"
-                          id="IsAuctionEnabled"
+                          id="mada"
                           checked={paymentOption === 2}
-                          onChange={() => setPaymentOption(2)}
+                          onChange={() => setIsMadaModalOpen(true)}
                         />
                         <span className="bord" />
                       </div>
-                      <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "Mada"], t)}</label>
+                      <label htmlFor="mada">{pathOr("", [locale, "Products", "Mada"], t)}</label>
                     </div>
                   </div>
                 </div>
 
+                {!!(paymentOption === 2 && selectedCard) && (
+                  <div className="form-group">
+                    <div
+                      style={{
+                        borderColor: paymentOption === 2 ? "var(--main)" : null,
+                        height: "100%",
+                        border: "1px solid var(--main)",
+
+                        borderRadius: "19px",
+                      }}
+                      className="d-flex flex-column gap-2"
+                    >
+                      <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>
+                            {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
+                          </p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
+                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="light"
+                        className="rounded-pill mb-3"
+                        style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
+                        onClick={() => setIsMadaModalOpen(true)}
+                      >
+                        {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
                 <div className="col-lg-12">
                   <div className="form-group">
-                    <div className="form-control outer-check-input d-flex justify-content-between">
+                    <div
+                      className="form-control outer-check-input d-flex justify-content-between"
+                      style={{
+                        borderColor: paymentOption === 3 ? "var(--main)" : null,
+                        backgroundColor: "#ccc !important",
+                      }}
+                    >
                       <div className="form-check form-switch p-0 m-0 w-auto">
                         <input
                           className="form-check-input m-0"
                           type="checkbox"
                           role="switch"
-                          id="IsNegotiationEnabled"
+                          id="wallet"
                           checked={paymentOption === 3}
-                          onChange={() => setPaymentOption(3)}
+                          onChange={() => setIsPointsModalOpen(true)}
                         />
                         <span className="bord" />
                       </div>
-                      <label htmlFor="IsFixedPriceEnabled">{pathOr("", [locale, "Products", "MyWallet"], t)}</label>
+                      <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
                     </div>
                   </div>
                 </div>
+
+                {!!(paymentOption === 3) && (
+                  <div className="form-group">
+                    <div
+                      style={{
+                        borderColor: paymentOption === 1 ? "var(--main)" : null,
+                        height: "100%",
+                        border: "1px solid var(--main)",
+                        borderRadius: "19px",
+                      }}
+                      className="d-flex flex-column gap-2"
+                    >
+                      <div
+                        className="d-flex justify-content-center align-items-center gap-2"
+                        style={{ padding: "20px" }}
+                      >
+                        <p style={{ fontSize: "16px" }}>
+                          {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData?.pointsValue}{" "}
+                          {pathOr("", [locale, "Products", "currency"], t)}
+                        </p>
+                        <Image src={wallet} alt="wallet" width={55} height={55} />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
+
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               onClick={
@@ -270,6 +412,33 @@ const PackageCheckout = () => {
           </div>
         </Col>
       </Row>
+      {isPointsModalOpen && (
+        <PointsModal
+          isPointsModalOpen={isPointsModalOpen}
+          setIsPointsModalOpen={setIsPointsModalOpen}
+          totalCost={totalCost}
+          handleAccept={handleAcceptPoints}
+        />
+      )}
+      {isVisaModalOpen && (
+        <CardModal
+          isCardModalOpen={isVisaModalOpen}
+          setIsCardModalOpen={setIsVisaModalOpen}
+          handleAccept={handleAcceptVisa}
+          PaymentAccountType={1}
+        />
+      )}
+      {isMadaModalOpen && (
+        <CardModal
+          isCardModalOpen={isMadaModalOpen}
+          setIsCardModalOpen={setIsMadaModalOpen}
+          handleAccept={handleAcceptMada}
+          PaymentAccountType={2}
+        />
+      )}
+      {/* {isCheckoutModalOpen && (
+          <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
+        )} */}
     </div>
   )
 }
