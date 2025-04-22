@@ -6,8 +6,7 @@ import { BiEditAlt } from "react-icons/bi"
 import { RiDeleteBin5Line } from "react-icons/ri"
 import VisaImg from "../../../../public/images/Visa.png"
 import BoxBankImg from "../../../../public/images/box-bank.png"
-import stcPayImg from "../../../../public/images/stc-pay.png"
-import StcPayImg from "../../../../public/images/Stc_pay2.png"
+import madaImg from "../../../../public/images/mada.png"
 import stc from "../../../../public/images/stc.png"
 import { toast } from "react-toastify"
 import { useForm } from "react-hook-form"
@@ -18,6 +17,10 @@ import { pathOr } from "ramda"
 import Alerto from "../../../common/Alerto"
 import Image from "next/image"
 import { textAlignStyle } from "../../../styles/stylesObjects"
+import { DevTool } from "@hookform/devtools"
+import moment from "moment"
+import RequiredSympol from "../../../common/RequiredSympol"
+import { multiFormData } from "../../../common/axiosHeaders"
 
 const PaymentCards = ({ bankTransfers }) => {
   const { locale } = useRouter()
@@ -30,18 +33,18 @@ const PaymentCards = ({ bankTransfers }) => {
     formState: { errors },
     reset,
     watch,
-  } = useForm({ mode: "onBlur" })
+    setValue,
+    control,
+  } = useForm({ mode: "onBlur", defaultValues: { paymentAccountType: 1, saveForLaterUse: true } })
 
   const paymentAccountTypeValue = watch("paymentAccountType")
+
+  const isBankAccount = paymentAccountTypeValue == 3
 
   const fetchBankTransfer = async () => {
     const {
       data: { data },
-    } = await axios.get("/ListBankTransfers", {
-      params: {
-        currentPage: 1,
-      },
-    })
+    } = await axios.get("/BankTransfersList")
     setBankTransferData(data)
   }
 
@@ -79,10 +82,11 @@ const PaymentCards = ({ bankTransfers }) => {
     try {
       if (id) {
         const formData = new FormData()
-        for (let key in values) {
+        for (const key in values) {
           formData.append(key, values[key])
         }
-        await axios.put("/EditBankTransfer", formData)
+        formData.append("saveForLaterUse", "true")
+        await axios.put("/EditBankTransfer", formData, multiFormData)
         setBankTransferData([...bankTransferData?.filter((b) => b.id !== id), { ...values }])
         setOpenModal(false)
         setId(undefined)
@@ -90,11 +94,7 @@ const PaymentCards = ({ bankTransfers }) => {
         fetchBankTransfer()
       } else {
         try {
-          const formData = new FormData()
-          for (let key in values) {
-            formData.append(key, values[key])
-          }
-          await axios.post("/AddBankTransfer", formData)
+          await axios.post("/AddBankTransfer", { ...values, saveForLaterUse: true })
           setBankTransferData([...bankTransferData, { ...values }])
           setOpenModal(false)
           toast.success(locale === "en" ? "Bank transfer has been added successfully!" : "تم اضافة الحساب البنكي بنجاح")
@@ -106,26 +106,21 @@ const PaymentCards = ({ bankTransfers }) => {
       }
     } catch (error) {
       Alerto(error)
-    } finally {
-      reset({})
     }
   }
 
   const handleOpenModal = () => {
     setOpenModal(!openModal)
     setId("")
-    reset(
-      {
-        paymentAccountType: null,
-        bankHolderName: null,
-        swiftCode: null,
-        ibanNumber: null,
-        accountNumber: null,
-        bankName: null,
-        expiaryDate: null,
-      },
-      { keepValues: false },
-    )
+    reset({
+      paymentAccountType: 1,
+      bankHolderName: null,
+      swiftCode: null,
+      ibanNumber: null,
+      accountNumber: null,
+      bankName: null,
+      expiaryDate: null,
+    })
   }
 
   useEffect(() => {
@@ -181,7 +176,7 @@ const PaymentCards = ({ bankTransfers }) => {
                     )}
                     {bank.paymentAccountType === "Mada" && (
                       <Image
-                        src={stcPayImg}
+                        src={madaImg}
                         className="img_"
                         alt="stc pay"
                         layout="fixed"
@@ -257,57 +252,64 @@ const PaymentCards = ({ bankTransfers }) => {
             <button type="button" className="btn-close" onClick={() => setOpenModal(false)} />
           </Modal.Header>
           <Modal.Body>
-            <div className="mb-2">
-              <label className="f-b">{pathOr("", [locale, "BankAccounts", "accountType"], t)}</label>
-              <div className="d-flex gap-3 justify-content-between">
-                <div className="status-P">
-                  <input
-                    type="radio"
-                    name="paymentAccountType"
-                    value={1}
-                    defaultChecked={paymentAccountTypeValue === 1}
-                    {...register("paymentAccountType", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                    })}
-                  />
-                  <span>{pathOr("", [locale, "BankAccounts", "creditCard"], t)}</span>
-                  <span className="pord rounded-pill"></span>
+            {!id && (
+              <div className="mb-2">
+                <label className="f-b">
+                  {pathOr("", [locale, "BankAccounts", "accountType"], t)}
+                  <RequiredSympol />
+                </label>
+                <div className="d-flex justify-content-between">
+                  <div className="status-P">
+                    <input
+                      type="radio"
+                      name="paymentAccountType"
+                      value={1}
+                      defaultChecked={paymentAccountTypeValue === 1}
+                      {...register("paymentAccountType", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                      })}
+                    />
+                    <span>{pathOr("", [locale, "BankAccounts", "creditCard"], t)}</span>
+                  </div>
+                  <div className="status-P justify-content-start">
+                    <input
+                      type="radio"
+                      name="paymentAccountType"
+                      value={2}
+                      defaultChecked={paymentAccountTypeValue === 2}
+                      {...register("paymentAccountType", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                      })}
+                    />
+                    <span>{locale === "en" ? "Mada" : "مدى"}</span>
+                  </div>
+                  <div className="status-P">
+                    <input
+                      type="radio"
+                      name="paymentAccountType"
+                      value={3}
+                      defaultChecked={paymentAccountTypeValue === 3}
+                      {...register("paymentAccountType", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                      })}
+                    />
+                    <span>{pathOr("", [locale, "BankAccounts", "bankAccount"], t)}</span>
+                  </div>
                 </div>
-                <div className="status-P">
-                  <input
-                    type="radio"
-                    name="paymentAccountType"
-                    value={2}
-                    defaultChecked={paymentAccountTypeValue === 2}
-                    {...register("paymentAccountType", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                    })}
-                  />
-                  <Image src={StcPayImg} alt="stc pay" width={65} height={20} priority />
-                  <span className="pord rounded-pill"></span>
-                </div>
-                <div className="status-P">
-                  <input
-                    type="radio"
-                    name="paymentAccountType"
-                    value={3}
-                    defaultChecked={paymentAccountTypeValue === 3}
-                    {...register("paymentAccountType", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                    })}
-                  />
-                  <span>{pathOr("", [locale, "BankAccounts", "bankAccount"], t)}</span>
-                  <span className="pord rounded-pill"></span>
-                </div>
+                {errors["paymentAccountType"] && (
+                  <p className="errorMsg text-center">{errors["paymentAccountType"]["message"]}</p>
+                )}
               </div>
-              {errors["paymentAccountType"] && (
-                <p className="errorMsg text-center">{errors["paymentAccountType"]["message"]}</p>
-              )}
-            </div>
+            )}
             <Row>
-              <Col md={6}>
+              <Col md={12}>
                 <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "Holder's"], t)}</label>
+                  <label className="f-b">
+                    {isBankAccount
+                      ? pathOr("", [locale, "BankAccounts", "Holder's"], t)
+                      : pathOr("", [locale, "Products", "NameOnCard"], t)}
+                    <RequiredSympol />
+                  </label>
                   <input
                     type="text"
                     className="form-control"
@@ -318,112 +320,131 @@ const PaymentCards = ({ bankTransfers }) => {
                   {errors["bankHolderName"] && <p className="errorMsg">{errors["bankHolderName"]["message"]}</p>}
                 </div>
               </Col>
-              <Col md={6}>
+              {isBankAccount && (
+                <Col md={12}>
+                  <div className="mb-2">
+                    <label className="f-b">
+                      {pathOr("", [locale, "BankAccounts", "BankName"], t)}
+                      <RequiredSympol />
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      {...register("bankName", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                      })}
+                    />
+                    {errors["bankName"] && <p className="errorMsg">{errors["bankName"]["message"]}</p>}
+                  </div>
+                </Col>
+              )}
+              <Col md={12}>
                 <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "BankName"], t)}</label>
+                  <label className="f-b">
+                    {isBankAccount
+                      ? pathOr("", [locale, "BankAccounts", "AccountNumber"], t)
+                      : pathOr("", [locale, "Products", "CardNumber"], t)}
+                    <RequiredSympol />
+                  </label>
                   <input
                     type="text"
                     className="form-control"
-                    {...register("bankName", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                    })}
-                  />
-                  {errors["bankName"] && <p className="errorMsg">{errors["bankName"]["message"]}</p>}
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "AccountNumber"], t)}</label>
-                  <input
-                    type="number"
-                    className="form-control"
+                    maxLength={isBankAccount ? 17 : 16}
+                    onKeyDown={(e) => {
+                      const allowedKeys = ["Backspace", "ArrowLeft", "ArrowRight", "Tab", "Delete"]
+                      if (!/[0-9]/.test(e.key) && !allowedKeys.includes(e.key)) {
+                        e.preventDefault()
+                      }
+                    }}
                     {...register("accountNumber", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                      required: locale === "en" ? "This field is required" : "هذا الحقل مطلوب",
+                      minLength: {
+                        value: 16,
+                        message: locale === "en" ? "Field must be at least 16 numbers" : "يجب ان يكون على الاقل 16 رقم",
+                      },
                     })}
                   />
                   {errors["accountNumber"] && <p className="errorMsg">{errors["accountNumber"]["message"]}</p>}
                 </div>
               </Col>
-              <Col md={6}>
-                <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "ibn"], t)}</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    {...register("ibanNumber", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      pattern: {
-                        value: /^[A-Za-z0-9]+$/,
-                        message:
-                          locale === "en" ? "Invalid characters in IBAN number" : "أحرف غير صالحة في رقم الآيبان",
-                      },
-                    })}
-                  />
-                  {errors["ibanNumber"] && <p className="errorMsg">{errors["ibanNumber"]["message"]}</p>}
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "swift"], t)}</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    {...register("swiftCode", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      pattern: {
-                        value: /^[A-Za-z0-9]+$/,
-                        message:
-                          locale === "en" ? "Invalid characters in IBAN number" : "أحرف غير صالحة في رقم الآيبان",
-                      },
-                    })}
-                  />
-                  {errors["swiftCode"] && <p className="errorMsg">{errors["swiftCode"]["message"]}</p>}
-                </div>
-              </Col>
-              <Col md={6}>
-                <div className="mb-2">
-                  <label className="f-b">{pathOr("", [locale, "BankAccounts", "yearExpiryDate"], t)}</label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Ex: 07/2027"
-                    {...register("expiaryDate", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      pattern: {
-                        value: /^(0[1-9]|1[0-2])\/(20[2-9][0-9])$/,
-                        message:
-                          locale === "en"
-                            ? "Invalid date format (MM/YYYY, months from 01 to 12)"
-                            : "تنسيق التاريخ غير صحيح (شهر/سنة، الأشهر من 01 إلى 12)",
-                      },
-                    })}
-                  />
-                  {errors["expiaryDate"] && <p className="errorMsg">{errors["expiaryDate"]["message"]}</p>}
-                </div>
-              </Col>
-              <Col md={12}>
-                <div className="mb-2">
-                  <label
-                    style={{ flexDirection: "row", justifyContent: "space-between", display: "flex" }}
-                    className="f-b"
-                  >
-                    <span> {pathOr("", [locale, "Products", "saveLater"], t)}</span>
-                    <div className="form-group">
-                      <div className="form-check form-switch p-0 m-0">
-                        <input
-                          className="form-check-input m-0"
-                          name="SaveForLaterUse"
-                          type="checkbox"
-                          role="switch"
-                          id="flexSwitchCheckChecked"
-                          {...register("saveForLaterUse")}
-                        />
-                      </div>
-                    </div>
-                  </label>
-                  {errors["saveForLaterUse"] && <p className="errorMsg">{errors["saveForLaterUse"]["message"]}</p>}
-                </div>
-              </Col>
+              {isBankAccount && (
+                <Col md={12}>
+                  <div className="mb-2">
+                    <label className="f-b">
+                      {pathOr("", [locale, "BankAccounts", "ibn"], t)}
+                      <RequiredSympol />
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      {...register("ibanNumber", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                        pattern: {
+                          value: /^[A-Za-z0-9]+$/,
+                          message:
+                            locale === "en" ? "Invalid characters in IBAN number" : "أحرف غير صالحة في رقم الآيبان",
+                        },
+                      })}
+                    />
+                    {errors["ibanNumber"] && <p className="errorMsg">{errors["ibanNumber"]["message"]}</p>}
+                  </div>
+                </Col>
+              )}
+              {isBankAccount && (
+                <Col md={12}>
+                  <div className="mb-2">
+                    <label className="f-b">{pathOr("", [locale, "BankAccounts", "swift"], t)}</label>
+                    <input type="text" className="form-control" {...register("swiftCode")} />
+                    {errors["swiftCode"] && <p className="errorMsg">{errors["swiftCode"]["message"]}</p>}
+                  </div>
+                </Col>
+              )}
+              {!isBankAccount && (
+                <Col md={12}>
+                  <div className="mb-2">
+                    <label className="f-b">
+                      {pathOr("", [locale, "BankAccounts", "yearExpiryDate"], t)}
+                      <RequiredSympol />
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      placeholder="MM/YYYY"
+                      maxLength={7}
+                      {...register("expiaryDate", {
+                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                        pattern: {
+                          value: /^(0[1-9]|1[0-2])\/(20[2-9][0-9])$/,
+                          message:
+                            locale === "en"
+                              ? "Invalid date format (MM/YYYY, months from 01 to 12)"
+                              : "تنسيق التاريخ غير صحيح (شهر/سنة، الأشهر من 01 إلى 12)",
+                        },
+                        validate: (value) => {
+                          const date = moment(value, "MM/YYYY")
+                          if (!date.isValid()) {
+                            return locale === "en" ? "Invalid date" : "تاريخ غير صحيح"
+                          }
+                          const now = moment().startOf("month")
+                          if (date.isBefore(now)) {
+                            return locale === "en" ? "Expiry date has passed" : "تاريخ الانتهاء قد مضى"
+                          }
+                          return true
+                        },
+                      })}
+                      onKeyDown={(e) =>
+                        !!(e.key === "Backspace" && e.target.value.length == 3) && setValue("expiaryDate", "")
+                      }
+                      onChange={(e) => {
+                        if (e.target.value.length > 7) return
+                        else if (e.target.value.length == 2) setValue("expiaryDate", e.target.value + "/20")
+                        else setValue("expiaryDate", e.target.value)
+                      }}
+                    />
+                    {errors["expiaryDate"] && <p className="errorMsg">{errors["expiaryDate"]["message"]}</p>}
+                  </div>
+                </Col>
+              )}
             </Row>
           </Modal.Body>
           <Modal.Footer className="modal-footer">
@@ -433,6 +454,7 @@ const PaymentCards = ({ bankTransfers }) => {
           </Modal.Footer>
         </Modal>
       </form>
+      <DevTool control={control} />
     </Col>
   )
 }

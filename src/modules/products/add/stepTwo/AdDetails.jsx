@@ -155,7 +155,6 @@ const AdDetails = ({
             <div className="form-group">
               <label htmlFor="nameEn" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productAddressEn"], t)}
-                <RequiredSympol />
               </label>
               <input
                 type="text"
@@ -194,7 +193,6 @@ const AdDetails = ({
             <div className="form-group">
               <label htmlFor="descriptionEn" style={{ ...textAlignStyle(locale), display: "block" }}>
                 {pathOr("", [locale, "Products", "productDetailsEn"], t)}
-                <RequiredSympol />
               </label>
               <textarea
                 id="descriptionEn"

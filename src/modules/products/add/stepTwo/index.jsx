@@ -125,9 +125,7 @@ const AddProductStepTwo = ({
     }
     const productDetailsInputs = [
       productPayload.nameAr,
-      productPayload.nameEn,
       productPayload.descriptionAr,
-      productPayload.descriptionEn,
       productPayload.countryId,
       productPayload.regionId,
       productPayload.neighborhoodId,
@@ -140,8 +138,8 @@ const AddProductStepTwo = ({
       ? true
       : toast.error(
           locale === "en"
-            ? "Please add name of the product en & ar and your address"
-            : "من فضلك ادخل اسم المنتج بالعربي و الانجليزي و العنوان",
+            ? "Please add name of the product in ar and your address"
+            : "من فضلك ادخل اسم المنتج بالعربي و العنوان",
         )
   }
 
