@@ -140,18 +140,21 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentA
                     </Row>
                   </div>
                 ))}
-
-                <Button variant="light" className="w-100 mb-3" onClick={() => setStep(2)}>
-                  {pathOr("", [locale, "Products", "AddNewCard"], t)}
-                </Button>
               </Form>
             ) : (
               <>
                 {!isLoading && (
-                  <h4 className="text-center my-5">{locale === "en" ? "No cards found" : "لا يوجد بطاقات"}</h4>
+                  <h4 className="text-center my-5">
+                    {locale === "en"
+                      ? "There are no saved cards. Please add a new card by clicking the Add New Card button or choosing another payment method."
+                      : "لا يوجد بطاقات محفوظة، يرجى اضافة بطاقة جديدة بالضغط على زر أضف بطاقة جديدة أو اختيار طريقة دفع اخرى."}
+                  </h4>
                 )}
               </>
             )}
+            <Button variant="light" className="w-100 mb-3" onClick={() => setStep(2)}>
+              {pathOr("", [locale, "Products", "AddNewCard"], t)}
+            </Button>
           </Modal.Body>
           <Modal.Footer>
             <button
