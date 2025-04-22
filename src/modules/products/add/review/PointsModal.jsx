@@ -9,7 +9,7 @@ import { textAlignStyle } from "../../../../styles/stylesObjects"
 import axios from "axios"
 import Alerto from "../../../../common/Alerto"
 
-const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handleAccept }) => {
+const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handleAccept, toggleOffPaymentOption }) => {
   const { locale } = useRouter()
   const [points, setPoints] = useState()
 
@@ -28,22 +28,23 @@ const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handl
 
   const pointsValue = points?.pointsBalance * (points?.monyOfPointsTransfered / points?.pointsCountToTransfer)
 
-  const isSufficient = pointsValue > totalCost
+  const isSufficient = pointsValue >= totalCost
 
   const closeModal = () => {
     setIsPointsModalOpen(false)
+    toggleOffPaymentOption()
   }
 
   useEffect(() => {
     if (points) {
-      isSufficient ? handleAccept(pointsValue, points?.pointsBalance) : null
+      isSufficient ? handleAccept(pointsValue, points?.pointsBalance) : toggleOffPaymentOption()
     }
   }, [isSufficient, points])
 
   return (
     <Modal
       show={isPointsModalOpen && points}
-      onHide={() => setIsPointsModalOpen(false)}
+      onHide={closeModal}
       centered
       className="unique-send-offer-modal"
       style={textAlignStyle(locale)}

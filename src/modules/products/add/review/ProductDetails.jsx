@@ -31,6 +31,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [selectedCard, setSelectedCard] = useState(null)
   const [pointsData, setPointsData] = useState({})
 
+  console.log(paymentOption)
+
   const totalImageFee =
     productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
       ? selectedCatProps?.extraProductImageFee *
@@ -278,6 +280,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const handleAcceptMada = (selectedCard) => {
     setSelectedCard(selectedCard)
     setPaymentOption(2)
+  }
+
+  const togglePaymentOptionOff = () => {
+    setPaymentOption(null)
   }
 
   return (
@@ -715,7 +721,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="visa"
                             checked={paymentOption === 1}
-                            onChange={() => setIsVisaModalOpen(true)}
+                            onChange={() => {
+                              setIsVisaModalOpen(true)
+                              setPaymentOption(1)
+                              setSelectedCard(null)
+                            }}
                           />
                           <span className="bord" />
                         </div>
@@ -756,7 +766,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             variant="light"
                             className="rounded-pill mb-3"
                             style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                            onClick={() => setIsVisaModalOpen(true)}
+                            onClick={() => {
+                              setIsVisaModalOpen(true)
+                            }}
                           >
                             {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
                           </Button>
@@ -778,7 +790,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="mada"
                             checked={paymentOption === 2}
-                            onChange={() => setIsMadaModalOpen(true)}
+                            onChange={() => {
+                              setIsMadaModalOpen(true)
+                              setPaymentOption(2)
+                              setSelectedCard(null)
+                            }}
                           />
                           <span className="bord" />
                         </div>
@@ -843,7 +859,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             role="switch"
                             id="wallet"
                             checked={paymentOption === 3}
-                            onChange={() => setIsPointsModalOpen(true)}
+                            onChange={() => {
+                              setIsPointsModalOpen(true)
+                              setPaymentOption(3)
+                              setSelectedCard(null)
+                            }}
                           />
                           <span className="bord" />
                         </div>
@@ -852,7 +872,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     </div>
                   </div>
 
-                  {!!(paymentOption === 3) && (
+                  {!!(pointsData?.pointsValue >= totalWithTax && paymentOption === 3) && (
                     <div className="form-group">
                       <div
                         style={{
@@ -905,6 +925,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsPointsModalOpen={setIsPointsModalOpen}
             totalCost={totalWithTax}
             handleAccept={handleAcceptPoints}
+            togglePaymentOptionOff={togglePaymentOptionOff}
           />
         )}
         {isVisaModalOpen && (
@@ -913,6 +934,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsCardModalOpen={setIsVisaModalOpen}
             handleAccept={handleAcceptVisa}
             PaymentAccountType={1}
+            togglePaymentOptionOff={togglePaymentOptionOff}
           />
         )}
         {isMadaModalOpen && (
@@ -921,6 +943,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsCardModalOpen={setIsMadaModalOpen}
             handleAccept={handleAcceptMada}
             PaymentAccountType={2}
+            togglePaymentOptionOff={togglePaymentOptionOff}
           />
         )}
         {isCheckoutModalOpen && (

@@ -12,7 +12,13 @@ import Alerto from "../../../../common/Alerto"
 import RequiredSympol from "../../../../common/RequiredSympol"
 import moment from "moment"
 
-const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentAccountType }) => {
+const CardModal = ({
+  isCardModalOpen,
+  setIsCardModalOpen,
+  handleAccept,
+  PaymentAccountType,
+  toggleOffPaymentOption,
+}) => {
   const { locale } = useRouter()
   const {
     data: cardList,
@@ -33,6 +39,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentA
 
   const closeModal = () => {
     setIsCardModalOpen(false)
+    toggleOffPaymentOption()
   }
 
   const handleChooseCard = () => {
@@ -41,7 +48,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentA
       cvv: cvvValues[selectedCard.id],
     }
     handleAccept(updatedData)
-    closeModal()
+    setIsCardModalOpen(false)
   }
 
   const handleSelectCard = (card) => {
@@ -63,7 +70,7 @@ const CardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, PaymentA
         fetchData()
       }
       handleAccept(updatedData)
-      closeModal()
+      setIsCardModalOpen(false)
     } catch (error) {
       Alerto(error)
     }

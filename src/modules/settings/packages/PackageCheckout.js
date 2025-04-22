@@ -112,6 +112,10 @@ const PackageCheckout = () => {
     setPaymentOption(2)
   }
 
+  const toggleOffPaymentOption = () => {
+    setPaymentOption(null)
+  }
+
   return (
     <div style={{ padding: "40px" }}>
       <div className="d-flex justify-content-between">
@@ -222,7 +226,11 @@ const PackageCheckout = () => {
                           role="switch"
                           id="visa"
                           checked={paymentOption === 1}
-                          onChange={() => setIsVisaModalOpen(true)}
+                          onChange={() => {
+                            setIsVisaModalOpen(true)
+                            setPaymentOption(1)
+                            setSelectedCard(null)
+                          }}
                         />
                         <span className="bord" />
                       </div>
@@ -261,7 +269,9 @@ const PackageCheckout = () => {
                           variant="light"
                           className="rounded-pill mb-3"
                           style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                          onClick={() => setIsVisaModalOpen(true)}
+                          onClick={() => {
+                            setIsVisaModalOpen(true)
+                          }}
                         >
                           {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
                         </Button>
@@ -283,7 +293,11 @@ const PackageCheckout = () => {
                           role="switch"
                           id="mada"
                           checked={paymentOption === 2}
-                          onChange={() => setIsMadaModalOpen(true)}
+                          onChange={() => {
+                            setIsMadaModalOpen(true)
+                            setPaymentOption(2)
+                            setSelectedCard(null)
+                          }}
                         />
                         <span className="bord" />
                       </div>
@@ -348,7 +362,11 @@ const PackageCheckout = () => {
                           role="switch"
                           id="wallet"
                           checked={paymentOption === 3}
-                          onChange={() => setIsPointsModalOpen(true)}
+                          onChange={() => {
+                            setIsPointsModalOpen(true)
+                            setPaymentOption(3)
+                            setSelectedCard(null)
+                          }}
                         />
                         <span className="bord" />
                       </div>
@@ -357,7 +375,7 @@ const PackageCheckout = () => {
                   </div>
                 </div>
 
-                {!!(paymentOption === 3) && (
+                {!!(pointsData?.pointsValue >= totalCost && paymentOption === 3) && (
                   <div className="form-group">
                     <div
                       style={{
@@ -412,6 +430,7 @@ const PackageCheckout = () => {
           setIsPointsModalOpen={setIsPointsModalOpen}
           totalCost={totalCost}
           handleAccept={handleAcceptPoints}
+          toggleOffPaymentOption={toggleOffPaymentOption}
         />
       )}
       {isVisaModalOpen && (
@@ -420,6 +439,7 @@ const PackageCheckout = () => {
           setIsCardModalOpen={setIsVisaModalOpen}
           handleAccept={handleAcceptVisa}
           PaymentAccountType={1}
+          toggleOffPaymentOption={toggleOffPaymentOption}
         />
       )}
       {isMadaModalOpen && (
@@ -428,6 +448,7 @@ const PackageCheckout = () => {
           setIsCardModalOpen={setIsMadaModalOpen}
           handleAccept={handleAcceptMada}
           PaymentAccountType={2}
+          toggleOffPaymentOption={toggleOffPaymentOption}
         />
       )}
       {/* {isCheckoutModalOpen && (
