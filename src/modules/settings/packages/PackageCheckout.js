@@ -13,7 +13,7 @@ import { useSelector } from "react-redux"
 import moment from "moment"
 import Image from "next/image"
 import PointsModal from "../../products/add/review/PointsModal"
-import CardModal from "../../products/add/review/VisaModal"
+import CardModal from "../../products/add/review/CardModal"
 
 const PackageCheckout = () => {
   const providerId = useSelector((state) => state.authSlice.providerId)

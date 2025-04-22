@@ -12,9 +12,9 @@ import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
 import PointsModal from "./PointsModal"
-import CardModal from "./VisaModal"
 import wallet from "../../../../../public/images/wallet.png"
 import CheckoutModal from "./CheckoutModal"
+import CardModal from "./CardModal"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname, push } = useRouter()
