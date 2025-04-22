@@ -130,7 +130,7 @@ const PackageCheckout = () => {
         </button>
       </div>
       <Row>
-        <Col lg={9}>
+        <Col lg={8}>
           <div style={{ maxWidth: "420px", marginInline: "auto" }}>
             {packageDetails && (
               <PackageCard pack={packageDetails} isCurrent={isSub} handleSubscribePackage={() => {}} />
@@ -160,7 +160,7 @@ const PackageCheckout = () => {
             </div>
           </div>
         </Col>
-        <Col lg={3}>
+        <Col lg={4}>
           <div className="contint_paner p-4">
             <div className={styles["Payment-details"]}>
               <div className="f-b mb-2">{pathOr("", [locale, "Products", "have_discount_coupon"], t)} </div>
