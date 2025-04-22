@@ -74,7 +74,7 @@ const MyPoints = () => {
                 </div>
               </div>
             </div>
-            <div className="col-lg-4">
+            {/* <div className="col-lg-4">  
               <div>
                 <div>
                   <h5>{pathOr("", [locale, "Points", "changePointsToCredit"], t)}</h5>
@@ -111,7 +111,7 @@ const MyPoints = () => {
                   {pathOr("", [locale, "Points", "send"], t)}
                 </button>
               </div>
-            </div>
+            </div> */}
           </div>
           <div className="mt-4">
             <h5 className="mb-4">{pathOr("", [locale, "Points", "lastProcesses"], t)}</h5>
