@@ -51,7 +51,7 @@ const PackageCheckout = () => {
   useEffect(() => {
     if (!id) return
     !!isSub ? fetchCurrentPackages() : fetchPackageById()
-  }, [id])
+  }, [id, locale])
 
   const totalCost = +packageDetails?.price - !!(couponData?.discountValue || 0)
 
@@ -139,17 +139,23 @@ const PackageCheckout = () => {
           <div className="contint_paner" style={{ border: "1px solid #ddd" }}>
             <h4 className="main-color">{pathOr("", [locale, "Packages", "PackageDetails"], t)}</h4>
             <div className="d-flex justify-content-between">
-              <div className="d-flex gap-1">
-                <p>{pathOr("", [locale, "Packages", "Category"], t)}:</p>
-                <p>{packageDetails?.listCategories?.[0]?.name}</p>
-              </div>
+              {packageDetails?.smSsCount === 0 && (
+                <div className="d-flex gap-1">
+                  <p>{pathOr("", [locale, "Packages", "Category"], t)}:</p>
+                  <p>{packageDetails?.listCategories?.map((item) => item?.name).join(" - ")}</p>
+                </div>
+              )}
               <div className="d-flex gap-1">
                 <p>{pathOr("", [locale, "Packages", "PackageType"], t)}:</p>
                 <p>{packageDetails?.smSsCount > 0 ? "SMS" : "Publish"}</p>
               </div>
               <div className="d-flex gap-1">
                 <p>{pathOr("", [locale, "Packages", "EndDate"], t)}:</p>
-                <p>{packageDetails?.endDate ? moment(packageDetails?.endDate).format("DD-MM-YYYY") : "-"}</p>
+                <p>
+                  {packageDetails?.endDate
+                    ? moment(packageDetails?.endDate).format("DD-MM-YYYY")
+                    : moment().add(packageDetails?.numMonth, "months").format("DD-MM-YYYY")}
+                </p>
               </div>
             </div>
           </div>
@@ -409,6 +415,7 @@ const PackageCheckout = () => {
                   ? () => handlePackageRenew(packageDetails?.pakaId, packageDetails?.id)
                   : () => handleSubscribePackage(packageDetails?.id)
               }
+              disabled={!paymentOption}
             >
               {isSub
                 ? pathOr("", [locale, "Packages", "renewPaka"], t)

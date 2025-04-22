@@ -156,7 +156,7 @@ const Packages = () => {
                     {paka?.listCategories?.[0]?.name && (
                       <li className="mb-4 d-flex justify-content-between">
                         <p>{pathOr("", [locale, "Packages", "Category"], t)}</p>
-                        <p>{paka?.listCategories?.[0]?.name}</p>
+                        <p>{paka?.listCategories?.map((item) => item.name).join(" - ")}</p>
                       </li>
                     )}
                     <li className="mb-4 d-flex justify-content-between">
