@@ -60,7 +60,7 @@ const PublishingPackages = ({
       setProductPayload({
         ...productPayload,
         pakatId: null,
-        "ProductPaymentDetailsDto.PakatId": 0,
+        "ProductPaymentDetailsDto.PakatId": null,
         isNewPackage: isNew,
       })
       setselectedPack(null)
