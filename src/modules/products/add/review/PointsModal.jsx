@@ -37,7 +37,8 @@ const PointsModal = ({ isPointsModalOpen, setIsPointsModalOpen, totalCost, handl
 
   useEffect(() => {
     if (points) {
-      isSufficient ? handleAccept(pointsValue, points?.pointsBalance) : toggleOffPaymentOption()
+      const pointsOfTotalCost = Math.ceil(totalCost * (points?.pointsCountToTransfer / points?.monyOfPointsTransfered))
+      isSufficient ? handleAccept(pointsValue, pointsOfTotalCost) : toggleOffPaymentOption()
     }
   }, [isSufficient, points])
 

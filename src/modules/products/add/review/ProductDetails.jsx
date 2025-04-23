@@ -17,7 +17,7 @@ import CheckoutModal from "./CheckoutModal"
 import CardModal from "./CardModal"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
-  const { locale, pathname, push } = useRouter()
+  const { locale, pathname } = useRouter()
   const [paymentOption, setPaymentOption] = useState()
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
@@ -30,8 +30,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [pointsData, setPointsData] = useState({})
-
-  console.log(paymentOption)
 
   const totalImageFee =
     productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
@@ -282,7 +280,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setPaymentOption(2)
   }
 
-  const togglePaymentOptionOff = () => {
+  const toggleOffPaymentOption = () => {
     setPaymentOption(null)
   }
 
@@ -903,7 +901,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               data-bs-toggle="modal"
               data-bs-target="#add-product_"
-              disabled={loading || !paymentOption}
+              disabled={loading || !!(!paymentOption && !pathname.includes("edit"))}
               onClick={(e) => handleSubmit(e)}
             >
               {pathname.includes("add") && pathOr("", [locale, "Products", "addNewProduct"], t)}
@@ -925,7 +923,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsPointsModalOpen={setIsPointsModalOpen}
             totalCost={totalWithTax}
             handleAccept={handleAcceptPoints}
-            togglePaymentOptionOff={togglePaymentOptionOff}
+            toggleOffPaymentOption={toggleOffPaymentOption}
           />
         )}
         {isVisaModalOpen && (
@@ -934,7 +932,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsCardModalOpen={setIsVisaModalOpen}
             handleAccept={handleAcceptVisa}
             PaymentAccountType={1}
-            togglePaymentOptionOff={togglePaymentOptionOff}
+            toggleOffPaymentOption={toggleOffPaymentOption}
           />
         )}
         {isMadaModalOpen && (
@@ -943,7 +941,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             setIsCardModalOpen={setIsMadaModalOpen}
             handleAccept={handleAcceptMada}
             PaymentAccountType={2}
-            togglePaymentOptionOff={togglePaymentOptionOff}
+            toggleOffPaymentOption={toggleOffPaymentOption}
           />
         )}
         {isCheckoutModalOpen && (
