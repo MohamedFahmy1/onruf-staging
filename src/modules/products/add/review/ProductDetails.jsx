@@ -216,7 +216,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }
     // append payment details to the form data in case of add or repost
     if (pathname.includes("add") || pathname.includes("repost")) {
-      formData.append("ExecutePaymentDto.PaymentMethodId", paymentOption)
+      formData.append("ExecutePaymentDto.PaymentMethodId", paymentOption === 1 ? 3 : paymentOption === 2 ? 4 : 6)
       formData.append("ExecutePaymentDto.TotalAmount", totalWithTax)
       if (paymentOption === 1 || paymentOption === 2) {
         formData.append("ExecutePaymentDto.PaymentCard.Number", selectedCard?.accountNumber)
