@@ -332,7 +332,8 @@
       "Ok": "موافق",
       "ViewTheProduct": "عرض المنتج",
       "BackToShopping": "اكمال التسوق",
-      "PriceIsNegotiable": "السعر قابل للتفاوض"
+      "PriceIsNegotiable": "السعر قابل للتفاوض",
+      "BackToHomepage": "العودة للصفحة الرئيسية"
     },
     "Users": {
       "users": "العملاء",
@@ -1088,7 +1089,8 @@
       "Ok": "Ok",
       "ViewTheProduct": "View The Product",
       "BackToShopping": "Back To Shopping",
-      "PriceIsNegotiable": "Price is negotiable"
+      "PriceIsNegotiable": "Price is negotiable",
+      "BackToHomepage": "Back To Homepage"
     },
     "Users": {
       "users": "Clients",

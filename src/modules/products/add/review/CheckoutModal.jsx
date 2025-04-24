@@ -15,6 +15,10 @@ const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
     push("/products")
   }
 
+  const handleGoToHomePage = () => {
+    push("/", undefined, { locale: locale })
+  }
+
   let content = <></>
 
   switch (isModalOpen) {
@@ -44,10 +48,10 @@ const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
           </button>
           <p
             className="pointer"
-            onClick={handleNavigate}
+            onClick={handleGoToHomePage}
             style={{ fontSize: "24px", marginTop: "5px", marginBottom: "40px" }}
           >
-            {pathOr("", [locale, "Products", "BackToShopping"], t)}
+            {pathOr("", [locale, "Products", "BackToHomepage"], t)}
           </p>
         </>
       )
