@@ -2115,3 +2115,8 @@ body::-webkit-scrollbar-thumb:hover,
 .unique-send-offer-modal + .modal-backdrop.show {
   opacity: 0.2;
 }
+@media (min-width: 992px) {
+  .deleteModal div {
+    --bs-modal-width: 593px !important;
+  }
+}

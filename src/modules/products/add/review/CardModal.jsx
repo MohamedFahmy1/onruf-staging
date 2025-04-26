@@ -118,7 +118,7 @@ const CardModal = ({
                       </Col>
                       <Col md={6}>
                         <p className="fw-bold">{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                        <div className="text-muted"> {card.accountNumber?.slice(0, 12)}XXXX</div>
+                        <div className="text-muted">XXXX XXXX XXXX {card.accountNumber?.slice(-4)}</div>
                       </Col>
                     </Row>
                     <Row className="mb-2">

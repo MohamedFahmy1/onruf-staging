@@ -426,7 +426,8 @@
       "active": "مفعل",
       "showStore": "ظهور المتجر",
       "cancelMember": "الغاء الاشتراك",
-      "deleteAccount": "مسح الحساب"
+      "deleteAccount": "مسح الحساب",
+      "DeletePaymentOption": "هل تريد حذف خيار الدفع"
     },
     "Employee": {
       "filterByRole": "فلتره حسب الصلاحيه",
@@ -1182,7 +1183,8 @@
       "active": "Active",
       "showStore": "Show Store",
       "cancelMember": "Cancel Membership",
-      "deleteAccount": "Delete Account"
+      "deleteAccount": "Delete Account",
+      "DeletePaymentOption": "are you sure to delete the payment option."
     },
     "Employee": {
       "filterByRole": "Filter By Role",

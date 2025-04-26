@@ -21,6 +21,7 @@ import { DevTool } from "@hookform/devtools"
 import moment from "moment"
 import RequiredSympol from "../../../common/RequiredSympol"
 import { multiFormData } from "../../../common/axiosHeaders"
+import DeleteModal from "./DeleteModal"
 
 const PaymentCards = ({ bankTransfers }) => {
   const { locale } = useRouter()
@@ -61,21 +62,6 @@ const PaymentCards = ({ bankTransfers }) => {
           ? 2
           : 3,
     })
-  }
-
-  const handleDeleteBankTransfer = async (bankId) => {
-    try {
-      await axios.delete(`/RemoveBankTransfer`, { params: { id: bankId } })
-      setBankTransferData([...bankTransferData.filter((b) => b.id !== bankId)])
-      toast.success(locale === "en" ? "Bank transfer has been deleted successfully!" : "تم مسح الحساب البنكي بنجاح")
-      fetchBankTransfer()
-    } catch (error) {
-      toast.error(
-        locale === "en"
-          ? "Can't delete transfer as it's part of a product payment option!"
-          : "لا يمكن مسح الحساب لانه مرتبط كوسيلة دفع لمنتج",
-      )
-    }
   }
 
   const submit = async ({ ...values }) => {
@@ -193,13 +179,11 @@ const PaymentCards = ({ bankTransfers }) => {
                       >
                         <BiEditAlt />
                       </button>
-                      <button
-                        className="btn_edit"
-                        aria-label="delete account"
-                        onClick={() => handleDeleteBankTransfer(bank?.id)}
-                      >
-                        <RiDeleteBin5Line />
-                      </button>
+                      <DeleteModal
+                        id={bank?.id}
+                        setBankTransferData={setBankTransferData}
+                        fetchBankTransfer={fetchBankTransfer}
+                      />
                     </div>
                   </div>
                   <div style={{ width: "145px" }}>{bank?.accountNumber}</div>

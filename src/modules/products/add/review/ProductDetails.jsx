@@ -752,7 +752,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                             <div>
                               <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
                               <p style={{ fontSize: 12, color: "#8B959E" }}>
-                                {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
+                                XXXX XXXX XXXX {selectedCard.accountNumber?.slice(-4)}
                               </p>
                             </div>
                             <div>
@@ -821,7 +821,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                           <div>
                             <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
                             <p style={{ fontSize: 12, color: "#8B959E" }}>
-                              {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
+                              XXXX XXXX XXXX {selectedCard.accountNumber?.slice(-4)}
                             </p>
                           </div>
                           <div>
