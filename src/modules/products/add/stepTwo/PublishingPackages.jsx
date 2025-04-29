@@ -30,7 +30,9 @@ const PublishingPackages = ({
   const { locale, pathname } = useRouter()
   const providerId = useSelector((state) => state.authSlice.providerId)
 
-  const { data: myPackat } = useFetch(`/GetClientSubcripePakats?clientId=${providerId}`)
+  const { data: myPackat } = useFetch(
+    `/GetClientSubcripePakats?clientId=${providerId}&PakatType=Publish&categoryId=${catId}`,
+  )
   const [selectedPack, setselectedPack] = useState()
   const [isLoading, setIsLoading] = useState(false)
   const [packat, setPackat] = useState([])
