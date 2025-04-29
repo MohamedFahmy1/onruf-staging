@@ -111,7 +111,6 @@ const PackageCard = ({ pack, isCurrent, handleSubscribePackage }) => {
       <span className={styles["check"]}>
         <FaCheckCircle />
       </span>
-      {/* <span className={styles["pord"]} /> */}
 
       {!isCurrent && (
         <button
@@ -119,10 +118,10 @@ const PackageCard = ({ pack, isCurrent, handleSubscribePackage }) => {
           style={{
             width: "100%",
             backgroundColor: pack.isBusinessAccountSubscriped ? "#ccc" : undefined,
-            cursor: "pointer",
             zIndex: 2,
             height: "fit-content",
           }}
+          disabled={pack.isBusinessAccountSubscriped}
           onClick={() => {
             handleSubscribePackage(pack.id)
           }}

@@ -55,6 +55,10 @@ const PackageCheckout = () => {
 
   const totalCost = +packageDetails?.price - !!(couponData?.discountValue || 0)
 
+  const taxValue = totalCost * 0.15
+
+  const totalWithTax = totalCost + taxValue
+
   const handleSubscribePackage = async (pakaID) => {
     try {
       await axios.post("/AddPakatSubcription", [pakaID])
@@ -209,12 +213,27 @@ const PackageCheckout = () => {
                   </>
                 )}
 
-                <li className="d-flex justify-content-between px-3">
-                  <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
-                  <span>
-                    <span>{totalCost <= 0 ? 0 : totalCost}</span> {pathOr("", [locale, "Products", "currency"], t)}
-                  </span>
-                </li>
+                {taxValue > 0 && (
+                  <>
+                    <li className="d-flex justify-content-between px-3">
+                      <span>{pathOr("", [locale, "Products", "tax"], t)}</span>{" "}
+                      <span>
+                        {totalCost < 0 ? 0 : taxValue.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
+                      </span>
+                    </li>
+                    <hr />
+                  </>
+                )}
+
+                {totalWithTax > 0 && (
+                  <li className="d-flex justify-content-between px-3">
+                    <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
+                    <span>
+                      <span>{totalWithTax <= 0 ? 0 : totalWithTax}</span>{" "}
+                      {pathOr("", [locale, "Products", "currency"], t)}
+                    </span>
+                  </li>
+                )}
               </ul>
               <hr />
               <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
@@ -381,7 +400,7 @@ const PackageCheckout = () => {
                   </div>
                 </div>
 
-                {!!(pointsData?.pointsValue >= totalCost && paymentOption === 3) && (
+                {!!(pointsData?.pointsValue >= totalWithTax && paymentOption === 3) && (
                   <div className="form-group">
                     <div
                       style={{
@@ -435,7 +454,7 @@ const PackageCheckout = () => {
         <PointsModal
           isPointsModalOpen={isPointsModalOpen}
           setIsPointsModalOpen={setIsPointsModalOpen}
-          totalCost={totalCost}
+          totalCost={totalWithTax}
           handleAccept={handleAcceptPoints}
           toggleOffPaymentOption={toggleOffPaymentOption}
         />
