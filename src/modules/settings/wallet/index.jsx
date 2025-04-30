@@ -3,7 +3,7 @@ import { useRouter } from "next/router"
 import { useState } from "react"
 import { Row, Col } from "react-bootstrap"
 import { useForm } from "react-hook-form"
-import { formatDate, handleFormErrors } from "../../../common/functions"
+import { formatDate, handleFormErrors, onlyNumbersInInputs } from "../../../common/functions"
 import Alerto from "../../../common/Alerto"
 import SimpleSnackbar from "../../../common/SnackBar"
 import { pathOr } from "ramda"
@@ -17,6 +17,7 @@ import { Pagination } from "@mui/material"
 const Wallet = () => {
   const [transType, setTransType] = useState("In")
   const [success, setSuccess] = useState(false)
+  const [creditValue, setCreditValue] = useState(0)
   const { data: userWalletState = {}, fetchData: fetchWalletInfo } = useFetch(`/GetUserWalletTransactions`)
   const { walletBalance, walletTransactionslist = [] } = userWalletState
   const {
@@ -44,7 +45,7 @@ const Wallet = () => {
       return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
     }
     try {
-      const result = await axios.post("/AddWalletTransaction", formData)
+      await axios.post("/AddWalletTransaction", formData)
       toast.success(locale === "en" ? "Transacation Done!" : "تمت العملية بنجاح")
       fetchWalletInfo()
     } catch (e) {
@@ -60,7 +61,7 @@ const Wallet = () => {
       <SimpleSnackbar text="Your transaction is processed successfully!" show={success} setShow={setSuccess} />
       <section className="contint_paner">
         <Row className="justify-content-between">
-          <Col lg={5}>
+          <Col lg={4}>
             <div className="info_sec_ mb-3">
               <div className="icon">
                 <Image src={wallet} className="img-fluid" alt="wallet" />
@@ -71,7 +72,7 @@ const Wallet = () => {
               </h5>
             </div>
           </Col>
-          <Col lg={5}>
+          <Col lg={4}>
             <form onSubmit={handleSubmit(handleWalletSubmit)}>
               <ul className="swich_larg d-flex justify-content-center gap-5">
                 <li
@@ -183,6 +184,40 @@ const Wallet = () => {
                   : pathOr("", [locale, "Wallet", "withdraw"], t)}
               </button>
             </form>
+          </Col>
+          <Col lg={4}>
+            <div>
+              <h5>{pathOr("", [locale, "Wallet", "changeCreditToPoints"], t)}</h5>
+              <div className="main-color">
+                {locale === "en" ? `Every ${1} points for ${1} Riyals` : `كل ${1} نقطة ب ${1} ريال`}
+              </div>
+            </div>
+            <div className="my-2 po_R">
+              <label htmlFor="credit" className="visually-hidden">
+                credit
+              </label>
+              <input
+                id="credit"
+                value={creditValue}
+                onChange={(e) => setCreditValue(e.target.value)}
+                type="number"
+                onKeyDown={onlyNumbersInInputs}
+                className="form-control"
+              />
+              <span
+                className="icon_fa main-color"
+                style={{
+                  right: locale === "en" ? "25px" : undefined,
+                  width: "fit-content",
+                  left: locale === "en" ? "inherit" : "25px",
+                }}
+              >
+                {pathOr("", [locale, "Products", "currency"], t)}
+              </span>
+            </div>
+            <button className="btn-main d-block w-100" onClick={() => {}}>
+              {pathOr("", [locale, "Points", "send"], t)}
+            </button>
           </Col>
         </Row>
         <div className="mt-4">
