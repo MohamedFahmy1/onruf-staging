@@ -136,13 +136,11 @@ const PackageCheckout = () => {
       <Row>
         <Col lg={8}>
           <div style={{ maxWidth: "420px", marginInline: "auto" }}>
-            {packageDetails && (
-              <PackageCard pack={packageDetails} isCurrent={isSub} handleSubscribePackage={() => {}} />
-            )}
+            {packageDetails && <PackageCard pack={packageDetails} isCurrent={true} handleSubscribePackage={() => {}} />}
           </div>
           <div className="contint_paner" style={{ border: "1px solid #ddd" }}>
             <h4 className="main-color">{pathOr("", [locale, "Packages", "PackageDetails"], t)}</h4>
-            <div className="d-flex justify-content-between">
+            <div className="d-flex justify-content-between flex-wrap">
               {packageDetails?.smSsCount === 0 && (
                 <div className="d-flex gap-1">
                   <p>{pathOr("", [locale, "Packages", "Category"], t)}:</p>
