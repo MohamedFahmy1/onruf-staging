@@ -337,9 +337,15 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   )}
                   <div className="mx-3">
                     <div className="gray-color">{selectedCatProps?.name}</div>
-                    <div className="f-b">{locale == "en" ? productFullData?.nameEn : productFullData?.nameAr}</div>
+                    <div className="f-b">
+                      {locale == "en"
+                        ? productFullData?.nameEn || productFullData?.nameAr
+                        : productFullData?.nameAr || productFullData?.nameEn}
+                    </div>
                     <div className="gray-color">
-                      {locale == "en" ? productFullData?.subTitleEn : productFullData?.subTitleAr}
+                      {locale == "en"
+                        ? productFullData?.subTitleEn || productFullData?.subTitleAr
+                        : productFullData?.subTitleAr || productFullData?.subTitleEn}
                     </div>
                   </div>
                 </div>
@@ -368,7 +374,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               </Col>
             </Row>
             <p className="mt-4">
-              {productFullData && (locale == "en" ? productFullData?.descriptionEn : productFullData?.descriptionAr)}
+              {productFullData &&
+                (locale == "en"
+                  ? productFullData?.descriptionEn || productFullData?.descriptionAr
+                  : productFullData?.descriptionAr || productFullData?.descriptionEn)}
             </p>
           </div>
           <div className="contint_paner">
