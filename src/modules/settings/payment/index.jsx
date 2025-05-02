@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/router"
 import { Row, Col, Modal } from "react-bootstrap"
 import { AiOutlinePlus } from "react-icons/ai"
@@ -13,7 +13,7 @@ import { useForm } from "react-hook-form"
 import axios from "axios"
 import "react-datepicker/dist/react-datepicker.css"
 import t from "../../../translations.json"
-import { pathOr } from "ramda"
+import { is, path, pathOr } from "ramda"
 import Alerto from "../../../common/Alerto"
 import Image from "next/image"
 import { textAlignStyle } from "../../../styles/stylesObjects"
@@ -28,6 +28,8 @@ const PaymentCards = ({ bankTransfers }) => {
   const [openModal, setOpenModal] = useState()
   const [id, setId] = useState()
   const [bankTransferData, setBankTransferData] = useState(bankTransfers || [])
+  const fileInputRef = useRef(null)
+  const [loading, setLoading] = useState(false)
   const {
     register,
     handleSubmit,
@@ -66,9 +68,11 @@ const PaymentCards = ({ bankTransfers }) => {
 
   const submit = async ({ ...values }) => {
     try {
+      setLoading(true)
       if (id) {
         const formData = new FormData()
         for (const key in values) {
+          if (values[key] === null) continue
           formData.append(key, values[key])
         }
         formData.append("saveForLaterUse", "true")
@@ -76,14 +80,14 @@ const PaymentCards = ({ bankTransfers }) => {
         setBankTransferData([...bankTransferData?.filter((b) => b.id !== id), { ...values }])
         setOpenModal(false)
         setId(undefined)
-        toast.success(locale === "en" ? "Bank transfer has been edited successfully!" : "تم تعديل الحساب البنكي بنجاح")
+        toast.success(locale === "en" ? "Payment Option has been edited successfully!" : "تم تعديل وسيلة الدفع بنجاح")
         fetchBankTransfer()
       } else {
         try {
           await axios.post("/AddBankTransfer", { ...values, saveForLaterUse: true })
           setBankTransferData([...bankTransferData, { ...values }])
           setOpenModal(false)
-          toast.success(locale === "en" ? "Bank transfer has been added successfully!" : "تم اضافة الحساب البنكي بنجاح")
+          toast.success(locale === "en" ? "Payment Option has been added successfully!" : "تم اضافة وسيلة الدفع بنجاح")
           fetchBankTransfer()
         } catch (error) {
           toast.error("Error!")
@@ -92,6 +96,8 @@ const PaymentCards = ({ bankTransfers }) => {
       }
     } catch (error) {
       Alerto(error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -112,6 +118,12 @@ const PaymentCards = ({ bankTransfers }) => {
   useEffect(() => {
     setBankTransferData(bankTransfers)
   }, [bankTransfers])
+
+  useEffect(() => {
+    register("ibanCertificateFile", {
+      required: locale === "en" ? "Required" : "مطلوب",
+    })
+  }, [register])
 
   return (
     <Col lg={8}>
@@ -228,12 +240,14 @@ const PaymentCards = ({ bankTransfers }) => {
           onHide={() => setOpenModal(false)}
           style={{ ...textAlignStyle(locale), direction: locale === "en" ? "ltr" : "rtl" }}
         >
-          <Modal.Header>
-            <h5 className="modal-title m-0 f-b" id="staticBackdropLabel">
-              {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
-              {pathOr("", [locale, "BankAccounts", "bankAccount"], t)}
-            </h5>
-            <button type="button" className="btn-close" onClick={() => setOpenModal(false)} />
+          <Modal.Header className="position-relative">
+            <div className="position-absolute start-50 translate-middle" style={{ top: "65%" }}>
+              <h5 className="modal-title m-0 f-b text-center" id="staticBackdropLabel">
+                {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
+                {pathOr("", [locale, "BankAccounts", "bankAccount"], t)}
+              </h5>
+            </div>
+            <button type="button" className="btn-close ms-auto" onClick={() => setOpenModal(false)} />
           </Modal.Header>
           <Modal.Body>
             {!id && (
@@ -286,24 +300,6 @@ const PaymentCards = ({ bankTransfers }) => {
               </div>
             )}
             <Row>
-              <Col md={12}>
-                <div className="mb-2">
-                  <label className="f-b">
-                    {isBankAccount
-                      ? pathOr("", [locale, "BankAccounts", "Holder's"], t)
-                      : pathOr("", [locale, "Products", "NameOnCard"], t)}
-                    <RequiredSympol />
-                  </label>
-                  <input
-                    type="text"
-                    className="form-control"
-                    {...register("bankHolderName", {
-                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                    })}
-                  />
-                  {errors["bankHolderName"] && <p className="errorMsg">{errors["bankHolderName"]["message"]}</p>}
-                </div>
-              </Col>
               {isBankAccount && (
                 <Col md={12}>
                   <div className="mb-2">
@@ -351,6 +347,24 @@ const PaymentCards = ({ bankTransfers }) => {
                   {errors["accountNumber"] && <p className="errorMsg">{errors["accountNumber"]["message"]}</p>}
                 </div>
               </Col>
+              <Col md={12}>
+                <div className="mb-2">
+                  <label className="f-b">
+                    {isBankAccount
+                      ? pathOr("", [locale, "BankAccounts", "Holder's"], t)
+                      : pathOr("", [locale, "BankAccounts", "cardHolderName"], t)}
+                    <RequiredSympol />
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    {...register("bankHolderName", {
+                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                    })}
+                  />
+                  {errors["bankHolderName"] && <p className="errorMsg">{errors["bankHolderName"]["message"]}</p>}
+                </div>
+              </Col>
               {isBankAccount && (
                 <Col md={12}>
                   <div className="mb-2">
@@ -371,6 +385,55 @@ const PaymentCards = ({ bankTransfers }) => {
                       })}
                     />
                     {errors["ibanNumber"] && <p className="errorMsg">{errors["ibanNumber"]["message"]}</p>}
+                  </div>
+                </Col>
+              )}
+              {isBankAccount && (
+                <Col md={12}>
+                  <div className="mb-2">
+                    <label className="f-b me-2 mb-0">
+                      {pathOr("", [locale, "BankAccounts", "ibanCertificate"], t)} <RequiredSympol />
+                    </label>
+                    <div className="d-flex align-items-center">
+                      <label
+                        htmlFor="ibanCertificateFile"
+                        className="btn border rounded-pill px-4 py-1"
+                        style={{ cursor: "pointer", background: "#fff", borderColor: "#ccc", width: "200px" }}
+                      >
+                        {pathOr("", [locale, "BankAccounts", "upload"], t)}
+                      </label>
+                      <input
+                        type="hidden"
+                        {...register("ibanCertificateFile", {
+                          validate: (v) => {
+                            return v instanceof File || (v && v.name)
+                              ? true
+                              : locale === "en"
+                              ? "No file selected"
+                              : "لم يتم اختيار ملف"
+                          },
+                        })}
+                      />
+                      <input
+                        id="ibanCertificateFile"
+                        type="file"
+                        accept=".png,.jpg,.jpeg,.pdf"
+                        className="d-none"
+                        ref={fileInputRef}
+                        onChange={(e) => {
+                          const file = e.target.files[0]
+                          setValue("ibanCertificateFile", file, { shouldValidate: true })
+                        }}
+                      />
+
+                      <span className="mx-2">
+                        {watch("ibanCertificateFile")?.name ||
+                          (locale === "en" ? "No file selected" : "لم يتم اختيار ملف")}
+                      </span>
+                    </div>
+                    {errors["ibanCertificateFile"] && (
+                      <p className="errorMsg">{errors["ibanCertificateFile"]["message"]}</p>
+                    )}
                   </div>
                 </Col>
               )}
@@ -432,8 +495,8 @@ const PaymentCards = ({ bankTransfers }) => {
             </Row>
           </Modal.Body>
           <Modal.Footer className="modal-footer">
-            <button type="submit" onClick={handleSubmit(submit)} className="btn-main">
-              {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}
+            <button type="submit" onClick={handleSubmit(submit)} className="btn-main" disabled={loading}>
+              {!id ? (locale === "en" ? "Add" : "اضافة") : pathOr("", [locale, "BankAccounts", "save"], t)}
             </button>
           </Modal.Footer>
         </Modal>
