@@ -23,7 +23,7 @@ const DeleteModal = ({ id, setBankTransferData, fetchBankTransfer }) => {
       setLoading(true)
       await axios.delete(`/RemoveBankTransfer`, { params: { id: bankId } })
       setBankTransferData((prev) => prev.filter((b) => b.id !== bankId))
-      toast.success(locale === "en" ? "Bank transfer has been deleted successfully!" : "تم مسح الحساب البنكي بنجاح")
+      toast.success(locale === "en" ? "Payment method has been deleted successfully!" : "تم مسح وسيلة الدفع بنجاح")
       fetchBankTransfer()
       closeModal()
       setLoading(false)
@@ -31,8 +31,8 @@ const DeleteModal = ({ id, setBankTransferData, fetchBankTransfer }) => {
       setLoading(false)
       toast.error(
         locale === "en"
-          ? "Can't delete transfer as it's part of a product payment option!"
-          : "لا يمكن مسح الحساب لانه مرتبط كوسيلة دفع لمنتج",
+          ? "Can't delete method as it's part of a product payment option!"
+          : "تعذر المسح لانه مرتبط كوسيلة دفع لمنتج",
       )
     }
   }

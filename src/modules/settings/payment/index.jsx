@@ -3,7 +3,6 @@ import { useRouter } from "next/router"
 import { Row, Col, Modal } from "react-bootstrap"
 import { AiOutlinePlus } from "react-icons/ai"
 import { BiEditAlt } from "react-icons/bi"
-import { RiDeleteBin5Line } from "react-icons/ri"
 import VisaImg from "../../../../public/images/Visa.png"
 import BoxBankImg from "../../../../public/images/box-bank.png"
 import madaImg from "../../../../public/images/mada.png"
@@ -13,7 +12,7 @@ import { useForm } from "react-hook-form"
 import axios from "axios"
 import "react-datepicker/dist/react-datepicker.css"
 import t from "../../../translations.json"
-import { is, path, pathOr } from "ramda"
+import { pathOr } from "ramda"
 import Alerto from "../../../common/Alerto"
 import Image from "next/image"
 import { textAlignStyle } from "../../../styles/stylesObjects"
@@ -69,13 +68,13 @@ const PaymentCards = ({ bankTransfers }) => {
   const submit = async ({ ...values }) => {
     try {
       setLoading(true)
+      const formData = new FormData()
+      for (const key in values) {
+        if (values[key] === null) continue
+        formData.append(key, values[key])
+      }
+      formData.append("saveForLaterUse", "true")
       if (id) {
-        const formData = new FormData()
-        for (const key in values) {
-          if (values[key] === null) continue
-          formData.append(key, values[key])
-        }
-        formData.append("saveForLaterUse", "true")
         await axios.put("/EditBankTransfer", formData, multiFormData)
         setBankTransferData([...bankTransferData?.filter((b) => b.id !== id), { ...values }])
         setOpenModal(false)
@@ -84,7 +83,7 @@ const PaymentCards = ({ bankTransfers }) => {
         fetchBankTransfer()
       } else {
         try {
-          await axios.post("/AddBankTransfer", { ...values, saveForLaterUse: true })
+          await axios.post("/AddBankTransfer", formData, multiFormData)
           setBankTransferData([...bankTransferData, { ...values }])
           setOpenModal(false)
           toast.success(locale === "en" ? "Payment Option has been added successfully!" : "تم اضافة وسيلة الدفع بنجاح")
@@ -115,6 +114,30 @@ const PaymentCards = ({ bankTransfers }) => {
     })
   }
 
+  const getModalTitle = () => {
+    const firstTitle = !id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"
+    let secondTitle
+    if (id) {
+      switch (paymentAccountTypeValue) {
+        case 1:
+          secondTitle = pathOr("", [locale, "BankAccounts", "VisaMasterCard"], t)
+          break
+        case 2:
+          secondTitle = pathOr("", [locale, "BankAccounts", "mada"], t)
+          break
+        case 3:
+          secondTitle = pathOr("", [locale, "BankAccounts", "bankAccount"], t)
+          break
+        default:
+          secondTitle = pathOr("", [locale, "BankAccounts", "VisaMasterCard"], t)
+          break
+      }
+    } else {
+      secondTitle = pathOr("", [locale, "BankAccounts", "paymentMethod"], t)
+    }
+    return `${firstTitle} ${secondTitle}`
+  }
+
   useEffect(() => {
     setBankTransferData(bankTransfers)
   }, [bankTransfers])
@@ -128,7 +151,7 @@ const PaymentCards = ({ bankTransfers }) => {
   return (
     <Col lg={8}>
       <section className="contint_paner">
-        <h6 className="f-b mb-3">{pathOr("", [locale, "Settings", "bankAccounts"], t)}</h6>
+        <h6 className="f-b mb-3">{pathOr("", [locale, "BankAccounts", "paymentMethods"], t)}</h6>
         <div className="d-flex gap-4">
           <button
             type="button"
@@ -243,8 +266,7 @@ const PaymentCards = ({ bankTransfers }) => {
           <Modal.Header className="position-relative">
             <div className="position-absolute start-50 translate-middle" style={{ top: "65%" }}>
               <h5 className="modal-title m-0 f-b text-center" id="staticBackdropLabel">
-                {!id ? (locale === "en" ? "Add" : "اضافة") : locale === "en" ? "Edit" : "تعديل"}{" "}
-                {pathOr("", [locale, "BankAccounts", "bankAccount"], t)}
+                {getModalTitle()}
               </h5>
             </div>
             <button type="button" className="btn-close ms-auto" onClick={() => setOpenModal(false)} />
@@ -267,7 +289,7 @@ const PaymentCards = ({ bankTransfers }) => {
                         required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
                       })}
                     />
-                    <span>{pathOr("", [locale, "BankAccounts", "creditCard"], t)}</span>
+                    <span>{pathOr("", [locale, "BankAccounts", "VisaMasterCard"], t)}</span>
                   </div>
                   <div className="status-P justify-content-start">
                     <input
