@@ -31,6 +31,7 @@ const PaymentCards = ({ bankTransfers }) => {
   const [loading, setLoading] = useState(false)
   const {
     register,
+    unregister,
     handleSubmit,
     formState: { errors },
     reset,
@@ -38,8 +39,6 @@ const PaymentCards = ({ bankTransfers }) => {
     setValue,
     control,
   } = useForm({ mode: "onBlur", defaultValues: { paymentAccountType: 1, saveForLaterUse: true } })
-
-  console.log(errors)
 
   const paymentAccountTypeValue = watch("paymentAccountType")
 
@@ -174,10 +173,9 @@ const PaymentCards = ({ bankTransfers }) => {
         },
       })
     } else {
-      // If it was previously registered, clear it
-      setValue("expiaryDate", null) // Clear value
+      unregister("expiaryDate") // <==== هذا هو المفتاح
     }
-  }, [isBankAccount])
+  }, [isBankAccount, register, unregister])
 
   return (
     <Col lg={8}>
