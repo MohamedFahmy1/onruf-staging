@@ -148,7 +148,36 @@ const PaymentCards = ({ bankTransfers }) => {
     register("ibanCertificateFile", {
       required: locale === "en" ? "Required" : "مطلوب",
     })
-  }, [register])
+  }, [])
+
+  useEffect(() => {
+    if (!isBankAccount) {
+      register("expiaryDate", {
+        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+        pattern: {
+          value: /^(0[1-9]|1[0-2])\/(20[2-9][0-9])$/,
+          message:
+            locale === "en"
+              ? "Invalid date format (MM/YYYY, months from 01 to 12)"
+              : "تنسيق التاريخ غير صحيح (شهر/سنة، الأشهر من 01 إلى 12)",
+        },
+        validate: (value) => {
+          const date = moment(value, "MM/YYYY")
+          if (!date.isValid()) {
+            return locale === "en" ? "Invalid date" : "تاريخ غير صحيح"
+          }
+          const now = moment().startOf("month")
+          if (date.isBefore(now)) {
+            return locale === "en" ? "Expiry date has passed" : "تاريخ الانتهاء قد مضى"
+          }
+          return true
+        },
+      })
+    } else {
+      // If it was previously registered, clear it
+      setValue("expiaryDate", null) // Clear value
+    }
+  }, [isBankAccount])
 
   return (
     <Col lg={8}>
