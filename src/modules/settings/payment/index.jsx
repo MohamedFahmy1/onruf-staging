@@ -152,6 +152,14 @@ const PaymentCards = ({ bankTransfers }) => {
   }, [])
 
   useEffect(() => {
+    if (id) {
+      register("paymentAccountType", {
+        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+      })
+    }
+  }, [id])
+
+  useEffect(() => {
     if (!isBankAccount) {
       register("expiaryDate", {
         required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
