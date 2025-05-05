@@ -40,8 +40,6 @@ const PaymentCards = ({ bankTransfers }) => {
     control,
   } = useForm({ mode: "onBlur", defaultValues: { paymentAccountType: 1, saveForLaterUse: true } })
 
-  console.log(errors, watch())
-
   const paymentAccountTypeValue = watch("paymentAccountType")
 
   const isBankAccount = paymentAccountTypeValue == 3
@@ -150,14 +148,6 @@ const PaymentCards = ({ bankTransfers }) => {
       required: locale === "en" ? "Required" : "مطلوب",
     })
   }, [])
-
-  useEffect(() => {
-    if (id) {
-      register("paymentAccountType", {
-        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-      })
-    }
-  }, [id])
 
   useEffect(() => {
     if (!isBankAccount) {
@@ -311,55 +301,53 @@ const PaymentCards = ({ bankTransfers }) => {
             <button type="button" className="btn-close ms-auto" onClick={() => setOpenModal(false)} />
           </Modal.Header>
           <Modal.Body>
-            {!id && (
-              <div className="mb-2">
-                <label className="f-b">
-                  {pathOr("", [locale, "BankAccounts", "accountType"], t)}
-                  <RequiredSympol />
-                </label>
-                <div className="d-flex justify-content-between">
-                  <div className="status-P">
-                    <input
-                      type="radio"
-                      name="paymentAccountType"
-                      value={1}
-                      defaultChecked={paymentAccountTypeValue === 1}
-                      {...register("paymentAccountType", {
-                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      })}
-                    />
-                    <span>{pathOr("", [locale, "BankAccounts", "VisaMasterCard"], t)}</span>
-                  </div>
-                  <div className="status-P justify-content-start">
-                    <input
-                      type="radio"
-                      name="paymentAccountType"
-                      value={2}
-                      defaultChecked={paymentAccountTypeValue === 2}
-                      {...register("paymentAccountType", {
-                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      })}
-                    />
-                    <span>{locale === "en" ? "Mada" : "مدى"}</span>
-                  </div>
-                  <div className="status-P">
-                    <input
-                      type="radio"
-                      name="paymentAccountType"
-                      value={3}
-                      defaultChecked={paymentAccountTypeValue === 3}
-                      {...register("paymentAccountType", {
-                        required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
-                      })}
-                    />
-                    <span>{pathOr("", [locale, "BankAccounts", "bankAccount"], t)}</span>
-                  </div>
+            <div className="mb-2" style={{ display: id ? "none" : "block" }}>
+              <label className="f-b">
+                {pathOr("", [locale, "BankAccounts", "accountType"], t)}
+                <RequiredSympol />
+              </label>
+              <div className="d-flex justify-content-between">
+                <div className="status-P">
+                  <input
+                    type="radio"
+                    name="paymentAccountType"
+                    value={1}
+                    defaultChecked={paymentAccountTypeValue === 1}
+                    {...register("paymentAccountType", {
+                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                    })}
+                  />
+                  <span>{pathOr("", [locale, "BankAccounts", "VisaMasterCard"], t)}</span>
                 </div>
-                {errors["paymentAccountType"] && (
-                  <p className="errorMsg text-center">{errors["paymentAccountType"]["message"]}</p>
-                )}
+                <div className="status-P justify-content-start">
+                  <input
+                    type="radio"
+                    name="paymentAccountType"
+                    value={2}
+                    defaultChecked={paymentAccountTypeValue === 2}
+                    {...register("paymentAccountType", {
+                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                    })}
+                  />
+                  <span>{locale === "en" ? "Mada" : "مدى"}</span>
+                </div>
+                <div className="status-P">
+                  <input
+                    type="radio"
+                    name="paymentAccountType"
+                    value={3}
+                    defaultChecked={paymentAccountTypeValue === 3}
+                    {...register("paymentAccountType", {
+                      required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                    })}
+                  />
+                  <span>{pathOr("", [locale, "BankAccounts", "bankAccount"], t)}</span>
+                </div>
               </div>
-            )}
+              {errors["paymentAccountType"] && (
+                <p className="errorMsg text-center">{errors["paymentAccountType"]["message"]}</p>
+              )}
+            </div>
             <Row>
               {isBankAccount && (
                 <Col md={12}>
