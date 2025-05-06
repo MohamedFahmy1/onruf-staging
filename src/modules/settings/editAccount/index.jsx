@@ -368,7 +368,7 @@ const EditBussinessAccount = () => {
                             <img src={office.src} className="img-fluid" alt="office" />
                           </span>
                           <input
-                            {...register("businessAccountName", { value: accountData.businessAccountName })}
+                            {...register("businessAccountNameEn", { value: accountData.businessAccountName })}
                             onChange={(e) => {
                               setValue("businessAccountName", e.target.value)
                               setValue("BusinessAccountNameEn", e.target.value)
