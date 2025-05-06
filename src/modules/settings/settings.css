@@ -51,7 +51,7 @@
   border-radius: 18px;
   text-align: left;
   direction: ltr;
-  padding: 25px 15px;
+  padding: 25px 0 25px 15px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;

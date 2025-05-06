@@ -6,6 +6,8 @@ import { BiEditAlt } from "react-icons/bi"
 import VisaImg from "../../../../public/images/Visa.png"
 import BoxBankImg from "../../../../public/images/box-bank.png"
 import madaImg from "../../../../public/images/mada.png"
+import bankAccountCard from "../../../../public/images/bankAccountCard.png"
+import bankAccountLogo from "../../../../public/images/bankAccountLogo.png"
 import stc from "../../../../public/images/stc.png"
 import { toast } from "react-toastify"
 import { useForm } from "react-hook-form"
@@ -80,14 +82,14 @@ const PaymentCards = ({ bankTransfers }) => {
         setBankTransferData([...bankTransferData?.filter((b) => b.id !== id), { ...values }])
         setOpenModal(false)
         setId(undefined)
-        toast.success(locale === "en" ? "Payment Option has been edited successfully!" : "تم تعديل وسيلة الدفع بنجاح")
+        toast.success(locale === "en" ? "Payment Method has been edited successfully!" : "تم تعديل وسيلة الدفع بنجاح")
         fetchBankTransfer()
       } else {
         try {
           await axios.post("/AddBankTransfer", formData, multiFormData)
           setBankTransferData([...bankTransferData, { ...values }])
           setOpenModal(false)
-          toast.success(locale === "en" ? "Payment Option has been added successfully!" : "تم اضافة وسيلة الدفع بنجاح")
+          toast.success(locale === "en" ? "Payment Method has been added successfully!" : "تم اضافة وسيلة الدفع بنجاح")
           fetchBankTransfer()
         } catch (error) {
           toast.error("Error!")
@@ -99,6 +101,30 @@ const PaymentCards = ({ bankTransfers }) => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleStyleCardMargin = (isBank, first) => {
+    if (isBank && first) {
+      return locale === "en" ? { marginRight: "-22px" } : { marginRight: "20px", marginLeft: "-22px" }
+    } else if (isBank) {
+      return locale === "en" ? { marginRight: "-22px" } : {}
+    } else {
+      return {}
+    }
+  }
+
+  function formatToMonthYear(inputDate) {
+    let parsedDate
+
+    if (moment(inputDate, moment.ISO_8601, true).isValid()) {
+      parsedDate = moment(inputDate)
+    } else if (moment(inputDate, "MM/YYYY", true).isValid()) {
+      parsedDate = moment(inputDate, "MM/YYYY")
+    } else {
+      return "Invalid date"
+    }
+
+    return parsedDate.format("MM/YYYY")
   }
 
   const handleOpenModal = () => {
@@ -173,7 +199,7 @@ const PaymentCards = ({ bankTransfers }) => {
         },
       })
     } else {
-      unregister("expiaryDate") // <==== هذا هو المفتاح
+      unregister("expiaryDate")
     }
   }, [isBankAccount, register, unregister])
 
@@ -193,80 +219,112 @@ const PaymentCards = ({ bankTransfers }) => {
             <AiOutlinePlus />
           </button>
           <div
-            className="d-flex justify-content-between overflow-x-scroll overflow-y-hidden w-100"
-            style={{ height: "300px", alignItems: "center", columnGap: "20px" }}
+            className="d-flex justify-content-between overflow-x-scroll overflo -y-hidden w-100"
+            style={{ height: "300px", alignItems: "center", gap: "60px" }}
           >
             {bankTransferData?.length === 0 && (
               <div className="f-b text-center flex-grow-1">{pathOr("", [locale, "Settings", "noBankAccounts"], t)}</div>
             )}
-            {bankTransferData?.map((bank) => (
+            {bankTransferData?.map((bank, index) => (
               <div
                 className="box-bank-account"
                 key={bank?.id}
-                style={{
-                  color: bank.paymentAccountType === "BankAccount" ? "black" : undefined,
-                  border: bank.paymentAccountType === "BankAccount" ? "1px solid #ccc" : undefined,
-                }}
+                style={handleStyleCardMargin(bank.paymentAccountType === "BankAccount", index === 0)}
               >
-                <div>
-                  <div
-                    className="d-flex align-items-center justify-content-between mb-10 gap-3"
-                    style={{ maxWidth: "85%" }}
-                  >
-                    {bank.paymentAccountType === "VisaMasterCard" && (
-                      <Image
-                        src={VisaImg}
-                        className="img_"
-                        alt="visa logo"
-                        layout="fixed"
-                        width={50}
-                        height={16}
-                        priority
-                      />
-                    )}
-                    {bank.paymentAccountType === "Mada" && (
-                      <Image
-                        src={madaImg}
-                        className="img_"
-                        alt="stc pay"
-                        layout="fixed"
-                        width={50}
-                        height={16}
-                        priority
-                      />
-                    )}
-                    <div className="d-flex">
-                      <button
-                        className="btn_edit"
-                        aria-label="edit account"
-                        onClick={() => handleOpenEditModalAndSetFormWithDefaultValues(bank?.id)}
-                      >
-                        <BiEditAlt />
-                      </button>
-                      <DeleteModal
-                        id={bank?.id}
-                        setBankTransferData={setBankTransferData}
-                        fetchBankTransfer={fetchBankTransfer}
-                      />
-                    </div>
+                <div
+                  className="d-flex align-items-center justify-content-between mb-10"
+                  style={{ gap: bank.paymentAccountType === "BankAccount" ? "0px" : "10px" }}
+                >
+                  {bank.paymentAccountType === "VisaMasterCard" && (
+                    <Image
+                      src={VisaImg}
+                      className="img_"
+                      alt="visa logo"
+                      layout="fixed"
+                      width={50}
+                      height={16}
+                      priority
+                    />
+                  )}
+                  {bank.paymentAccountType === "Mada" && (
+                    <Image
+                      src={madaImg}
+                      className="img_"
+                      alt="stc pay"
+                      layout="fixed"
+                      width={50}
+                      height={16}
+                      priority
+                    />
+                  )}
+                  {bank.paymentAccountType === "BankAccount" && (
+                    <Image
+                      src={bankAccountLogo}
+                      className="img_"
+                      alt="bank Account Logo"
+                      layout="fixed"
+                      width={80}
+                      height={40}
+                      priority
+                    />
+                  )}
+                  <div className="d-flex justify-content-end gap-1">
+                    <button
+                      className="btn_edit"
+                      aria-label="edit account"
+                      onClick={() => handleOpenEditModalAndSetFormWithDefaultValues(bank?.id)}
+                    >
+                      <BiEditAlt />
+                    </button>
+                    <DeleteModal
+                      id={bank?.id}
+                      setBankTransferData={setBankTransferData}
+                      fetchBankTransfer={fetchBankTransfer}
+                    />
                   </div>
-                  <div style={{ width: "145px" }}>{bank?.accountNumber}</div>
                 </div>
-                <div>
-                  <div className="mt-10">
-                    <div>
-                      {pathOr("", [locale, "BankAccounts", "BankName"], t)}: {bank?.bankName}
+                <div style={{ fontSize: "13px" }}>
+                  {bank.paymentAccountType === "BankAccount" && (
+                    <div className="mb-2">
+                      <p>{pathOr("", [locale, "BankAccounts", "BankName"], t)}:</p>
+                      <p>{bank?.bankName}</p>
                     </div>
-                    <div>{bank?.bankHolderName}</div>
+                  )}
+                  <div className="mb-2">
+                    <p>
+                      {bank.paymentAccountType === "BankAccount"
+                        ? pathOr("", [locale, "BankAccounts", "AccountNumber"], t)
+                        : pathOr("", [locale, "Products", "CardNumber"], t)}
+                      :
+                    </p>
+                    <p>{bank?.accountNumber}</p>
                   </div>
+                  <div className="mb-2" style={{ width: "115px" }}>
+                    <p>
+                      {pathOr(
+                        "",
+                        [
+                          locale,
+                          "BankAccounts",
+                          bank.paymentAccountType === "BankAccount" ? "Holder's" : "cardHolderName",
+                        ],
+                        t,
+                      )}
+                      :
+                    </p>
+                    <p>{bank?.bankHolderName}</p>
+                  </div>
+
                   {bank.paymentAccountType === "BankAccount" ? (
-                    <div className="mt-10">
-                      <div>{bank?.swiftCode}</div>
+                    <div className="mb-2">
+                      <p>
+                        {pathOr("", [locale, "BankAccounts", "ibn"], t)}: {bank?.swiftCode}
+                      </p>
                     </div>
                   ) : (
-                    <div className="mt-10">
-                      <div>{pathOr("", [locale, "BankAccounts", "expiryDate"], t)}</div>
-                      <div>{bank?.expiaryDate}</div>
+                    <div className="mb-2">
+                      <p>{pathOr("", [locale, "BankAccounts", "expiryDate"], t)}</p>
+                      <p>{formatToMonthYear(bank?.expiaryDate)}</p>
                     </div>
                   )}
                 </div>
@@ -278,6 +336,18 @@ const PaymentCards = ({ bankTransfers }) => {
                 {bank.paymentAccountType === "Mada" && (
                   <div className="baner">
                     <Image src={stc} alt="stc pay" width={188} height={285} layout="fixed" priority />
+                  </div>
+                )}
+                {bank.paymentAccountType === "BankAccount" && (
+                  <div className="baner">
+                    <Image
+                      src={bankAccountCard}
+                      alt="bank account card"
+                      width={188}
+                      height={285}
+                      layout="fixed"
+                      priority
+                    />
                   </div>
                 )}
               </div>

@@ -11,7 +11,7 @@ import { useFetch } from "../../hooks/useFetch"
 const Settings = () => {
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
   const { locale } = useRouter()
-  const { data: bankTransfers } = useFetch("/ListBankTransfers?currentPage=1")
+  const { data: bankTransfers } = useFetch("/BankTransfersList")
   const { data: userWalletState = {} } = useFetch("/GetUserWalletTransactions")
   const { data: accountData = {} } = useFetch(`/GetBusinessAccountById?businessAccountId=${buisnessAccountId}`)
   return (
