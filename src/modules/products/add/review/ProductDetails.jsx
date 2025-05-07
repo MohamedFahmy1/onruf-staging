@@ -15,6 +15,7 @@ import PointsModal from "./PointsModal"
 import wallet from "../../../../../public/images/wallet.png"
 import CheckoutModal from "./CheckoutModal"
 import CardModal from "./CardModal"
+import { useFetch } from "../../../../hooks/useFetch"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname } = useRouter()
@@ -30,6 +31,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const [selectedCard, setSelectedCard] = useState(null)
   const [pointsData, setPointsData] = useState({})
+  const { data: freePublishPrice } = useFetch(`/ShowProductPublishPrice`)
+
+  const publishFee = !!freePublishPrice ? +selectedCatProps?.productPublishPrice : 0
 
   const totalImageFee =
     productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
@@ -87,7 +91,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       : 0
 
   const totalCost =
-    +selectedCatProps?.productPublishPrice +
+    +publishFee +
     +subtitleFee +
     +totalImageFee +
     +totalVideoFee +
@@ -597,11 +601,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 </div>
                 <h6 component="h1">{pathOr("", [locale, "Products", "PaymentDetails"], t)}</h6>
                 <ul className={styles["list_salary"]}>
-                  {selectedCatProps?.productPublishPrice > 0 && (
+                  {publishFee > 0 && (
                     <li>
                       <span>{pathOr("", [locale, "Products", "publishing_price"], t)}</span>{" "}
                       <span>
-                        {selectedCatProps?.productPublishPrice} {pathOr("", [locale, "Products", "currency"], t)}
+                        {publishFee} {pathOr("", [locale, "Products", "currency"], t)}
                       </span>
                     </li>
                   )}
