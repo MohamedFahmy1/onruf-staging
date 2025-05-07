@@ -54,19 +54,26 @@ const PaymentCards = ({ bankTransfers }) => {
     setBankTransferData(data)
   }
 
-  const handleOpenEditModalAndSetFormWithDefaultValues = (bankId) => {
+  const handleOpenEditModalAndSetFormWithDefaultValues = async (bankId) => {
     setId(bankId)
     setOpenModal(true)
-    const getSelectedBankTransfer = bankTransferData.map((b) => b).find((b) => b.id === bankId)
+    const selected = bankTransferData.find((b) => b.id === bankId)
+
     reset({
-      ...getSelectedBankTransfer,
+      ...selected,
       paymentAccountType:
-        getSelectedBankTransfer.paymentAccountType === "VisaMasterCard"
-          ? 1
-          : getSelectedBankTransfer.paymentAccountType === "Mada"
-          ? 2
-          : 3,
+        selected.paymentAccountType === "VisaMasterCard" ? 1 : selected.paymentAccountType === "Mada" ? 2 : 3,
     })
+    // Simulate a File object if there's an existing certificate
+    if (selected?.ibanCertificate?.trim()) {
+      const fakeBlob = new Blob([""], { type: "image/png" })
+      const fakeFile = new File([fakeBlob], "iban-certificate.png", {
+        type: "image/png",
+        lastModified: new Date().getTime(),
+      })
+      fakeFile.fake = true // mark it as a fake file
+      setValue("ibanCertificateFile", fakeFile, { shouldValidate: true })
+    }
   }
 
   const submit = async ({ ...values }) => {
@@ -74,8 +81,15 @@ const PaymentCards = ({ bankTransfers }) => {
       setLoading(true)
       const formData = new FormData()
       for (const key in values) {
-        if (values[key] === null) continue
-        formData.append(key, values[key])
+        if (values[key] === null || key === "ibanCertificate") continue
+        if (key === "ibanCertificateFile") {
+          // Only send if it's a real File
+          if (values[key] instanceof File && !values[key].fake) {
+            formData.append(key, values[key])
+          }
+        } else {
+          formData.append(key, values[key])
+        }
       }
       formData.append("saveForLaterUse", "true")
       if (id) {
@@ -106,9 +120,9 @@ const PaymentCards = ({ bankTransfers }) => {
 
   const handleStyleCardMargin = (isBank, first) => {
     if (isBank && first) {
-      return locale === "en" ? { marginRight: "-22px" } : { marginRight: "20px", marginLeft: "-22px" }
+      return locale === "en" ? { marginRight: "-30px" } : { marginRight: "20px", marginLeft: "-30px" }
     } else if (isBank) {
-      return locale === "en" ? { marginRight: "-22px" } : {}
+      return locale === "en" ? { marginRight: "-30px" } : {}
     } else {
       return {}
     }
@@ -233,7 +247,7 @@ const PaymentCards = ({ bankTransfers }) => {
                 style={handleStyleCardMargin(bank.paymentAccountType === "BankAccount", index === 0)}
               >
                 <div
-                  className="d-flex align-items-center justify-content-between mb-10"
+                  className="d-flex align-items-center justify-content-between mb-10 gap-2"
                   style={{ gap: bank.paymentAccountType === "BankAccount" ? "0px" : "10px" }}
                 >
                   {bank.paymentAccountType === "VisaMasterCard" && (
@@ -526,11 +540,9 @@ const PaymentCards = ({ bankTransfers }) => {
                         type="hidden"
                         {...register("ibanCertificateFile", {
                           validate: (v) => {
-                            return v instanceof File || (v && v.name)
-                              ? true
-                              : locale === "en"
-                              ? "No file selected"
-                              : "لم يتم اختيار ملف"
+                            if (!v) return locale === "en" ? "No file selected" : "لم يتم اختيار ملف"
+                            if (v.fake || v instanceof File) return true
+                            return locale === "en" ? "Invalid file" : "ملف غير صالح"
                           },
                         })}
                       />
@@ -547,8 +559,10 @@ const PaymentCards = ({ bankTransfers }) => {
                       />
 
                       <span className="mx-2">
-                        {watch("ibanCertificateFile")?.name ||
-                          (locale === "en" ? "No file selected" : "لم يتم اختيار ملف")}
+                        <a href={watch("ibanCertificate")} rel="noreferrer" target="_blank">
+                          {watch("ibanCertificateFile")?.name ||
+                            (locale === "en" ? "No file selected" : "لم يتم اختيار ملف")}
+                        </a>
                       </span>
                     </div>
                     {errors["ibanCertificateFile"] && (
