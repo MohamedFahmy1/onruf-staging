@@ -8,6 +8,7 @@ import BoxBankImg from "../../../../public/images/box-bank.png"
 import madaImg from "../../../../public/images/mada.png"
 import bankAccountCard from "../../../../public/images/bankAccountCard.png"
 import bankAccountLogo from "../../../../public/images/bankAccountLogo.png"
+import MasterCard from "../../../../public/images/MasterCard.png"
 import stc from "../../../../public/images/stc.png"
 import { toast } from "react-toastify"
 import { useForm } from "react-hook-form"
@@ -237,12 +238,12 @@ const PaymentCards = ({ bankTransfers }) => {
                 >
                   {bank.paymentAccountType === "VisaMasterCard" && (
                     <Image
-                      src={VisaImg}
+                      src={bank.accountNumber?.startsWith("4") ? VisaImg : MasterCard}
                       className="img_"
                       alt="visa logo"
                       layout="fixed"
                       width={50}
-                      height={16}
+                      height={30}
                       priority
                     />
                   )}
