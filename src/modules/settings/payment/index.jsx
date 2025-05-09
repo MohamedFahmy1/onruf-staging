@@ -247,8 +247,11 @@ const PaymentCards = ({ bankTransfers }) => {
                 style={handleStyleCardMargin(bank.paymentAccountType === "BankAccount", index === 0)}
               >
                 <div
-                  className="d-flex align-items-center justify-content-between mb-10 gap-2"
-                  style={{ gap: bank.paymentAccountType === "BankAccount" ? "0px" : "10px" }}
+                  className="d-flex align-items-center mb-10"
+                  style={{
+                    gap: bank.paymentAccountType === "BankAccount" ? "0px" : "10px",
+                    justifyContent: bank.paymentAccountType === "BankAccount" ? "flex-start" : "space-between",
+                  }}
                 >
                   {bank.paymentAccountType === "VisaMasterCard" && (
                     <Image
