@@ -8,7 +8,7 @@ import ResponsiveImage from "../../../common/ResponsiveImage"
 import Link from "next/link"
 import { Skeleton } from "@mui/material"
 
-const ProfileCard = ({ id, businessAccountNameEn, rate, createdAt, businessAccountImage }) => {
+const ProfileCard = ({ id, businessAccountNameEn, businessAccountNameAr, rate, createdAt, businessAccountImage }) => {
   const { locale } = useRouter()
 
   return (
@@ -22,9 +22,7 @@ const ProfileCard = ({ id, businessAccountNameEn, rate, createdAt, businessAccou
               <Skeleton variant="circular" width={100} height={100} />
             )}
           </div>
-          <h6 className="f-b">
-            {businessAccountNameEn ? businessAccountNameEn : <Skeleton variant="text" sx={{ fontSize: "16px" }} />}
-          </h6>
+          <h6 className="f-b">{locale === "en" ? businessAccountNameEn : businessAccountNameAr}</h6>
           <div className="gray-color font-11 f-b mb-2">
             <div className="mb-1 d-flex justify-content-center">
               {pathOr("", [locale, "Settings", "userFrom"], t)} :
