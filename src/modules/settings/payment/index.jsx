@@ -251,6 +251,7 @@ const PaymentCards = ({ bankTransfers }) => {
                   style={{
                     gap: bank.paymentAccountType === "BankAccount" ? "0px" : "10px",
                     justifyContent: bank.paymentAccountType === "BankAccount" ? "flex-start" : "space-between",
+                    width: bank.paymentAccountType === "BankAccount" ? "100%" : "85%",
                   }}
                 >
                   {bank.paymentAccountType === "VisaMasterCard" && (

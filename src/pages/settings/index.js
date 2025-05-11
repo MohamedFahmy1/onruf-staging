@@ -1,4 +1,3 @@
-import React from "react"
 import Settings from "../../modules/settings"
 import Head from "next/head"
 import { pathOr } from "ramda"
