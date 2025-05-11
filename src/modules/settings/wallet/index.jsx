@@ -28,6 +28,7 @@ const Wallet = () => {
   const { locale } = useRouter()
   const pageSize = 12
   const [currentPage, setCurrentPage] = useState(1)
+
   const handlePageChange = (event, value) => {
     setCurrentPage(value)
   }
@@ -53,6 +54,16 @@ const Wallet = () => {
     }
   }
 
+  const handleTransferWalletToPoints = async () => {
+    try {
+      await axios.post("/TransferWalletToPoints?transactionPointsAmount=" + creditValue)
+      toast.success(locale === "en" ? "Transacation Done!" : "تمت العملية بنجاح")
+      fetchWalletInfo()
+    } catch (e) {
+      Alerto(e)
+    }
+  }
+
   return (
     <article className="body-content">
       <section className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
@@ -60,7 +71,7 @@ const Wallet = () => {
       </section>
       <SimpleSnackbar text="Your transaction is processed successfully!" show={success} setShow={setSuccess} />
       <section className="contint_paner">
-        <Row className="justify-content-between">
+        <Row className="justify-content-between gap-3">
           <Col lg={4}>
             <div className="info_sec_ mb-3">
               <div className="icon">
@@ -189,7 +200,7 @@ const Wallet = () => {
             <div>
               <h5>{pathOr("", [locale, "Wallet", "changeCreditToPoints"], t)}</h5>
               <div className="main-color">
-                {locale === "en" ? `Every ${1} points for ${1} Riyals` : `كل ${1} نقطة ب ${1} ريال`}
+                {locale === "en" ? `Every ${1} Riyal for ${1} point` : `كل ${1} ريال ب ${1} نقطة`}
               </div>
             </div>
             <div className="my-2 po_R">
@@ -215,7 +226,7 @@ const Wallet = () => {
                 {pathOr("", [locale, "Products", "currency"], t)}
               </span>
             </div>
-            <button className="btn-main d-block w-100" onClick={() => {}}>
+            <button className="btn-main d-block w-100" onClick={handleTransferWalletToPoints}>
               {pathOr("", [locale, "Points", "send"], t)}
             </button>
           </Col>

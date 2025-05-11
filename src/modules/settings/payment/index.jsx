@@ -234,7 +234,7 @@ const PaymentCards = ({ bankTransfers }) => {
             <AiOutlinePlus />
           </button>
           <div
-            className="d-flex justify-content-between overflow-x-scroll overflo -y-hidden w-100"
+            className="d-flex overflow-x-scroll overflow-y-hidden w-100"
             style={{ height: "300px", alignItems: "center", gap: "60px" }}
           >
             {bankTransferData?.length === 0 && (
