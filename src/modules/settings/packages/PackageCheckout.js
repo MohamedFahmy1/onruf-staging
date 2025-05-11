@@ -60,8 +60,23 @@ const PackageCheckout = () => {
   const totalWithTax = totalCost + taxValue
 
   const handleSubscribePackage = async (pakaID) => {
+    const body = {
+      pakatIds: [pakaID],
+      executePaymentDto: {
+        paymentCard: {
+          number: selectedCard?.accountNumber,
+          expiryMonth: selectedCard?.expiaryDate.split("/")[0],
+          expiryYear: selectedCard?.expiaryDate.split("/")[1],
+          securityCode: selectedCard?.cvv,
+          holderName: selectedCard?.bankHolderName,
+        },
+        paymentMethodId: paymentOption === 1 ? 3 : paymentOption === 2 ? 4 : 6,
+        totalAmount: totalWithTax,
+        pointsNumber: pointsData?.pointsNumber || 0,
+      },
+    }
     try {
-      await axios.post("/AddPakatSubcription", [pakaID])
+      await axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
       toast.success(locale === "en" ? "You Subscribed To Package!" : "!تم الاشتراك  بالباقة بنجاح")
       push("/settings/packages")
     } catch (error) {
