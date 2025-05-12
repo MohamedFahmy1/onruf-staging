@@ -54,6 +54,23 @@ const PaymentCards = ({ bankTransfers }) => {
     setBankTransferData(data)
   }
 
+  const fetchSinglePaymentMethod = async () => {
+    const {
+      data: { data },
+    } = await axios.get(`/GetBankTransferById?id=${id}`)
+
+    // Simulate a File object if there's an existing certificate
+    if (bankTransferData?.find((b) => b.id === id)?.ibanCertificate) {
+      const fakeBlob = new Blob([""], { type: "image/png" })
+      const fakeFile = new File([fakeBlob], data?.fileName, {
+        type: "image/png",
+        lastModified: new Date().getTime(),
+      })
+      fakeFile.fake = true // mark it as a fake file
+      setValue("ibanCertificateFile", fakeFile, { shouldValidate: true })
+    }
+  }
+
   const handleOpenEditModalAndSetFormWithDefaultValues = async (bankId) => {
     setId(bankId)
     setOpenModal(true)
@@ -64,16 +81,6 @@ const PaymentCards = ({ bankTransfers }) => {
       paymentAccountType:
         selected.paymentAccountType === "VisaMasterCard" ? 1 : selected.paymentAccountType === "Mada" ? 2 : 3,
     })
-    // Simulate a File object if there's an existing certificate
-    if (selected?.ibanCertificate?.trim()) {
-      const fakeBlob = new Blob([""], { type: "image/png" })
-      const fakeFile = new File([fakeBlob], "iban-certificate.png", {
-        type: "image/png",
-        lastModified: new Date().getTime(),
-      })
-      fakeFile.fake = true // mark it as a fake file
-      setValue("ibanCertificateFile", fakeFile, { shouldValidate: true })
-    }
   }
 
   const submit = async ({ ...values }) => {
@@ -179,6 +186,11 @@ const PaymentCards = ({ bankTransfers }) => {
     }
     return `${firstTitle} ${secondTitle}`
   }
+  useEffect(() => {
+    if (id && isBankAccount) {
+      fetchSinglePaymentMethod()
+    }
+  }, [id, isBankAccount])
 
   useEffect(() => {
     setBankTransferData(bankTransfers)
@@ -563,10 +575,8 @@ const PaymentCards = ({ bankTransfers }) => {
                       />
 
                       <span className="mx-2">
-                        <a href={watch("ibanCertificate")} rel="noreferrer" target="_blank">
-                          {watch("ibanCertificateFile")?.name ||
-                            (locale === "en" ? "No file selected" : "لم يتم اختيار ملف")}
-                        </a>
+                        {watch("ibanCertificateFile")?.name ||
+                          (locale === "en" ? "No file selected" : "لم يتم اختيار ملف")}
                       </span>
                     </div>
                     {errors["ibanCertificateFile"] && (
