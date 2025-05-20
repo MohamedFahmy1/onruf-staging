@@ -39,6 +39,9 @@ const Notifications = () => {
           </Link>
         </section>
         <ul className="list_notifcation px-3">
+          {!notificationsList?.length && (
+            <h4 className="text-center my-5">{locale === "ar" ? "لا يوجد اشعارات" : "No Notifications Found"}</h4>
+          )}
           {notificationsList?.slice(0, 5).map((item) => {
             return (
               <li className="item agree py-2" key={item.id}>
