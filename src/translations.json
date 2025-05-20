@@ -94,6 +94,8 @@
     "Notifications": {
       "notifications": "الاشعارات",
       "viewall": "عرض الكل",
+      "AllNotifications": "جميع الاشعارات",
+      "ReadMore": "عرض المزيد",
       "pendingconfirm": "انتظار التاكيد",
       "pendingreply": "انتظار الرد",
       "neworder": "طلب جديد"
@@ -740,6 +742,7 @@
       "Products": "أونرف بزنس | المنتجات",
       "addProduct": "أونرف | إضافة منتج",
       "editProduct": "أونرف | تعديل منتج",
+      "Notifications": "أونرف | الاشعارات",
       "repostProduct": "أونرف | اعادة نشر منتج",
       "browseFolders": "أونرف | تصفح المجلدات",
       "Negotiation": "أونرف بزنس | عروض التفاوض",
@@ -861,6 +864,8 @@
       "notifications": "Notifications",
       "viewall": "View All",
       "pendingconfirm": "Pending Confirmation",
+      "AllNotifications": "All Notifications",
+      "ReadMore": "Read More",
       "pendingreply": "Pending Reply",
       "neworder": "New Order"
     },
@@ -1504,6 +1509,7 @@
       "default": "OnRuf Business",
       "Home": "OnRuf Business | Home",
       "Products": "OnRuf Business | Products",
+      "Notifications": "OnRuf Business | Notifications",
       "addProduct": "OnRuf | Add Prdouct",
       "editProduct": "OnRuf | Edit Product",
       "repostProduct": "OnRuf | Repost Product",
