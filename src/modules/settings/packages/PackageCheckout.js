@@ -1,5 +1,5 @@
 import { pathOr } from "ramda"
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button, Col, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
 import wallet from "../../../../public/images/wallet.png"
@@ -14,6 +14,7 @@ import moment from "moment"
 import Image from "next/image"
 import PointsModal from "../../products/add/review/PointsModal"
 import CardModal from "../../products/add/review/CardModal"
+import PackageCheckoutModal from "./PackageCheckoutModal"
 
 const PackageCheckout = () => {
   const providerId = useSelector((state) => state.authSlice.providerId)
@@ -29,6 +30,7 @@ const PackageCheckout = () => {
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [pointsData, setPointsData] = useState({})
   const [selectedCard, setSelectedCard] = useState({})
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
 
   const fetchCurrentPackages = async () => {
     try {
@@ -60,6 +62,7 @@ const PackageCheckout = () => {
   const totalWithTax = totalCost + taxValue
 
   const handleSubscribePackage = async (pakaID) => {
+    setIsCheckoutModalOpen("loading")
     const body = {
       pakatIds: [pakaID],
       executePaymentDto: {
@@ -77,19 +80,20 @@ const PackageCheckout = () => {
     }
     try {
       await axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
-      toast.success(locale === "en" ? "You Subscribed To Package!" : "!تم الاشتراك  بالباقة بنجاح")
-      push("/settings/packages")
+      setIsCheckoutModalOpen("success")
     } catch (error) {
+      setIsCheckoutModalOpen("failed")
       Alerto(error)
     }
   }
 
   const handlePackageRenew = async (pakaID, id) => {
     try {
+      setIsCheckoutModalOpen("loading")
       await axios.post(`/RenewPaka?pakatId=${pakaID}&PakatSubsriptionId=${id}`)
-      toast.success(locale === "en" ? "You Renewed Package!" : "!تم تجديد الباقة بنجاح")
-      push("/settings/packages")
+      setIsCheckoutModalOpen("success")
     } catch (error) {
+      setIsCheckoutModalOpen("failed")
       Alerto(error)
     }
   }
@@ -490,9 +494,9 @@ const PackageCheckout = () => {
           toggleOffPaymentOption={toggleOffPaymentOption}
         />
       )}
-      {/* {isCheckoutModalOpen && (
-          <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
-        )} */}
+      {isCheckoutModalOpen && (
+        <PackageCheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
+      )}
     </div>
   )
 }

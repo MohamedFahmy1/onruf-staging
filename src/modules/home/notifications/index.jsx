@@ -7,11 +7,10 @@ import Alerto from "../../../common/Alerto"
 import axios from "axios"
 import { useSelector } from "react-redux"
 import moment from "moment"
-import "moment/locale/ar"
 import Link from "next/link"
 
 const Notifications = () => {
-  const { locale, push } = useRouter()
+  const { locale } = useRouter()
   const [notificationsList, setNotificationsList] = useState()
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
 
@@ -47,11 +46,7 @@ const Notifications = () => {
               <li className="item agree py-2" key={item.id}>
                 <section className="gray-color mb-1 d-flex justify-content-between">
                   <span>{item.title} </span>
-                  <span>
-                    {moment(item.createdAt)
-                      .locale(locale === "ar" ? "ar" : "en")
-                      .fromNow()}
-                  </span>
+                  <span>{moment(item.createdAt).fromNow()}</span>
                 </section>
                 <section className="po_R" style={{ unicodeBidi: "plaintext" }}>
                   {item.body}

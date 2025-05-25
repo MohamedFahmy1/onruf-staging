@@ -71,7 +71,7 @@ const Wallet = () => {
       </section>
       <SimpleSnackbar text="Your transaction is processed successfully!" show={success} setShow={setSuccess} />
       <section className="contint_paner">
-        <Row className="justify-content-between gap-3">
+        <Row className="justify-content-between">
           <Col lg={4}>
             <div className="info_sec_ mb-3">
               <div className="icon">
