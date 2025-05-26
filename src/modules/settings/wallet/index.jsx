@@ -1,6 +1,6 @@
 import axios from "axios"
 import { useRouter } from "next/router"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Row, Col } from "react-bootstrap"
 import { useForm } from "react-hook-form"
 import { formatDate, handleFormErrors, onlyNumbersInInputs } from "../../../common/functions"
@@ -29,21 +29,37 @@ const Wallet = () => {
   const pageSize = 12
   const [currentPage, setCurrentPage] = useState(1)
 
+  const [points, setPoints] = useState()
+
+  const fetchMyPointsData = async () => {
+    try {
+      const response = await axios.post(`/GetPointsBalance`)
+      setPoints(response?.data?.data)
+    } catch (error) {
+      Alerto(error)
+    }
+  }
+
+  useEffect(() => {
+    fetchMyPointsData()
+  }, [])
+
   const handlePageChange = (event, value) => {
     setCurrentPage(value)
   }
+
   const totalPages = Math.ceil(walletTransactionslist?.length / pageSize)
   const currentData = walletTransactionslist?.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const handleWalletSubmit = async (values) => {
+    if (transType === "Out" && values.TransactionAmount > walletBalance) {
+      return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+    }
     const formData = new FormData()
     for (let key in values) {
       formData.append("TransactionSource", transType === "In" ? "ChargeWallet" : "DrawFromWallet")
       formData.append("TransactionType", transType === "In" ? "In" : "Out")
       formData.append(key, values[key])
-    }
-    if (transType === "Out" && values.TransactionAmount > walletBalance) {
-      return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
     }
     try {
       await axios.post("/AddWalletTransaction", formData)
@@ -55,6 +71,9 @@ const Wallet = () => {
   }
 
   const handleTransferWalletToPoints = async () => {
+    if (creditValue > walletBalance) {
+      return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+    }
     try {
       await axios.post("/TransferWalletToPoints?transactionPointsAmount=" + creditValue)
       toast.success(locale === "en" ? "Transacation Done!" : "تمت العملية بنجاح")
@@ -200,7 +219,9 @@ const Wallet = () => {
             <div>
               <h5>{pathOr("", [locale, "Wallet", "changeCreditToPoints"], t)}</h5>
               <div className="main-color">
-                {locale === "en" ? `Every ${1} Riyal for ${1} point` : `كل ${1} ريال ب ${1} نقطة`}
+                {locale === "en"
+                  ? `Every ${1} Riyal for ${points?.monyOfPointsTransfered / points?.pointsCountToTransfer} point`
+                  : `كل ${1} ريال ب ${points?.monyOfPointsTransfered / points?.pointsCountToTransfer} نقطة`}
               </div>
             </div>
             <div className="my-2 po_R">
