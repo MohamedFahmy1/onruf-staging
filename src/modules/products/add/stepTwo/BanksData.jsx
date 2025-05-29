@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import styles from "./BanksData.module.css"
 import { toast } from "react-toastify"
 import { useRouter } from "next/router"
@@ -7,6 +7,7 @@ import Alerto from "../../../../common/Alerto"
 import axios from "axios"
 import { pathOr } from "ramda"
 import t from "../../../../translations.json"
+
 const BanksData = ({ data, setShowBanksData, productPayload, setProductPayload }) => {
   const { locale } = useRouter()
   const [showAddAcc, setShowAddAcc] = useState(false)
@@ -43,7 +44,7 @@ const BanksData = ({ data, setShowBanksData, productPayload, setProductPayload }
     if (fetchNewData) {
       const fetchBanksData = async () => {
         try {
-          const { data: data } = await axios(`/BankTransfersList`)
+          const { data: data } = await axios(`/BankTransfersList?PaymentAccountType=3`)
           const { data: banksData } = data
           setuserData(banksData)
         } catch (e) {
