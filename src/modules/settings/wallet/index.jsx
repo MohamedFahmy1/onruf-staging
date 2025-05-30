@@ -18,6 +18,7 @@ import CardModal from "../../products/add/review/CardModal"
 import { GoDotFill } from "react-icons/go"
 import BankAccountsModal from "./BankAccountsModal"
 import WalletCheckoutModal from "./WalletCheckoutModal"
+import WalletCardModal from "./WalletCardModal"
 
 const Wallet = () => {
   const [transType, setTransType] = useState("In")
@@ -404,12 +405,11 @@ const Wallet = () => {
         </div>
       </section>{" "}
       {cardModalOpen && (
-        <CardModal
+        <WalletCardModal
           isCardModalOpen={cardModalOpen}
           setIsCardModalOpen={setCardModalOpen}
           handleAccept={handleAcceptCard}
-          PaymentAccountType={1}
-          toggleOffPaymentOption={() => setCardModalOpen(false)}
+          selectedPayment={selectedPayment}
         />
       )}
       {isCheckoutModalOpen && (
