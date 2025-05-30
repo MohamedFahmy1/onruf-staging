@@ -146,12 +146,12 @@ const Packages = () => {
                         <p>{pathOr("", [locale, "Packages", "nextRenewalDate"], t)}</p>
                         <div className="f-b">{formatDate(paka.endDate)}</div>
                       </div>
-                      <button
+                      {/* <button
                         className="btn-main btn-main-B"
                         onClick={() => push(`packages/${paka.pakaId}?isSub=true`)}
                       >
                         {pathOr("", [locale, "Packages", "renewPaka"], t)}
-                      </button>
+                      </button> */}
                     </li>
                     {paka?.listCategories?.[0]?.name && (
                       <li className="mb-4 d-flex justify-content-between">
