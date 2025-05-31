@@ -14,7 +14,6 @@ import lock from "../../../../public/icons/lock.png"
 import Image from "next/image"
 import { useFetch } from "../../../hooks/useFetch"
 import { Pagination } from "@mui/material"
-import CardModal from "../../products/add/review/CardModal"
 import { GoDotFill } from "react-icons/go"
 import BankAccountsModal from "./BankAccountsModal"
 import WalletCheckoutModal from "./WalletCheckoutModal"
@@ -25,6 +24,7 @@ const Wallet = () => {
   const [creditValue, setCreditValue] = useState(0)
   const [cardModalOpen, setCardModalOpen] = useState(false)
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState("")
+  const [orderNumber, setOrderNumber] = useState()
   const [selectedPayment, setSelectedPayment] = useState()
   const { data: userWalletState = {}, fetchData: fetchWalletInfo } = useFetch(`/GetUserWalletTransactions`)
   const { walletBalance, pendingBalance, walletTransactionslist = [], walletPendingOrders = [] } = userWalletState
@@ -72,9 +72,29 @@ const Wallet = () => {
         formData.append("TransactionSource", transType === "In" ? "ChargeWallet" : "DrawFromWallet")
         formData.append("TransactionType", transType === "In" ? "In" : "Out")
         formData.append(key, values[key])
+        formData.append(
+          "ExecutePaymentDto.PaymentMethodId",
+          selectedPayment?.paymentAccountType === "VisaMasterCard"
+            ? 3
+            : selectedPayment?.paymentAccountType === "Mada"
+            ? 4
+            : 2,
+        )
+        if (transType === "In") {
+          formData.append("ExecutePaymentDto.TotalAmount", values.TransactionAmount)
+          formData.append("ExecutePaymentDto.PaymentCard.Number", selectedPayment?.accountNumber)
+          formData.append("ExecutePaymentDto.PaymentCard.ExpiryMonth", selectedPayment?.expiaryDate.split("/")[0])
+          formData.append("ExecutePaymentDto.PaymentCard.ExpiryYear", selectedPayment?.expiaryDate.split("/")[1])
+          formData.append("ExecutePaymentDto.PaymentCard.SecurityCode", selectedPayment?.cvv)
+          formData.append("ExecutePaymentDto.PaymentCard.HolderName", selectedPayment?.bankHolderName)
+        } else {
+          formData.append("WithdrawBankTAccountId", selectedPayment?.id)
+        }
       }
-      await axios.post("/AddWalletTransaction", formData)
+      const { data } = await axios.post("/AddWalletTransaction", formData)
+      console.log(data)
       setSelectedPayment(null)
+      setOrderNumber(data?.data?.transactionId)
       setValue("TransactionAmount", 0)
       setIsCheckoutModalOpen("success")
       fetchWalletInfo()
@@ -417,6 +437,7 @@ const Wallet = () => {
           isModalOpen={isCheckoutModalOpen}
           setIsModalOpen={setIsCheckoutModalOpen}
           transType={transType}
+          orderNumber={orderNumber}
         />
       )}
     </article>

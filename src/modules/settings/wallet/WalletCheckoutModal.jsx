@@ -8,7 +8,7 @@ import failed from "../../../../public/images/failed.png"
 import Image from "next/image"
 import { textAlignStyle } from "../../../styles/stylesObjects"
 
-const WalletCheckoutModal = ({ isModalOpen, setIsModalOpen, transType }) => {
+const WalletCheckoutModal = ({ isModalOpen, setIsModalOpen, transType, orderNumber }) => {
   const { locale } = useRouter()
 
   const handleClose = () => {
@@ -41,7 +41,7 @@ const WalletCheckoutModal = ({ isModalOpen, setIsModalOpen, transType }) => {
           {transType === "Out" && (
             <p style={{ fontSize: "26px", marginBlockEnd: "25px", paddingBlockEnd: "40px" }}>
               {transType === "Out" && pathOr("", [locale, "LastOrders", "orderNo"], t) + ": "}
-              <span className="main-color">1213</span>
+              <span className="main-color">{orderNumber}</span>
             </p>
           )}
         </>

@@ -290,17 +290,19 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
   return (
     <div className="body-content">
-      <div className="d-flex justify-content-between align-items-center">
-        <h5>{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h5>
-        <button
-          onClick={handleBack}
-          className="btn-main btn-main-o"
-          style={{ width: "100px" }}
-          aria-label={pathOr("", [locale, "Products", "cancel"], t)}
-        >
-          {pathOr("", [locale, "Products", "cancel"], t)}
-        </button>
-      </div>
+      {pathname.includes("add") && (
+        <div className="d-flex justify-content-between align-items-center">
+          <h5>{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h5>
+          <button
+            onClick={handleBack}
+            className="btn-main btn-main-o"
+            style={{ width: "100px" }}
+            aria-label={pathOr("", [locale, "Products", "cancel"], t)}
+          >
+            {pathOr("", [locale, "Products", "cancel"], t)}
+          </button>
+        </div>
+      )}
       <Row>
         <Col lg={9}>
           <div className="contint_paner">
