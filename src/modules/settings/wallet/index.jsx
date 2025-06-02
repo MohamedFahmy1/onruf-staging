@@ -65,7 +65,9 @@ const Wallet = () => {
     try {
       setIsCheckoutModalOpen("loading")
       if (transType === "Out" && values.TransactionAmount > walletBalance) {
-        return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+        toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+        setIsCheckoutModalOpen()
+        return
       }
       const formData = new FormData()
       for (let key in values) {
@@ -92,7 +94,6 @@ const Wallet = () => {
         }
       }
       const { data } = await axios.post("/AddWalletTransaction", formData)
-      console.log(data)
       setSelectedPayment(null)
       setOrderNumber(data?.data?.transactionId)
       setValue("TransactionAmount", 0)
@@ -106,7 +107,8 @@ const Wallet = () => {
 
   const handleTransferWalletToPoints = async () => {
     if (creditValue > walletBalance) {
-      return toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+      toast.error(locale === "en" ? "Not enough wallet balance!" : "لا يوجد رصيد كافي بالمحفظة")
+      return
     }
     try {
       await axios.post("/TransferWalletToPoints?transactionPointsAmount=" + creditValue)
@@ -410,7 +412,7 @@ const Wallet = () => {
                 <div className="gray-color">{formatDate(transaction.transactionDate)}</div>
               </div>
               <h5 className="m-0 main-color f-b text-center">
-                <span className="d-block">{transaction.totalWalletBalance}</span>
+                <span className="d-block">{transaction.transactionAmount}</span>
                 {pathOr("", [locale, "Products", "currency"], t)}
               </h5>
             </div>

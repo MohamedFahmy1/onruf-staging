@@ -40,7 +40,7 @@ const WalletCheckoutModal = ({ isModalOpen, setIsModalOpen, transType, orderNumb
           </p>
           {transType === "Out" && (
             <p style={{ fontSize: "26px", marginBlockEnd: "25px", paddingBlockEnd: "40px" }}>
-              {transType === "Out" && pathOr("", [locale, "LastOrders", "orderNo"], t) + ": "}
+              {transType === "Out" && pathOr("", [locale, "questionsAndReviews", "reqNumber"], t) + ": "}
               <span className="main-color">{orderNumber}</span>
             </p>
           )}

@@ -136,6 +136,13 @@ const WalletCardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, se
                           }}
                         />
                       </Col>
+                      {selectedCard?.id === card.id &&
+                        cvvValues[card.id]?.length > 0 &&
+                        cvvValues[card.id].length < 3 && (
+                          <p className="text-danger mt-3 text-end">
+                            {locale === "en" ? "CVV must be at least 3 digits" : "CVV يجب أن يكون 3 أرقام على الأقل"}
+                          </p>
+                        )}
                     </Row>
                   </div>
                 ))}
@@ -158,7 +165,7 @@ const WalletCardModal = ({ isCardModalOpen, setIsCardModalOpen, handleAccept, se
           <Modal.Footer>
             <button
               type="button"
-              disabled={!selectedCard || !cvvValues[selectedCard.id]}
+              disabled={!selectedCard || !cvvValues[selectedCard.id] || cvvValues[selectedCard.id].length < 3}
               className="w-100 btn-main"
               onClick={handleChooseCard}
             >
