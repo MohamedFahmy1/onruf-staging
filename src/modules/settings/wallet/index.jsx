@@ -136,7 +136,7 @@ const Wallet = () => {
               <div className="icon mb-4">
                 <Image src={wallet} className="img-fluid" alt="wallet" />
               </div>
-              <div className="d-flex align-items-center justify-content-between gap-3">
+              <div className="d-flex align-items-center justify-content-between gap-3 flex-wrap justify-content-xl-center">
                 <div className="position-relative d-inline-block" style={{ cursor: "pointer" }}>
                   {/* Pending Balance Box */}
                   <div className="rounded-5 p-2 pending-balance-box" style={{ backgroundColor: "#FFE5DF" }}>
