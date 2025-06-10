@@ -1,0 +1,22 @@
+.circle-input {
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 50% !important;
+  border: 2px solid #ddd !important;
+  font-size: 24px !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  padding: 0 !important;
+  margin: 0 5px;
+  background-color: white !important;
+  color: #000 !important;
+  line-height: 60px !important;
+  box-shadow: none !important;
+  text-indent: 0 !important;
+}
+
+.circle-input:focus {
+  border-color: #007bff !important;
+  outline: none !important;
+  box-shadow: none !important;
+}

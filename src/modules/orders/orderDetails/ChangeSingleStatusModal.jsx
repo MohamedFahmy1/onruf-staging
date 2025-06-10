@@ -5,13 +5,18 @@ import { useRouter } from "next/router"
 import { toast } from "react-toastify"
 import axios from "axios"
 import { useState } from "react"
+import ConfirmDeliveryModal from "./ConfirmDeliveryModal"
 
 const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
   const { locale } = useRouter()
   const [isLoading, setIsLoading] = useState(false)
+  const [isConfirmDeliveryModalOpen, setIsConfirmDeliveryModalOpen] = useState(false)
 
   const changeOrderStatus = async (statusId) => {
-    if (selectedOrder) {
+    if (statusId == 6) {
+      setIsConfirmDeliveryModalOpen(true)
+      return
+    } else if (selectedOrder) {
       try {
         setIsLoading(true)
         await axios.post(`/ChangeOrderStatus?orderId=${selectedOrder?.orderId}&status=${statusId}`)
@@ -35,7 +40,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
       </Modal.Header>
       <Modal.Body>
         <Row>
-          <Col md={12}>
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder?.orderStatus == 1 ? `main-color` : ``}`}
@@ -45,8 +50,8 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
                 {pathOr("", [locale, "Orders", "waiting_for_payment"], t)}
               </button>
             </div>
-          </Col>
-          <Col md={12}>
+          </Col> */}
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder?.orderStatus == 2 ? `main-color` : ``}`}
@@ -56,7 +61,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
                 {pathOr("", [locale, "Orders", "waiting_for_review"], t)}
               </button>
             </div>
-          </Col>
+          </Col> */}
           <Col md={12}>
             <div className="mb-2 text-center">
               <button
@@ -68,7 +73,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
               </button>
             </div>
           </Col>
-          <Col md={12}>
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder?.orderStatus == 4 ? `main-color` : ``}`}
@@ -78,7 +83,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
                 {pathOr("", [locale, "Orders", "ready_for_delivery"], t)}
               </button>
             </div>
-          </Col>
+          </Col> */}
           <Col md={12}>
             <div className="mb-2 text-center">
               <button
@@ -114,6 +119,12 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
           </Col>
         </Row>
       </Modal.Body>
+      <ConfirmDeliveryModal
+        isModalOpen={isConfirmDeliveryModalOpen}
+        setIsModalOpen={setIsConfirmDeliveryModalOpen}
+        orderId={selectedOrder?.orderId}
+        handleCloseOtherModal={() => setOpenModal(false)}
+      />
     </Modal>
   )
 }

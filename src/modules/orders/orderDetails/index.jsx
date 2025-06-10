@@ -303,7 +303,7 @@ export const OrderDetails = () => {
               </div>
               <div className="po_R upload_filo my-3">
                 <label htmlFor="invoice" className="visually-hidden">
-                  {"تم ارفاق الفاتورة"}
+                  تم ارفاق الفاتورة
                 </label>
                 <input type="text" id="invoice" className="form-control" readOnly value="تم ارفاق الفاتورة" />
                 <div className="btn_file">

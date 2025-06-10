@@ -40,7 +40,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
       </Modal.Header>
       <Modal.Body>
         <Row>
-          <Col md={12}>
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 1 ? `main-color` : ``}`}
@@ -50,8 +50,8 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
                 {pathOr("", [locale, "Orders", "waiting_for_payment"], t)}
               </button>
             </div>
-          </Col>
-          <Col md={12}>
+          </Col> */}
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 2 ? `main-color` : ``}`}
@@ -61,7 +61,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
                 {pathOr("", [locale, "Orders", "waiting_for_review"], t)}
               </button>
             </div>
-          </Col>
+          </Col> */}
           <Col md={12}>
             <div className="mb-2 text-center">
               <button
@@ -73,7 +73,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
               </button>
             </div>
           </Col>
-          <Col md={12}>
+          {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
                 className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 4 ? `main-color` : ``}`}
@@ -83,7 +83,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
                 {pathOr("", [locale, "Orders", "ready_for_delivery"], t)}
               </button>
             </div>
-          </Col>
+          </Col> */}
           <Col md={12}>
             <div className="mb-2 text-center">
               <button

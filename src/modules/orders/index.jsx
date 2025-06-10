@@ -33,10 +33,10 @@ const Orders = () => {
   const [orderStatus, setOrderStatus] = useState()
   const [totalOrders, setTotalOrders] = useState({
     total: 0,
-    WaitingForPayment: 0,
+    // WaitingForPayment: 0,
     WaitingForReview: 0,
     InProgress: 0,
-    ReadyForDelivery: 0,
+    // ReadyForDelivery: 0,
     DeliveryInProgress: 0,
     Delivered: 0,
     Canceled: 0,
@@ -93,24 +93,24 @@ const Orders = () => {
       `/GetBusinessAccountOrders?pageIndex=1&PageRowsCount=1000${orderStatus ? `&orderStatus=${orderStatus}` : ""}`,
     )
     if (!orderStatus) {
-      const WaitingForPayment = data.filter((item) => item.status === "Waiting For Payment")
+      // const WaitingForPayment = data.filter((item) => item.status === "Waiting For Payment")
       const WaitingForReview = data.filter((item) => item.status === "Waiting For Review")
       const InProgress = data.filter((item) => item.status === "In Progress")
-      const ReadyForDelivery = data.filter((item) => item.status === "Ready For Delivery")
+      // const ReadyForDelivery = data.filter((item) => item.status === "Ready For Delivery")
       const DeliveryInProgress = data.filter((item) => item.status === "Delivery In Progress")
       const Delivered = data.filter((item) => item.status === "Delivered")
       const Canceled = data.filter((item) => item.status === "Canceled")
       setTotalOrders({
         total: data.length,
-        WaitingForPayment: WaitingForPayment.length,
+        // WaitingForPayment: WaitingForPayment.length,
         WaitingForReview: WaitingForReview.length,
         InProgress: InProgress.length,
-        ReadyForDelivery: ReadyForDelivery.length,
+        // ReadyForDelivery: ReadyForDelivery.length,
         DeliveryInProgress: DeliveryInProgress.length,
         Delivered: Delivered.length,
         Canceled: Canceled.length,
       })
-      setOrderStatus("WaitingForPayment")
+      setOrderStatus("WaitingForReview")
       setFilterdOrders()
     }
     setSelectedRows()
@@ -367,12 +367,12 @@ const Orders = () => {
           </div>
         )}
         <div className="filtter_1">
-          <button
+          {/* <button
             className={orderStatus === "WaitingForPayment" ? "btn-main active" : "btn-main"}
             onClick={() => setOrderStatus("WaitingForPayment")}
           >
             {pathOr("", [locale, "Orders", "waiting_for_payment"], t)} ({totalOrders.WaitingForPayment})
-          </button>
+          </button> */}
           <button
             className={orderStatus === "WaitingForReview" ? "btn-main active" : "btn-main"}
             onClick={() => {
@@ -396,7 +396,7 @@ const Orders = () => {
             {" "}
             {pathOr("", [locale, "Orders", "in_progress"], t)} ({totalOrders.InProgress})
           </button>
-          <button
+          {/* <button
             className={orderStatus === "ReadyForDelivery" ? "btn-main active" : "btn-main"}
             onClick={() => {
               setOrderStatus("ReadyForDelivery")
@@ -406,7 +406,7 @@ const Orders = () => {
             }}
           >
             {pathOr("", [locale, "Orders", "ready_for_delivery"], t)} ({totalOrders.ReadyForDelivery})
-          </button>
+          </button> */}
           <button
             className={orderStatus === "DeliveryInProgress" ? "btn-main active" : "btn-main"}
             onClick={() => {
