@@ -125,8 +125,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const getPackage = useCallback(async () => {
     if (productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]) {
       const data = await axios.get(
-        `/GetPakaById?Pakatid=${productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]}
-      `,
+        `/GetPakaById?Pakatid=${
+          productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]
+        }&CategoryId=${productFullData.categoryId}`,
       )
       setPackageDetails(data?.data?.data)
     }

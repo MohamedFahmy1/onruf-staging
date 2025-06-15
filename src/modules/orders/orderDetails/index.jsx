@@ -330,6 +330,9 @@ export const OrderDetails = () => {
           <div className="contint_paner p-0">
             <h5 className="f-b p-4 m-0 fs-4">{pathOr("", [locale, "Orders", "order_log"], t)}</h5>
             <ul className="all-order-record">
+              {orderStatusHistory?.length === 0 && (
+                <li className="py-5 text-center fs-4">{locale === "ar" ? "لا يوجد سجلات" : "No Logs Found"}</li>
+              )}
               {orderStatusHistory?.map((item) => (
                 <li className="item" key={item.statusDate}>
                   <div className="d-flex align-items-center">
