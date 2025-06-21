@@ -43,6 +43,8 @@ const PaymentCards = ({ bankTransfers }) => {
     control,
   } = useForm({ mode: "onBlur", defaultValues: { paymentAccountType: 1, saveForLaterUse: true } })
 
+  console.log(errors)
+
   const paymentAccountTypeValue = watch("paymentAccountType")
 
   const isBankAccount = paymentAccountTypeValue == 3
