@@ -163,10 +163,11 @@ const CardModal = ({
               {pathOr("", [locale, "Products", "AddNewCard"], t)}
             </Button>
           </Modal.Body>
+          {console.log(!cvvValues[selectedCard.id]?.length)}
           <Modal.Footer>
             <button
               type="button"
-              disabled={!selectedCard || !cvvValues[selectedCard.id]}
+              disabled={!selectedCard || cvvValues[selectedCard.id]?.length < 3}
               className="w-100 btn-main"
               onClick={handleChooseCard}
             >
