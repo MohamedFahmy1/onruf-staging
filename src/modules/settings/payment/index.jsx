@@ -199,9 +199,13 @@ const PaymentCards = ({ bankTransfers }) => {
   }, [bankTransfers])
 
   useEffect(() => {
-    register("ibanCertificateFile", {
-      required: locale === "en" ? "Required" : "مطلوب",
-    })
+    if (isBankAccount) {
+      register("ibanCertificateFile", {
+        required: locale === "en" ? "Required" : "مطلوب",
+      })
+    } else {
+      unregister("ibanCertificateFile")
+    }
   }, [])
 
   useEffect(() => {
