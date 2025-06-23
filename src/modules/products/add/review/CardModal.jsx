@@ -19,7 +19,7 @@ const CardModal = ({
   PaymentAccountType,
   toggleOffPaymentOption,
 }) => {
-  const { locale } = useRouter()
+  const { locale = "en" } = useRouter()
   const {
     data: cardList,
     isLoading,
@@ -45,7 +45,7 @@ const CardModal = ({
   const handleChooseCard = () => {
     const updatedData = {
       ...selectedCard,
-      cvv: cvvValues[selectedCard.id],
+      cvv: selectedCard?.id ? cvvValues[selectedCard.id] : "",
     }
     handleAccept(updatedData)
     setIsCardModalOpen(false)
@@ -53,7 +53,6 @@ const CardModal = ({
 
   const handleSelectCard = (card) => {
     setSelectedCard(card)
-    // Reset all CVV fields except the one selected
     setCvvValues({ [card.id]: cvvValues[card.id] || "" })
   }
 
@@ -64,8 +63,7 @@ const CardModal = ({
     }
 
     try {
-      const saveForLater = data.saveForLaterUse
-      if (saveForLater) {
+      if (data.saveForLaterUse) {
         await axios.post("/AddBankTransfer", updatedData)
         fetchData()
       }
@@ -75,6 +73,8 @@ const CardModal = ({
       Alerto(error)
     }
   }
+
+  const cvvValue = selectedCard?.id ? cvvValues[selectedCard.id] || "" : ""
 
   return (
     <Modal
@@ -91,16 +91,16 @@ const CardModal = ({
       {step === 1 && (
         <>
           <Modal.Body className="py-0">
-            {!!(cardList?.length > 0 && step === 1) && (
+            {!!(cardList?.length > 0) && (
               <h1 className="fs-4 text-center mb-4">{pathOr("اختر البطاقة", [locale, "Products", "ChooseCard"], t)}</h1>
             )}
 
             {isLoading && <LoadingScreen height="300px" />}
 
-            {!!cardList?.length > 0 ? (
+            {!!cardList?.length ? (
               <Form style={{ overflowY: "scroll", height: "450px" }} className="px-2">
-                {cardList?.map((card, idx) => (
-                  <div key={card.id || idx} className={`p-3 mb-3 border rounded-4 position-relative`}>
+                {cardList.map((card, idx) => (
+                  <div key={card.id || idx} className="p-3 mb-3 border rounded-4 position-relative">
                     <Form.Check
                       type="radio"
                       id={`card-${idx}`}
@@ -118,7 +118,9 @@ const CardModal = ({
                       </Col>
                       <Col md={6}>
                         <p className="fw-bold">{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                        <div className="text-muted">XXXX XXXX XXXX {card.accountNumber?.slice(-4)}</div>
+                        <div className="text-muted">
+                          XXXX XXXX XXXX {card?.accountNumber?.slice(-4) || "****"}
+                        </div>
                       </Col>
                     </Row>
                     <Row className="mb-2">
@@ -130,17 +132,15 @@ const CardModal = ({
                         <div className="fw-bold">{pathOr("", [locale, "Products", "CVV"], t)}</div>
                         <Form.Control
                           type="password"
-                          placeholder=""
                           className="mt-1 p-0 h-75"
                           disabled={selectedCard?.id !== card.id}
-                          value={cvvValues[card.id] || ""}
+                          value={card?.id ? cvvValues[card.id] || "" : ""}
                           onChange={(e) => {
                             if (e.target.value.length > 4) return
-                            else
-                              setCvvValues((prev) => ({
-                                ...prev,
-                                [card.id]: e.target.value,
-                              }))
+                            setCvvValues((prev) => ({
+                              ...prev,
+                              [card.id]: e.target.value,
+                            }))
                           }}
                         />
                       </Col>
@@ -149,25 +149,23 @@ const CardModal = ({
                 ))}
               </Form>
             ) : (
-              <>
-                {!isLoading && (
-                  <h4 className="text-center my-5">
-                    {locale === "en"
-                      ? "There are no saved cards. Please add a new card by clicking the Add New Card button or choosing another payment method."
-                      : "لا يوجد بطاقات محفوظة، يرجى اضافة بطاقة جديدة بالضغط على زر أضف بطاقة جديدة أو اختيار طريقة دفع اخرى."}
-                  </h4>
-                )}
-              </>
+              !isLoading && (
+                <h4 className="text-center my-5">
+                  {locale === "en"
+                    ? "There are no saved cards. Please add a new card by clicking the Add New Card button or choosing another payment method."
+                    : "لا يوجد بطاقات محفوظة، يرجى اضافة بطاقة جديدة بالضغط على زر أضف بطاقة جديدة أو اختيار طريقة دفع اخرى."}
+                </h4>
+              )
             )}
             <Button variant="light" className="w-100 mb-3" onClick={() => setStep(2)}>
               {pathOr("", [locale, "Products", "AddNewCard"], t)}
             </Button>
           </Modal.Body>
-          {console.log(!cvvValues[selectedCard.id]?.length)}
+
           <Modal.Footer>
             <button
               type="button"
-              disabled={!selectedCard || cvvValues[selectedCard.id]?.length < 3}
+              disabled={!selectedCard || cvvValue.length < 3}
               className="w-100 btn-main"
               onClick={handleChooseCard}
             >
@@ -258,11 +256,11 @@ const CardModal = ({
                     },
                   })}
                   onKeyDown={(e) =>
-                    !!(e.key === "Backspace" && e.target.value.length == 3) && setValue("expiaryDate", "")
+                    e.key === "Backspace" && e.target.value.length === 3 && setValue("expiaryDate", "")
                   }
                   onChange={(e) => {
                     if (e.target.value.length > 7) return
-                    else if (e.target.value.length == 2) setValue("expiaryDate", e.target.value + "/20")
+                    else if (e.target.value.length === 2) setValue("expiaryDate", e.target.value + "/20")
                     else setValue("expiaryDate", e.target.value)
                   }}
                 />
