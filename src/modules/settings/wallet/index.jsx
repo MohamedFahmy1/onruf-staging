@@ -95,7 +95,7 @@ const Wallet = () => {
       }
       const { data } = await axios.post("/AddWalletTransaction", formData)
       setSelectedPayment(null)
-      setOrderNumber(data?.data?.id)
+      setOrderNumber(data?.data?.transactionId)
       setValue("TransactionAmount", 0)
       setIsCheckoutModalOpen("success")
       fetchWalletInfo()
@@ -160,7 +160,7 @@ const Wallet = () => {
                           <GoDotFill />
                           <p className="m-0">
                             {item?.TransactionAmount} {pathOr("", [locale, "Products", "currency"], t)} -{" "}
-                            {pathOr("", [locale, "Wallet", "PurchaseOrderNumber"], t) + " " + item?.OrderId}
+                            {pathOr("", [locale, "Wallet", "PurchaseOrderNumber"], t) + " " + item?.orderId}
                           </p>
                         </div>
                       ))}
