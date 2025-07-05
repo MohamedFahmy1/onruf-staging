@@ -159,7 +159,7 @@ const Wallet = () => {
                         <div key={index} className="d-flex align-items-center justify-content-between mb-2">
                           <GoDotFill />
                           <p className="m-0">
-                            {item?.TransactionAmount} {pathOr("", [locale, "Products", "currency"], t)} -{" "}
+                            {item?.transactionAmount} {pathOr("", [locale, "Products", "currency"], t)} -{" "}
                             {pathOr("", [locale, "Wallet", "PurchaseOrderNumber"], t) + " " + item?.orderId}
                           </p>
                         </div>
@@ -404,11 +404,7 @@ const Wallet = () => {
           {currentData?.slice(0, 15).map((transaction) => (
             <div className="item_Processes" key={transaction.id}>
               <div className="f-b">
-                <div className="fs-5 f-b">
-                  {transaction.transactionType === "Out"
-                    ? pathOr("", [locale, "Wallet", "withdrawWallet"], t)
-                    : pathOr("", [locale, "Wallet", "chargeWallet"], t)}
-                </div>
+                <div className="fs-5 f-b">{transaction.transactionSource}</div>
                 <div className="gray-color">{formatDate(transaction.transactionDate)}</div>
               </div>
               <h5 className="m-0 main-color f-b text-center">
