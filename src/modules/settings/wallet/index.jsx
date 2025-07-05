@@ -95,7 +95,7 @@ const Wallet = () => {
       }
       const { data } = await axios.post("/AddWalletTransaction", formData)
       setSelectedPayment(null)
-      setOrderNumber(data?.data?.transactionId)
+      setOrderNumber(data?.data?.id)
       setValue("TransactionAmount", 0)
       setIsCheckoutModalOpen("success")
       fetchWalletInfo()
