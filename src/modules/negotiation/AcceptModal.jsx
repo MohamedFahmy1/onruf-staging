@@ -4,7 +4,7 @@ import t from "../../translations.json"
 import { pathOr } from "ramda"
 import { useRouter } from "next/router"
 import { toast } from "react-toastify"
-import { Alerto } from "../../common/Alerto"
+import Alerto from "../../common/Alerto"
 import axios from "axios"
 
 const AcceptModal = ({ acceptModal, setAcceptModal, offerId, productId, getOffers }) => {
