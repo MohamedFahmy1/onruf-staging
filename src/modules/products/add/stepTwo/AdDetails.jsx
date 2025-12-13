@@ -43,23 +43,29 @@ const AdDetails = ({
   )
 
   useEffect(() => {
-    if (productPayload.neighborhoodId && !pathname.includes("add")) {
-      handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", productPayload.countryId, setRegions)
-      handleFetchNeighbourhoodsOrRegions(
-        "ListNeighborhoodByRegionId",
-        "regionsIds",
-        productPayload.regionId,
-        setNeighborhoods,
-      )
+    // Re-hydrate dependent dropdown options on mount/remount (important for `/add` flow where this step can unmount)
+    if (!productPayload.countryId) {
+      setRegions([])
+      setNeighborhoods([])
+      return
     }
-  }, [
-    productPayload.neighborhoodId,
-    productPayload.countryId,
-    productPayload.regionId,
-    handleFetchNeighbourhoodsOrRegions,
-    pathname,
-    setRegions,
-  ])
+
+    handleFetchNeighbourhoodsOrRegions("ListRegionsByCountryId", "countriesIds", productPayload.countryId, setRegions)
+  }, [productPayload.countryId, handleFetchNeighbourhoodsOrRegions, setRegions])
+
+  useEffect(() => {
+    if (!productPayload.regionId) {
+      setNeighborhoods([])
+      return
+    }
+
+    handleFetchNeighbourhoodsOrRegions(
+      "ListNeighborhoodByRegionId",
+      "regionsIds",
+      productPayload.regionId,
+      setNeighborhoods,
+    )
+  }, [productPayload.regionId, handleFetchNeighbourhoodsOrRegions, setNeighborhoods])
 
   const handleUnlimtedQuantity = ({ target: { checked } }) => {
     if (checked) {
@@ -366,13 +372,15 @@ const AdDetails = ({
                       className={`${styles["form-control"]} form-control form-select`}
                       value={productPayload.countryId || ""}
                       onChange={(e) => {
-                        setProductPayload({ ...productPayload, countryId: +e.target.value })
-                        handleFetchNeighbourhoodsOrRegions(
-                          "ListRegionsByCountryId",
-                          "countriesIds",
-                          +e.target.value,
-                          setRegions,
-                        )
+                        const nextCountryId = e.target.value ? +e.target.value : null
+                        setProductPayload((prev) => ({
+                          ...prev,
+                          countryId: nextCountryId,
+                          regionId: null,
+                          neighborhoodId: null,
+                        }))
+                        setRegions([])
+                        setNeighborhoods([])
                       }}
                     >
                       <option value="" disabled hidden>
@@ -405,13 +413,13 @@ const AdDetails = ({
                       className={`${styles["form-control"]} form-control form-select`}
                       value={productPayload.regionId || ""}
                       onChange={(e) => {
-                        setProductPayload({ ...productPayload, regionId: +e.target.value })
-                        handleFetchNeighbourhoodsOrRegions(
-                          "ListNeighborhoodByRegionId",
-                          "regionsIds",
-                          +e.target.value,
-                          setNeighborhoods,
-                        )
+                        const nextRegionId = e.target.value ? +e.target.value : null
+                        setProductPayload((prev) => ({
+                          ...prev,
+                          regionId: nextRegionId,
+                          neighborhoodId: null,
+                        }))
+                        setNeighborhoods([])
                       }}
                     >
                       <option value="">
@@ -444,7 +452,11 @@ const AdDetails = ({
                       className={`${styles["form-control"]} form-control form-select`}
                       value={productPayload?.neighborhoodId || ""}
                       onChange={(e) => {
-                        setProductPayload({ ...productPayload, neighborhoodId: +e.target.value })
+                        const nextNeighborhoodId = e.target.value ? +e.target.value : null
+                        setProductPayload((prev) => ({
+                          ...prev,
+                          neighborhoodId: nextNeighborhoodId,
+                        }))
                       }}
                     >
                       <option value="">
