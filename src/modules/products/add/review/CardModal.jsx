@@ -118,9 +118,7 @@ const CardModal = ({
                       </Col>
                       <Col md={6}>
                         <p className="fw-bold">{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                        <div className="text-muted">
-                          XXXX XXXX XXXX {card?.accountNumber?.slice(-4) || "****"}
-                        </div>
+                        <div className="text-muted">XXXX XXXX XXXX {card?.accountNumber?.slice(-4) || "****"}</div>
                       </Col>
                     </Row>
                     <Row className="mb-2">
@@ -191,6 +189,9 @@ const CardModal = ({
                   placeholder={locale === "en" ? "Ex: John Doe" : "مثال: Mohamed Ali"}
                   {...register("bankHolderName", {
                     required: locale === "en" ? "This field is required" : "من فضلك ادخل هذا الحقل",
+                    validate: (v) =>
+                      v?.trim().length > 0 ||
+                      (locale === "en" ? "Name cannot be spaces only" : "لا يمكن إدخال مسافات فقط"),
                   })}
                 />
                 {errors.bankHolderName && <p className="text-danger">{errors.bankHolderName.message}</p>}
@@ -255,9 +256,7 @@ const CardModal = ({
                       return true
                     },
                   })}
-                  onKeyDown={(e) =>
-                    e.key === "Backspace" && e.target.value.length === 3 && setValue("expiaryDate", "")
-                  }
+                  onKeyDown={(e) => e.key === "Backspace" && e.target.value.length === 3 && setValue("expiaryDate", "")}
                   onChange={(e) => {
                     if (e.target.value.length > 7) return
                     else if (e.target.value.length === 2) setValue("expiaryDate", e.target.value + "/20")
@@ -275,6 +274,11 @@ const CardModal = ({
                 <Form.Control
                   type="password"
                   placeholder="***"
+                  onKeyDown={(e) => {
+                    if (e.key === " ") {
+                      e.preventDefault()
+                    }
+                  }}
                   maxLength={4}
                   {...register("cvv", {
                     required: locale === "en" ? "CVV is required" : "يجب إدخال CVV",

@@ -131,7 +131,8 @@ const AddProductStepTwo = ({
       productPayload.neighborhoodId,
     ]
     const checkInputIsEmpty = (value) => {
-      return value !== null && value !== undefined && value !== "" && value !== 0
+      if (typeof value === "string") return value.trim() !== ""
+      return value !== null && value !== undefined && value !== 0
     }
     const isInputEmpty = productDetailsInputs.every(checkInputIsEmpty)
     return isInputEmpty === true
