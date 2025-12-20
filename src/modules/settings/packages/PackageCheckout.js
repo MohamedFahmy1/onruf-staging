@@ -1,8 +1,7 @@
 import { pathOr } from "ramda"
-import { useEffect, useState } from "react"
-import { Button, Col, Row } from "react-bootstrap"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { Col, Modal, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
-import wallet from "../../../../public/images/wallet.png"
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
 import styles from "./package.module.css"
@@ -11,26 +10,25 @@ import PackageCard from "./PackageCard"
 import Alerto from "../../../common/Alerto"
 import { useSelector } from "react-redux"
 import moment from "moment"
-import Image from "next/image"
-import PointsModal from "../../products/add/review/PointsModal"
-import CardModal from "../../products/add/review/CardModal"
 import PackageCheckoutModal from "./PackageCheckoutModal"
+import MyFatoorahEmbeddedCard from "../../../components/payments/MyFatoorahEmbeddedCard"
 
 const PackageCheckout = () => {
   const providerId = useSelector((state) => state.authSlice.providerId)
   const { query, push, locale } = useRouter()
   const id = query.id
   const isSub = query?.isSub === "true"
-  const [paymentOption, setPaymentOption] = useState()
   const [couponData, setCouponData] = useState()
   const [couponCode, setCouponCode] = useState("")
   const [packageDetails, setPackageDetails] = useState()
-  const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
-  const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
-  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
-  const [pointsData, setPointsData] = useState({})
-  const [selectedCard, setSelectedCard] = useState({})
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
+
+  // Embedded payment state
+  const [mfSessionId, setMfSessionId] = useState("")
+  const [paymentIframeUrl, setPaymentIframeUrl] = useState("")
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [mfResetKey, setMfResetKey] = useState(0)
+  const hasRequestedPaymentRef = useRef(false)
 
   const fetchCurrentPackages = async () => {
     try {
@@ -60,32 +58,32 @@ const PackageCheckout = () => {
   const taxValue = totalCost * 0.15
 
   const totalWithTax = totalCost + taxValue
+  const totalAmount = totalWithTax <= 0 ? 0 : totalWithTax
 
-  const handleSubscribePackage = async (pakaID) => {
-    setIsCheckoutModalOpen("loading")
-    const body = {
-      pakatIds: [pakaID],
-      executePaymentDto: {
-        paymentCard: {
-          number: selectedCard?.accountNumber,
-          expiryMonth: selectedCard?.expiaryDate.split("/")[0],
-          expiryYear: selectedCard?.expiaryDate.split("/")[1],
-          securityCode: selectedCard?.cvv,
-          holderName: selectedCard?.bankHolderName,
+  const executePayment = useCallback(
+    async ({ sessionId }) => {
+      if (!packageDetails || !packageDetails?.id) return null
+      if (hasRequestedPaymentRef.current) return null
+      hasRequestedPaymentRef.current = true
+
+      const body = {
+        pakatIds: [packageDetails.id],
+        executePaymentDto: {
+          sessionId: sessionId || mfSessionId,
+          totalAmount: totalAmount,
         },
-        paymentMethodId: paymentOption === 1 ? 3 : paymentOption === 2 ? 4 : 6,
-        totalAmount: totalWithTax,
-        pointsNumber: pointsData?.pointsNumber || 0,
-      },
-    }
-    try {
-      await axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
-      setIsCheckoutModalOpen("success")
-    } catch (error) {
-      setIsCheckoutModalOpen("failed")
-      Alerto(error)
-    }
-  }
+      }
+
+      try {
+        // Backend should return PaymentUrl/PaymentURL for 3DS
+        return await axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
+      } catch (e) {
+        hasRequestedPaymentRef.current = false
+        throw e
+      }
+    },
+    [packageDetails, mfSessionId, totalAmount],
+  )
 
   const handlePackageRenew = async (pakaID, id) => {
     try {
@@ -116,27 +114,113 @@ const PackageCheckout = () => {
     }
   }
 
-  const handleAcceptPoints = (pointsValue, pointsNumber) => {
-    setPaymentOption(3)
-    setIsPointsModalOpen(false)
-    setPointsData({
-      pointsValue: pointsValue,
-      pointsNumber: pointsNumber,
-    })
-  }
+  const signalRHubUrl = useMemo(() => {
+    const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
+    if (envHub) return envHub
 
-  const handleAcceptVisa = (selectedCard) => {
-    setSelectedCard(selectedCard)
-    setPaymentOption(1)
-  }
+    const api = process.env.NEXT_PUBLIC_API_URL || ""
+    const base = String(api)
+      .replace(/\/api\/v\d+\/?$/i, "")
+      .replace(/\/+$/, "")
+    return base ? `${base}/chatHub` : "/chatHub"
+  }, [])
 
-  const handleAcceptMada = (selectedCard) => {
-    setSelectedCard(selectedCard)
-    setPaymentOption(2)
-  }
+  const handlePaymentStatus = useCallback(
+    async (status) => {
+      switch (status) {
+        case "PaymentSuccessMessage":
+          setIsCheckoutModalOpen("success")
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          setMfResetKey((k) => k + 1)
+          hasRequestedPaymentRef.current = false
+          return
+        case "PaymentFailedMessage":
+          setIsCheckoutModalOpen("failed")
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          setMfResetKey((k) => k + 1)
+          hasRequestedPaymentRef.current = false
+          return
+        case "PaymentPendingMessage":
+          return
+        default:
+          setIsCheckoutModalOpen("failed")
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          setMfResetKey((k) => k + 1)
+          hasRequestedPaymentRef.current = false
+          return
+      }
+    },
+    [setIsCheckoutModalOpen],
+  )
 
-  const toggleOffPaymentOption = () => {
-    setPaymentOption(null)
+  const myFatoorahSettings = {
+    card: {
+      style: {
+        hideNetworkIcons: false,
+        cardHeight: "250px",
+        tokenHeight: "230px",
+        input: {
+          color: "#333333",
+          fontSize: "15px",
+          fontFamily: "Arial, sans-serif",
+          inputHeight: "42px",
+          inputMargin: "8px",
+          borderColor: "#d1d5db",
+          backgroundColor: "#ffffff",
+          borderWidth: "1px",
+          borderRadius: "8px",
+          placeHolder: {
+            holderName: "Card Holder Name",
+            cardNumber: "Card Number",
+            expiryDate: "MM/YY",
+            securityCode: "CVV",
+          },
+        },
+        label: {
+          display: true,
+          color: "#374151",
+          fontSize: "14px",
+          fontWeight: "bold",
+          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          text: {
+            holderName: "Card Holder Name",
+            cardNumber: "Card Number",
+            expiryDate: "Expiry Date",
+            securityCode: "CVV",
+          },
+        },
+        error: {
+          borderColor: "#ef4444",
+          borderRadius: "8px",
+        },
+        button: {
+          useCustomButton: false,
+          textContent: "Pay Now",
+          fontSize: "20px",
+          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          color: "#ffffff",
+          backgroundColor: "#ee6c4d",
+          height: "52px",
+          borderRadius: "50px",
+          width: "100%",
+          margin: "16px auto 0 auto",
+          cursor: "pointer",
+        },
+        text: {
+          saveCard: "Save card for future payments",
+          addCard: "Use another card",
+          deleteAlert: {
+            title: "Delete Card",
+            message: "Are you sure you want to delete this card?",
+            confirm: "Yes",
+            cancel: "No",
+          },
+        },
+      },
+    },
   }
 
   return (
@@ -254,209 +338,88 @@ const PackageCheckout = () => {
               </ul>
               <hr />
               <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
-              <div className="row">
-                <div className="col-lg-12">
-                  <div className="form-group">
-                    <div
-                      className="form-control outer-check-input  d-flex justify-content-between"
-                      style={{ borderColor: paymentOption === 1 ? "var(--main)" : null }}
-                    >
-                      <div className="form-check form-switch p-0 m-0 d-flex w-auto">
-                        <input
-                          className="form-check-input m-0"
-                          type="checkbox"
-                          role="switch"
-                          id="visa"
-                          checked={paymentOption === 1}
-                          onChange={() => {
-                            setIsVisaModalOpen(true)
-                            setPaymentOption(1)
-                            setSelectedCard(null)
-                          }}
-                        />
-                        <span className="bord" />
-                      </div>
-                      <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
-                    </div>
-                  </div>
-                  {!!(paymentOption === 1 && selectedCard) && (
-                    <div className="form-group">
-                      <div
-                        style={{
-                          borderColor: paymentOption === 1 ? "var(--main)" : null,
-                          height: "100%",
-                          border: "1px solid var(--main)",
 
-                          borderRadius: "19px",
-                        }}
-                        className="d-flex flex-column gap-2"
-                      >
-                        <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>
-                              {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
-                            </p>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="light"
-                          className="rounded-pill mb-3"
-                          style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                          onClick={() => {
-                            setIsVisaModalOpen(true)
-                          }}
-                        >
-                          {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+              {isSub ? (
+                <div style={{ fontSize: 12, opacity: 0.85 }}>
+                  {locale === "en" ? "Renewal will be processed directly." : "سيتم تنفيذ التجديد مباشرة."}
                 </div>
-
-                <div className="col-lg-12">
-                  <div className="form-group">
-                    <div
-                      className="form-control outer-check-input d-flex justify-content-between"
-                      style={{ borderColor: paymentOption === 2 ? "var(--main)" : null }}
-                    >
-                      <div className="form-check form-switch p-0 m-0 w-auto">
-                        <input
-                          className="form-check-input m-0"
-                          type="checkbox"
-                          role="switch"
-                          id="mada"
-                          checked={paymentOption === 2}
-                          onChange={() => {
-                            setIsMadaModalOpen(true)
-                            setPaymentOption(2)
-                            setSelectedCard(null)
-                          }}
-                        />
-                        <span className="bord" />
-                      </div>
-                      <label htmlFor="mada">{pathOr("", [locale, "Products", "Mada"], t)}</label>
-                    </div>
-                  </div>
+              ) : totalAmount === 0 ? (
+                <div style={{ fontSize: 12, opacity: 0.85 }}>
+                  {locale === "en" ? "No payment is required." : "لا يلزم الدفع."}
                 </div>
-
-                {!!(paymentOption === 2 && selectedCard) && (
-                  <div className="form-group">
-                    <div
-                      style={{
-                        borderColor: paymentOption === 2 ? "var(--main)" : null,
-                        height: "100%",
-                        border: "1px solid var(--main)",
-
-                        borderRadius: "19px",
-                      }}
-                      className="d-flex flex-column gap-2"
-                    >
-                      <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>
-                            {selectedCard.accountNumber?.slice(0, 12)}XXXX{" "}
-                          </p>
-                        </div>
-                        <div>
-                          <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                          <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="light"
-                        className="rounded-pill mb-3"
-                        style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                        onClick={() => setIsMadaModalOpen(true)}
-                      >
-                        {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
-                      </Button>
-                    </div>
-                  </div>
-                )}
-
-                <div className="col-lg-12">
-                  <div className="form-group">
-                    <div
-                      className="form-control outer-check-input d-flex justify-content-between"
-                      style={{
-                        borderColor: paymentOption === 3 ? "var(--main)" : null,
-                        backgroundColor: "#ccc !important",
-                      }}
-                    >
-                      <div className="form-check form-switch p-0 m-0 w-auto">
-                        <input
-                          className="form-check-input m-0"
-                          type="checkbox"
-                          role="switch"
-                          id="wallet"
-                          checked={paymentOption === 3}
-                          onChange={() => {
-                            setIsPointsModalOpen(true)
-                            setPaymentOption(3)
-                            setSelectedCard(null)
-                          }}
-                        />
-                        <span className="bord" />
-                      </div>
-                      <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
-                    </div>
-                  </div>
-                </div>
-
-                {!!(pointsData?.pointsValue >= totalWithTax && paymentOption === 3) && (
-                  <div className="form-group">
-                    <div
-                      style={{
-                        borderColor: paymentOption === 1 ? "var(--main)" : null,
-                        height: "100%",
-                        border: "1px solid var(--main)",
-                        borderRadius: "19px",
-                      }}
-                      className="d-flex flex-column gap-2"
-                    >
-                      <div
-                        className="d-flex justify-content-center align-items-center gap-2"
-                        style={{ padding: "20px" }}
-                      >
-                        <p style={{ fontSize: "16px" }}>
-                          {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData?.pointsValue}{" "}
-                          {pathOr("", [locale, "Products", "currency"], t)}
-                        </p>
-                        <Image src={wallet} alt="wallet" width={55} height={55} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
+              ) : (
+                <MyFatoorahEmbeddedCard
+                  amount={totalAmount}
+                  currencyCode="KWD"
+                  language={locale}
+                  environment={
+                    process.env.NEXT_PUBLIC_MYFATOORAH_ENV || (process.env.NODE_ENV === "production" ? "live" : "test")
+                  }
+                  containerId="card"
+                  settings={myFatoorahSettings}
+                  resetKey={mfResetKey}
+                  onReady={({ sessionData }) => {
+                    setMfSessionId(sessionData?.sessionId || "")
+                  }}
+                  onEmbeddedCallback={(response) => {
+                    const cbSession =
+                      response?.sessionId ||
+                      response?.SessionId ||
+                      response?.data?.sessionId ||
+                      response?.Data?.SessionId ||
+                      response?.Data?.sessionId
+                    if (cbSession) setMfSessionId(cbSession)
+                  }}
+                  executePayment={executePayment}
+                  iframeEnabled
+                  hideDefaultIframe
+                  onIframeUrlChange={(url) => {
+                    setPaymentIframeUrl(url)
+                    setIsPaymentModalOpen(true)
+                  }}
+                  closeIframeOn3DSMessage
+                  on3DSRedirectUrl={() => {
+                    setIsPaymentModalOpen(false)
+                    setPaymentIframeUrl("")
+                    setIsCheckoutModalOpen("loading")
+                  }}
+                  signalR={{
+                    hubUrl: signalRHubUrl,
+                    eventName: "PaymentStatusMessage",
+                    start: "onPay",
+                    skipNegotiation: true,
+                    transport: "WebSockets",
+                  }}
+                  onPaymentStatus={handlePaymentStatus}
+                  onError={(e) => {
+                    console.error(e)
+                    toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
+                    setIsCheckoutModalOpen("failed")
+                    setIsPaymentModalOpen(false)
+                    setPaymentIframeUrl("")
+                    setMfResetKey((k) => k + 1)
+                    hasRequestedPaymentRef.current = false
+                  }}
+                />
+              )}
             </div>
 
-            <button
-              className={`${styles["btn-main"]} btn-main mt-2 w-100`}
-              onClick={
-                isSub
-                  ? () => handlePackageRenew(packageDetails?.pakaId, packageDetails?.id)
-                  : () => handleSubscribePackage(packageDetails?.id)
-              }
-              disabled={!paymentOption}
-            >
-              {isSub
-                ? pathOr("", [locale, "Packages", "renewPaka"], t)
-                : pathOr("", [locale, "Packages", "Subscribe"], t)}
-            </button>
+            {isSub && (
+              <button
+                className={`${styles["btn-main"]} btn-main mt-2 w-100`}
+                onClick={() => handlePackageRenew(packageDetails?.pakaId, packageDetails?.id)}
+              >
+                {pathOr("", [locale, "Packages", "renewPaka"], t)}
+              </button>
+            )}
+
+            {!isSub && totalAmount > 0 && (
+              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
+                {locale === "en"
+                  ? "Complete card payment above (Pay Now). The package will be activated after payment confirmation."
+                  : "أكمل الدفع بالبطاقة أعلاه (ادفع الآن). سيتم تفعيل الباقة بعد تأكيد الدفع."}
+              </div>
+            )}
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               style={{ backgroundColor: "#45495E" }}
@@ -467,36 +430,36 @@ const PackageCheckout = () => {
           </div>
         </Col>
       </Row>
-      {isPointsModalOpen && (
-        <PointsModal
-          isPointsModalOpen={isPointsModalOpen}
-          setIsPointsModalOpen={setIsPointsModalOpen}
-          totalCost={totalWithTax}
-          handleAccept={handleAcceptPoints}
-          toggleOffPaymentOption={toggleOffPaymentOption}
-        />
-      )}
-      {isVisaModalOpen && (
-        <CardModal
-          isCardModalOpen={isVisaModalOpen}
-          setIsCardModalOpen={setIsVisaModalOpen}
-          handleAccept={handleAcceptVisa}
-          PaymentAccountType={1}
-          toggleOffPaymentOption={toggleOffPaymentOption}
-        />
-      )}
-      {isMadaModalOpen && (
-        <CardModal
-          isCardModalOpen={isMadaModalOpen}
-          setIsCardModalOpen={setIsMadaModalOpen}
-          handleAccept={handleAcceptMada}
-          PaymentAccountType={2}
-          toggleOffPaymentOption={toggleOffPaymentOption}
-        />
-      )}
       {isCheckoutModalOpen && (
         <PackageCheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
       )}
+
+      <Modal
+        show={isPaymentModalOpen && !!paymentIframeUrl}
+        onHide={() => {
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          hasRequestedPaymentRef.current = false
+          setMfResetKey((k) => k + 1)
+        }}
+        size="lg"
+        centered
+        contentClassName="p-0"
+        dialogClassName="payment-iframe-modal"
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>{locale === "en" ? "Payment Confirmation" : "تأكيد الدفع"}</Modal.Title>
+        </Modal.Header>
+        <Modal.Body style={{ padding: 0, height: "80vh" }}>
+          {paymentIframeUrl && (
+            <iframe
+              title="Payment OTP"
+              src={paymentIframeUrl}
+              style={{ width: "100%", height: "100%", border: "none" }}
+            />
+          )}
+        </Modal.Body>
+      </Modal>
     </div>
   )
 }

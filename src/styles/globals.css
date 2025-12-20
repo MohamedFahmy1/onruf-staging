@@ -1,3 +1,7 @@
+/* Payment iframe modal width override */
+.payment-iframe-modal {
+  --bs-modal-width: 700px;
+}
 html,
 body {
   padding: 0;

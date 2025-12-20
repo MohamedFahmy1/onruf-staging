@@ -1,7 +1,7 @@
-import { Fragment, useCallback, useEffect, useState } from "react"
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import styles from "./productReview.module.css"
 import { useRouter } from "next/router"
-import { Row, Col, Button } from "react-bootstrap"
+import { Row, Col } from "react-bootstrap"
 import dateImage from "../../../../../public/icons/Copyright_expiry.svg"
 import { FaCheckCircle } from "react-icons/fa"
 import axios from "axios"
@@ -11,27 +11,33 @@ import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
-import PointsModal from "./PointsModal"
-import wallet from "../../../../../public/images/wallet.png"
 import CheckoutModal from "./CheckoutModal"
-import CardModal from "./CardModal"
 import { useFetch } from "../../../../hooks/useFetch"
+import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEmbeddedCard"
+import { Modal } from "react-bootstrap"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname } = useRouter()
-  const [paymentOption, setPaymentOption] = useState()
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
   const [couponData, setCouponData] = useState()
   const [couponCode, setCouponCode] = useState("")
   const [loading, setLoading] = useState(false)
-  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
-  const [isVisaModalOpen, setIsVisaModalOpen] = useState(false)
-  const [isMadaModalOpen, setIsMadaModalOpen] = useState(false)
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
-  const [selectedCard, setSelectedCard] = useState(null)
-  const [pointsData, setPointsData] = useState({})
   const { data: freePublishPrice } = useFetch(`/ShowProductPublishPrice`)
+
+  const [mfInitiatedSessionId, setMfInitiatedSessionId] = useState("")
+  const hasSubmittedAfterPaymentRef = useRef(false)
+  const hasRequestedPaymentRef = useRef(false)
+  const [paymentIframeUrl, setPaymentIframeUrl] = useState("")
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
+  const [mfResetKey, setMfResetKey] = useState(0)
+
+  useEffect(() => {
+    // If we get a new InitiateSession session, allow a new publish submission once payment is confirmed.
+    hasSubmittedAfterPaymentRef.current = false
+    hasRequestedPaymentRef.current = false
+  }, [mfInitiatedSessionId])
 
   const publishFee = !!freePublishPrice ? +selectedCatProps?.productPublishPrice : 0
 
@@ -115,6 +121,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const taxValue = (totalCost * (15 / 100)).toFixed(2)
 
   const totalWithTax = +totalCost + +taxValue
+  const totalAmount = totalWithTax <= 0 ? 0 : totalWithTax
 
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
@@ -174,84 +181,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }))
   }, [totalWithTax, setProductPayload, couponData?.discountValue])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-
-    setIsCheckoutModalOpen("loading")
-    setLoading(true)
-
-    let formData = new FormData()
-    productFullData.listImageFile.forEach((ele, indx) => {
-      ele.id === productFullData.MainImageIndex && indx !== 0 && productFullData.listImageFile.move(indx, 0)
-    })
-    pathname.includes("edit") && formData.append("EditOrRepost", 1)
-    pathname.includes("repost") && formData.append("EditOrRepost", 2)
-    for (let key in productFullData) {
-      const value = productFullData[key]
-      if (key === "listImageFile") {
-        for (const image of value) {
-          formData.append("listImageFile", image)
-        }
-      }
-      // if any value is empty don't send it to the api // and don't send productImage & listMedia
-      else if (value === "" || value === null || key === "productImage" || key === "listMedia") {
-        continue
-      } else if (key === "productSep") {
-        // filter out empty values
-        const filteredValue = value.filter((item) => !!item.ValueSpeAr || !!item.ValueSpeEn)
-        formData.append(key, JSON.stringify(filteredValue))
-      } else if (Array.isArray(value)) {
-        if (key == "ShippingOptions") {
-          value.forEach((item) => {
-            formData.append(key, Number(item))
-          })
-        }
-        // if array is empty don't send it to the api
-        else if (value[0] === "") {
-          continue
-        } else
-          value.forEach((item) => {
-            formData.append(key, item)
-          })
-      } else {
-        formData.append(key, value)
-      }
-    }
-    // append payment details to the form data in case of add or repost
-    if (pathname.includes("add") || pathname.includes("repost")) {
-      formData.append("ExecutePaymentDto.PaymentMethodId", paymentOption === 1 ? 3 : paymentOption === 2 ? 4 : 6)
-      formData.append("ExecutePaymentDto.TotalAmount", totalWithTax)
-      if (paymentOption === 1 || paymentOption === 2) {
-        formData.append("ExecutePaymentDto.PaymentCard.Number", selectedCard?.accountNumber)
-        formData.append("ExecutePaymentDto.PaymentCard.ExpiryMonth", selectedCard?.expiaryDate.split("/")[0])
-        formData.append("ExecutePaymentDto.PaymentCard.ExpiryYear", selectedCard?.expiaryDate.split("/")[1])
-        formData.append("ExecutePaymentDto.PaymentCard.SecurityCode", selectedCard?.cvv)
-        formData.append("ExecutePaymentDto.PaymentCard.HolderName", selectedCard?.bankHolderName)
-      } else {
-        formData.append("ExecutePaymentDto.PointsNumber", pointsData?.pointsNumber)
-      }
-    }
-    // Add product
-    if (pathname.includes("add")) {
-      try {
-        await axios.post("/AddProduct", formData, multiFormData)
-        setIsCheckoutModalOpen("success")
-      } catch (error) {
-        setLoading(false)
-        setIsCheckoutModalOpen("failed")
-      }
-    }
-    // Edit or repost product
-    else {
-      try {
-        await axios.post("/EditProduct", formData, multiFormData)
-        setIsCheckoutModalOpen("success")
-      } catch (error) {
-        setLoading(false)
-        setIsCheckoutModalOpen("failed")
-      }
-    }
-  }
+  // NOTE: The submit logic is now handled by `submitProduct()` and (for add/repost)
+  // is triggered after payment confirmation via SignalR.
   // Determine the main image in the edit & repost section
   let imageSrc
   if (!pathname.includes("add")) {
@@ -266,27 +197,208 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     }
   }
 
-  const handleAcceptPoints = (pointsValue, pointsNumber) => {
-    setPaymentOption(3)
-    setIsPointsModalOpen(false)
-    setPointsData({
-      pointsValue: pointsValue,
-      pointsNumber: pointsNumber,
-    })
-  }
+  const buildProductFormData = useCallback(
+    ({ sessionIdOverride } = {}) => {
+      let formData = new FormData()
 
-  const handleAcceptVisa = (selectedCard) => {
-    setSelectedCard(selectedCard)
-    setPaymentOption(1)
-  }
+      productFullData.listImageFile.forEach((ele, indx) => {
+        ele.id === productFullData.MainImageIndex && indx !== 0 && productFullData.listImageFile.move(indx, 0)
+      })
 
-  const handleAcceptMada = (selectedCard) => {
-    setSelectedCard(selectedCard)
-    setPaymentOption(2)
-  }
+      pathname.includes("edit") && formData.append("EditOrRepost", 1)
+      pathname.includes("repost") && formData.append("EditOrRepost", 2)
 
-  const toggleOffPaymentOption = () => {
-    setPaymentOption(null)
+      for (let key in productFullData) {
+        const value = productFullData[key]
+        if (key === "listImageFile") {
+          for (const image of value) {
+            formData.append("listImageFile", image)
+          }
+        }
+        // if any value is empty don't send it to the api // and don't send productImage & listMedia
+        else if (value === "" || value === null || key === "productImage" || key === "listMedia") {
+          continue
+        } else if (key === "productSep") {
+          // filter out empty values
+          const filteredValue = value.filter((item) => !!item.ValueSpeAr || !!item.ValueSpeEn)
+          formData.append(key, JSON.stringify(filteredValue))
+        } else if (Array.isArray(value)) {
+          if (key == "ShippingOptions") {
+            value.forEach((item) => {
+              formData.append(key, Number(item))
+            })
+          }
+          // if array is empty don't send it to the api
+          else if (value[0] === "") {
+            continue
+          } else
+            value.forEach((item) => {
+              formData.append(key, item)
+            })
+        } else {
+          formData.append(key, value)
+        }
+      }
+
+      // append payment details to the form data in case of add / repost / edit
+      // (you requested sending ExecutePaymentDto.SessionId for both AddProduct and EditProduct payloads)
+      if (pathname.includes("add") || pathname.includes("repost") || pathname.includes("edit")) {
+        formData.append("ExecutePaymentDto.TotalAmount", totalAmount)
+
+        // Per your requirement: send the InitiateSession sessionId in the payload.
+        const sid = sessionIdOverride || mfInitiatedSessionId
+        if (sid) formData.append("ExecutePaymentDto.SessionId", sid)
+      }
+
+      return formData
+    },
+    [mfInitiatedSessionId, pathname, productFullData, totalAmount],
+  )
+
+  const submitProduct = useCallback(
+    async ({ sessionIdOverride } = {}) => {
+      setLoading(true)
+
+      const formData = buildProductFormData({ sessionIdOverride })
+
+      // Add product
+      if (pathname.includes("add")) {
+        return axios.post("/AddProduct", formData, multiFormData)
+      }
+
+      // Edit or repost product
+      return axios.post("/EditProduct", formData, multiFormData)
+    },
+    [buildProductFormData, pathname],
+  )
+
+  // After the user clicks "Pay Now" in the embedded form, MyFatoorah triggers the callback with a session id.
+  // Per your requirement: we do NOT call /ExecutePayment here. We call Add/EditProduct with InitiateSession SessionId,
+  // and expect the API response to include PaymentUrl/PaymentURL for opening the 3DS iframe.
+  // We pass the callback SessionId override into the form data to ensure it is included.
+  const executePayment = useCallback(
+    async ({ sessionId }) => {
+      if (hasRequestedPaymentRef.current) return null
+      hasRequestedPaymentRef.current = true
+      try {
+        return await submitProduct({ sessionIdOverride: sessionId })
+      } catch (e) {
+        hasRequestedPaymentRef.current = false
+        throw e
+      }
+    },
+    [submitProduct],
+  )
+
+  const handlePaymentStatus = useCallback(async (status) => {
+    // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
+    switch (status) {
+      case "PaymentSuccessMessage":
+        setIsCheckoutModalOpen("success")
+        setLoading(false)
+        setIsPaymentModalOpen(false)
+        setPaymentIframeUrl("")
+        setMfResetKey((k) => k + 1)
+        return
+      case "PaymentFailedMessage":
+        setIsCheckoutModalOpen("failed")
+        setLoading(false)
+        setIsPaymentModalOpen(false)
+        setPaymentIframeUrl("")
+        setMfResetKey((k) => k + 1)
+        hasRequestedPaymentRef.current = false
+        return
+      case "PaymentPendingMessage":
+        return
+      default:
+        // Unknown status -> treat as failure for safety
+        setIsCheckoutModalOpen("failed")
+        setLoading(false)
+        setIsPaymentModalOpen(false)
+        setPaymentIframeUrl("")
+        setMfResetKey((k) => k + 1)
+        hasRequestedPaymentRef.current = false
+        return
+    }
+  }, [])
+
+  const signalRHubUrl = useMemo(() => {
+    const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
+    if (envHub) return envHub
+
+    const api = process.env.NEXT_PUBLIC_API_URL || ""
+    // Common case: API base includes /api/v1, while hub is hosted at root /chatHub
+    const base = String(api)
+      .replace(/\/api\/v\d+\/?$/i, "")
+      .replace(/\/+$/, "")
+    return base ? `${base}/chatHub` : "/chatHub"
+  }, [])
+
+  const myFatoorahSettings = {
+    card: {
+      style: {
+        hideNetworkIcons: false,
+        cardHeight: "250px",
+        tokenHeight: "230px",
+        input: {
+          color: "#333333",
+          fontSize: "15px",
+          fontFamily: "Arial, sans-serif",
+          inputHeight: "42px",
+          inputMargin: "8px",
+          borderColor: "#d1d5db",
+          backgroundColor: "#ffffff",
+          borderWidth: "1px",
+          borderRadius: "8px",
+          placeHolder: {
+            holderName: "Card Holder Name",
+            cardNumber: "Card Number",
+            expiryDate: "MM/YY",
+            securityCode: "CVV",
+          },
+        },
+        label: {
+          display: true,
+          color: "#374151",
+          fontSize: "14px",
+          fontWeight: "bold",
+          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          text: {
+            holderName: "Card Holder Name",
+            cardNumber: "Card Number",
+            expiryDate: "Expiry Date",
+            securityCode: "CVV",
+          },
+        },
+        error: {
+          borderColor: "#ef4444",
+          borderRadius: "8px",
+        },
+        button: {
+          useCustomButton: false,
+          textContent: "Pay Now",
+          fontSize: "20px",
+          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          color: "#ffffff",
+          backgroundColor: "#ee6c4d",
+          height: "52px",
+          borderRadius: "50px",
+          width: "100%",
+          margin: "16px auto 0 auto",
+          cursor: "pointer",
+        },
+        text: {
+          saveCard: "Save card for future payments",
+          addCard: "Use another card",
+          deleteAlert: {
+            title: "Delete Card",
+            message: "Are you sure you want to delete this card?",
+            confirm: "Yes",
+            cancel: "No",
+          },
+        },
+      },
+    },
   }
 
   return (
@@ -721,209 +833,97 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 </ul>
                 <hr />
                 <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
-                <div className="row">
-                  <div className="col-lg-12">
-                    <div className="form-group">
-                      <div
-                        className="form-control outer-check-input  d-flex justify-content-between"
-                        style={{ borderColor: paymentOption === 1 ? "var(--main)" : null }}
-                      >
-                        <div className="form-check form-switch p-0 m-0 d-flex w-auto">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="visa"
-                            checked={paymentOption === 1}
-                            onChange={() => {
-                              setIsVisaModalOpen(true)
-                              setPaymentOption(1)
-                              setSelectedCard(null)
-                            }}
-                          />
-                          <span className="bord" />
-                        </div>
-                        <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
-                      </div>
-                    </div>
-                    {!!(paymentOption === 1 && selectedCard) && (
-                      <div className="form-group">
-                        <div
-                          style={{
-                            borderColor: paymentOption === 1 ? "var(--main)" : null,
-                            height: "100%",
-                            border: "1px solid var(--main)",
 
-                            borderRadius: "19px",
-                          }}
-                          className="d-flex flex-column gap-2"
-                        >
-                          <div
-                            style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}
-                          >
-                            <div>
-                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                              <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
-                            </div>
-                            <div>
-                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                              <p style={{ fontSize: 12, color: "#8B959E" }}>
-                                XXXX XXXX XXXX {selectedCard.accountNumber?.slice(-4)}
-                              </p>
-                            </div>
-                            <div>
-                              <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                              <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="light"
-                            className="rounded-pill mb-3"
-                            style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                            onClick={() => {
-                              setIsVisaModalOpen(true)
-                            }}
-                          >
-                            {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
+                {totalAmount === 0 ? (
+                  <div style={{ fontSize: 12, opacity: 0.85 }}>
+                    {locale === "en" ? "No payment is required for this publish." : "لا يلزم الدفع لنشر هذا المنتج."}
                   </div>
-
-                  <div className="col-lg-12">
-                    <div className="form-group">
-                      <div
-                        className="form-control outer-check-input d-flex justify-content-between"
-                        style={{ borderColor: paymentOption === 2 ? "var(--main)" : null }}
-                      >
-                        <div className="form-check form-switch p-0 m-0 w-auto">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="mada"
-                            checked={paymentOption === 2}
-                            onChange={() => {
-                              setIsMadaModalOpen(true)
-                              setPaymentOption(2)
-                              setSelectedCard(null)
-                            }}
-                          />
-                          <span className="bord" />
-                        </div>
-                        <label htmlFor="mada">{pathOr("", [locale, "Products", "Mada"], t)}</label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {!!(paymentOption === 2 && selectedCard) && (
-                    <div className="form-group">
-                      <div
-                        style={{
-                          borderColor: paymentOption === 2 ? "var(--main)" : null,
-                          height: "100%",
-                          border: "1px solid var(--main)",
-
-                          borderRadius: "19px",
-                        }}
-                        className="d-flex flex-column gap-2"
-                      >
-                        <div style={{ backgroundColor: "#F8F8F8", margin: "10px", padding: "10px", borderRadius: 13 }}>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "NameOnCard"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.bankHolderName}</p>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "CardNumber"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>
-                              XXXX XXXX XXXX {selectedCard.accountNumber?.slice(-4)}
-                            </p>
-                          </div>
-                          <div>
-                            <p style={{ fontSize: 14 }}>{pathOr("", [locale, "Products", "expiryDate"], t)}</p>
-                            <p style={{ fontSize: 12, color: "#8B959E" }}>{selectedCard?.expiaryDate}</p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="light"
-                          className="rounded-pill mb-3"
-                          style={{ border: "1px solid #eee", marginInline: "auto", width: "90%" }}
-                          onClick={() => setIsMadaModalOpen(true)}
-                        >
-                          {pathOr("", [locale, "Products", "ChooseAnotherCard"], t)}
-                        </Button>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="col-lg-12">
-                    <div className="form-group">
-                      <div
-                        className="form-control outer-check-input d-flex justify-content-between"
-                        style={{
-                          borderColor: paymentOption === 3 ? "var(--main)" : null,
-                          backgroundColor: "#ccc !important",
-                        }}
-                      >
-                        <div className="form-check form-switch p-0 m-0 w-auto">
-                          <input
-                            className="form-check-input m-0"
-                            type="checkbox"
-                            role="switch"
-                            id="wallet"
-                            checked={paymentOption === 3}
-                            onChange={() => {
-                              setIsPointsModalOpen(true)
-                              setPaymentOption(3)
-                              setSelectedCard(null)
-                            }}
-                          />
-                          <span className="bord" />
-                        </div>
-                        <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {!!(pointsData?.pointsValue >= totalWithTax && paymentOption === 3) && (
-                    <div className="form-group">
-                      <div
-                        style={{
-                          borderColor: paymentOption === 1 ? "var(--main)" : null,
-                          height: "100%",
-                          border: "1px solid var(--main)",
-                          borderRadius: "19px",
-                        }}
-                        className="d-flex flex-column gap-2"
-                      >
-                        <div
-                          className="d-flex justify-content-center align-items-center gap-2"
-                          style={{ padding: "20px" }}
-                        >
-                          <p style={{ fontSize: "16px" }}>
-                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData?.pointsValue}{" "}
-                            {pathOr("", [locale, "Products", "currency"], t)}
-                          </p>
-                          <Image src={wallet} alt="wallet" width={55} height={55} />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
+                ) : (
+                  <MyFatoorahEmbeddedCard
+                    amount={totalAmount}
+                    currencyCode="KWD"
+                    language={locale}
+                    environment={
+                      process.env.NEXT_PUBLIC_MYFATOORAH_ENV ||
+                      (process.env.NODE_ENV === "production" ? "live" : "test")
+                    }
+                    containerId="card"
+                    settings={myFatoorahSettings}
+                    onReady={({ sessionData }) => {
+                      setMfInitiatedSessionId(sessionData?.sessionId || "")
+                    }}
+                    onEmbeddedCallback={(response) => {
+                      const cbSession =
+                        response?.sessionId ||
+                        response?.SessionId ||
+                        response?.data?.sessionId ||
+                        response?.Data?.SessionId ||
+                        response?.Data?.sessionId
+                      if (cbSession) setMfInitiatedSessionId(cbSession)
+                    }}
+                    executePayment={executePayment}
+                    iframeEnabled
+                    hideDefaultIframe
+                    resetKey={mfResetKey}
+                    onIframeUrlChange={(url) => {
+                      setPaymentIframeUrl(url)
+                      setIsPaymentModalOpen(true)
+                    }}
+                    // keep iframe visible; show final status via SignalR
+                    closeIframeOn3DSMessage={false}
+                    on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
+                    signalR={{
+                      hubUrl: signalRHubUrl,
+                      eventName: "PaymentStatusMessage",
+                      // Start SignalR when user clicks Pay Now (embedded callback)
+                      start: "onPay",
+                      // To avoid /negotiate, SignalR requires WebSockets + skipNegotiation.
+                      // Only enable this if your server/proxy supports WebSockets properly.
+                      skipNegotiation: true,
+                      transport: "WebSockets",
+                      // Recommended: set NEXT_PUBLIC_SIGNALR_HUB_URL to your real hub, e.g. https://domain.com/chatHub
+                    }}
+                    onPaymentStatus={handlePaymentStatus}
+                    onError={(e) => {
+                      console.error(e)
+                      toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
+                      setIsCheckoutModalOpen("failed")
+                      setLoading(false)
+                    }}
+                  />
+                )}
               </div>
             )}
-            <button
-              className={`${styles["btn-main"]} btn-main mt-2 w-100`}
-              data-bs-toggle="modal"
-              data-bs-target="#add-product_"
-              disabled={loading || !!(!paymentOption && !pathname.includes("edit"))}
-              onClick={(e) => handleSubmit(e)}
-            >
-              {pathname.includes("add") && pathOr("", [locale, "Products", "addNewProduct"], t)}
-              {pathname.includes("edit") && pathOr("", [locale, "Products", "save"], t)}
-              {pathname.includes("repost") && pathOr("", [locale, "Products", "repost_product"], t)}
-            </button>
+
+            {(pathname.includes("edit") || totalAmount === 0) && (
+              <button
+                className={`${styles["btn-main"]} btn-main mt-2 w-100`}
+                disabled={loading}
+                onClick={async () => {
+                  try {
+                    setIsCheckoutModalOpen("loading")
+                    await submitProduct()
+                    setIsCheckoutModalOpen("success")
+                  } catch (e) {
+                    setIsCheckoutModalOpen("failed")
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+              >
+                {pathname.includes("add") && pathOr("", [locale, "Products", "addNewProduct"], t)}
+                {pathname.includes("edit") && pathOr("", [locale, "Products", "save"], t)}
+                {pathname.includes("repost") && pathOr("", [locale, "Products", "repost_product"], t)}
+              </button>
+            )}
+
+            {!pathname.includes("edit") && totalAmount > 0 && (
+              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
+                {locale === "en"
+                  ? "Complete card payment above (Pay Now). The product will be published after payment confirmation."
+                  : "أكمل الدفع بالبطاقة أعلاه (ادفع الآن). سيتم نشر المنتج بعد تأكيد الدفع."}
+              </div>
+            )}
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               style={{ backgroundColor: "#45495E" }}
@@ -933,36 +933,36 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             </button>
           </div>
         </Col>
-        {isPointsModalOpen && (
-          <PointsModal
-            isPointsModalOpen={isPointsModalOpen}
-            setIsPointsModalOpen={setIsPointsModalOpen}
-            totalCost={totalWithTax}
-            handleAccept={handleAcceptPoints}
-            toggleOffPaymentOption={toggleOffPaymentOption}
-          />
-        )}
-        {isVisaModalOpen && (
-          <CardModal
-            isCardModalOpen={isVisaModalOpen}
-            setIsCardModalOpen={setIsVisaModalOpen}
-            handleAccept={handleAcceptVisa}
-            PaymentAccountType={1}
-            toggleOffPaymentOption={toggleOffPaymentOption}
-          />
-        )}
-        {isMadaModalOpen && (
-          <CardModal
-            isCardModalOpen={isMadaModalOpen}
-            setIsCardModalOpen={setIsMadaModalOpen}
-            handleAccept={handleAcceptMada}
-            PaymentAccountType={2}
-            toggleOffPaymentOption={toggleOffPaymentOption}
-          />
-        )}
         {isCheckoutModalOpen && (
           <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
         )}
+
+        <Modal
+          show={isPaymentModalOpen && !!paymentIframeUrl}
+          onHide={() => {
+            setIsPaymentModalOpen(false)
+            setPaymentIframeUrl("")
+            hasRequestedPaymentRef.current = false
+            setMfResetKey((k) => k + 1)
+          }}
+          size="lg"
+          centered
+          contentClassName="p-0"
+          dialogClassName="payment-iframe-modal"
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>{locale === "en" ? "Payment Confirmation" : "تأكيد الدفع"}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body style={{ padding: 0, height: "80vh" }}>
+            {paymentIframeUrl && (
+              <iframe
+                title="Payment OTP"
+                src={paymentIframeUrl}
+                style={{ width: "100%", height: "100%", border: "none" }}
+              />
+            )}
+          </Modal.Body>
+        </Modal>
       </Row>
     </div>
   )

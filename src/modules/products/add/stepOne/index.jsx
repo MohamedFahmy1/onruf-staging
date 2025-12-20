@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import axios from "axios"
 import { useRouter } from "next/router"
 import styles from "./stepOne.module.css"
@@ -8,61 +8,124 @@ import { pathOr } from "ramda"
 
 const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => {
   const { locale } = useRouter()
-  const [allCategories, setAllCategories] = useState([])
+  // `categoryOptionsByLevel[level]` holds the selectable categories for that level
+  const [categoryOptionsByLevel, setCategoryOptionsByLevel] = useState([[]])
+  // `selectedCategories[level]` holds the selected category id for that level (or null if not selected yet)
   const [selectedCategories, setSelectedCategories] = useState([null])
+  // Only enable "Next" after we confirm the current last selection is a leaf (API returns no children)
+  const [confirmedLeafId, setConfirmedLeafId] = useState(null)
+  const [isFetchingSubcategories, setIsFetchingSubcategories] = useState(false)
+  const subcategoriesRequestIdRef = useRef(0)
 
-  const fetchCategories = useCallback(async () => {
-    const {
-      data: { data: cats },
-    } = await axios(`/ListCategoryAndSub?lang=${locale}&currentPage=1`)
-    setAllCategories(cats)
+  const fetchMainCategories = useCallback(async () => {
+    // Invalidate any in-flight subcategory requests (e.g., locale changed)
+    subcategoriesRequestIdRef.current += 1
+    setIsFetchingSubcategories(false)
+    setConfirmedLeafId(null)
+    try {
+      const res = await axios.get(`/ListAllCategory?isShowInHome=false&lang=${locale}`)
+      const cats = res?.data?.data
+      const list = Array.isArray(cats) ? cats : []
+      setCategoryOptionsByLevel([list])
+      setSelectedCategories([null])
+      setSelectedCatProps?.(null)
+    } catch (e) {
+      setCategoryOptionsByLevel([[]])
+      setSelectedCategories([null])
+      setSelectedCatProps?.(null)
+    }
   }, [locale])
 
   useEffect(() => {
-    fetchCategories()
-  }, [fetchCategories, locale])
+    fetchMainCategories()
+  }, [fetchMainCategories])
 
-  const handleSelectionChange = (level, selectedId) => {
-    const newSelectedCategories = selectedCategories.slice(0, level + 1)
-    newSelectedCategories[level] = selectedId
+  const fetchSubcategoriesByCategoryId = useCallback(async (categoryId) => {
+    const res = await axios.get(`/GetSubCategoryByMainCategory?id=${categoryId}`)
+    const subcats = res?.data?.data
+    if (Array.isArray(subcats)) return subcats
+    if (Array.isArray(subcats?.list)) return subcats.list
+    return []
+  }, [])
 
-    const selectedCategory = getCategoryById(allCategories, selectedId)
-    if (selectedCategory && selectedCategory.list && selectedCategory.list.length > 0) {
-      newSelectedCategories.push(null)
-    }
-    setSelectedCategories(newSelectedCategories)
-  }
+  const handleSelectionChange = useCallback(
+    async (level, selectedId) => {
+      // Always truncate deeper selections/options when user changes an earlier level
+      setConfirmedLeafId(null)
+      setSelectedCategories((prev) => {
+        const nextSelected = prev.slice(0, level + 1)
+        nextSelected[level] = selectedId
+        return nextSelected
+      })
+      setCategoryOptionsByLevel((prev) => prev.slice(0, level + 1))
 
-  const getCategoryById = (categories, id) => {
-    for (const category of categories) {
-      if (category.id === id) return category
-      if (category.list) {
-        const subcategory = getCategoryById(category.list, id)
-        if (subcategory) return subcategory
+      if (!selectedId) {
+        // Invalidate any in-flight requests so stale responses can't append levels
+        subcategoriesRequestIdRef.current += 1
+        setIsFetchingSubcategories(false)
+        return
       }
-    }
-    return null
-  }
 
-  const getSubcategories = (categories, selectedIds) => {
-    let subcategories = categories
-    for (const id of selectedIds) {
-      const category = subcategories.find((c) => c.id === id)
-      if (category && category.list) {
-        subcategories = category.list
+      const requestId = ++subcategoriesRequestIdRef.current
+      let subcats = []
+      setIsFetchingSubcategories(true)
+      try {
+        subcats = await fetchSubcategoriesByCategoryId(selectedId)
+      } catch (e) {
+        if (subcategoriesRequestIdRef.current === requestId) {
+          setIsFetchingSubcategories(false)
+        }
+        return
+      }
+      // Ignore stale results if user changed selection while the request was in-flight
+      if (subcategoriesRequestIdRef.current !== requestId) return
+      setIsFetchingSubcategories(false)
+
+      // If subcategories exist, add a new select level and require user to pick from it
+      if (subcats.length > 0) {
+        setCategoryOptionsByLevel((prev) => {
+          const base = prev.slice(0, level + 1)
+          return [...base, subcats]
+        })
+        setSelectedCategories((prev) => {
+          const base = prev.slice(0, level + 1)
+          base[level] = selectedId
+          return [...base, null]
+        })
       } else {
-        return []
+        // No children returned => confirmed leaf
+        setConfirmedLeafId(selectedId)
+      }
+    },
+    [fetchSubcategoriesByCategoryId],
+  )
+
+  const getLeafSelection = () => {
+    let leafLevel = -1
+    let leafId = null
+    for (let i = 0; i < selectedCategories.length; i++) {
+      if (selectedCategories[i]) {
+        leafLevel = i
+        leafId = selectedCategories[i]
       }
     }
-    return subcategories
+    const leafOptions = leafLevel >= 0 ? categoryOptionsByLevel[leafLevel] || [] : []
+    const leafCatProps = leafOptions.find((c) => c.id === leafId)
+    return { leafLevel, leafId, leafCatProps }
   }
 
   const handleNextStep = (e) => {
     e.preventDefault()
-    const selectedCatId = selectedCategories[selectedCategories.length - 1]
+    const lastSelectedId = selectedCategories[selectedCategories.length - 1]
+    // Must be a confirmed leaf selection
+    if (!lastSelectedId) return
+    if (isFetchingSubcategories) return
+    if (confirmedLeafId !== lastSelectedId) return
+
+    const { leafId: selectedCatId, leafCatProps: catProps } = getLeafSelection()
     if (!selectedCatId) return
+
     next(selectedCatId)
-    const catProps = getCategoryById(allCategories, selectedCatId)
     setProductPayload((prev) => ({
       ...prev,
       categoryId: selectedCatId,
@@ -81,9 +144,14 @@ const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => 
     setSelectedCatProps(catProps)
   }
 
+  const isNextDisabled =
+    !selectedCategories[selectedCategories.length - 1] ||
+    isFetchingSubcategories ||
+    confirmedLeafId !== selectedCategories[selectedCategories.length - 1]
+
   const renderSelectFields = () => {
     return selectedCategories.map((selectedId, level) => {
-      const subcategories = getSubcategories(allCategories, selectedCategories.slice(0, level))
+      const options = categoryOptionsByLevel[level] || []
       return (
         <div key={level} className={`form-group ${styles["select_P"]}`}>
           <label className="d-block text-center" htmlFor={`selectCategory-${level}`}>
@@ -96,14 +164,18 @@ const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => 
             className="form-control form-select"
             name={`selectCategory-${level}`}
             id={`selectCategory-${level}`}
-            onChange={(e) => handleSelectionChange(level, parseInt(e.target.value))}
+            onChange={(e) => {
+              const value = e.target.value
+              if (!value) return handleSelectionChange(level, null)
+              return handleSelectionChange(level, parseInt(value, 10))
+            }}
           >
             <option value="" disabled hidden>
               {pathOr("", [locale, "Products", "selectOption"], t)}
             </option>
-            {subcategories.map((subcategory) => (
-              <option key={subcategory.id} value={subcategory.id}>
-                {subcategory.name}
+            {options.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
               </option>
             ))}
           </select>
@@ -125,10 +197,8 @@ const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => 
                 {renderSelectFields()}
                 <button
                   onClick={handleNextStep}
-                  disabled={!selectedCategories[selectedCategories.length - 1]}
-                  className={`btn-main d-block w-100 ${
-                    !selectedCategories[selectedCategories.length - 1] ? styles["btn-disabled"] : ""
-                  }`}
+                  disabled={isNextDisabled}
+                  className={`btn-main d-block w-100 ${isNextDisabled ? styles["btn-disabled"] : ""}`}
                 >
                   {pathOr("", [locale, "Products", "next"], t)}
                 </button>

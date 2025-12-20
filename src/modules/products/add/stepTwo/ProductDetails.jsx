@@ -38,7 +38,7 @@ const ProductDetails = ({
     try {
       const {
         data: { data: spefications },
-      } = await axios(`/ListAllSpecificationAndSubSpecificationByCatId?lang=${locale}&id=${catId}&currentPage=1`)
+      } = await axios(`/Advertisement/ListAllSpecificationAndSubSpecificationByCatId?id=${catId}`)
       setSpecifications(spefications)
     } catch (e) {
       Alerto(e)

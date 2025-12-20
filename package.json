@@ -2,7 +2,9 @@
   "name": "onruf-business",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next -p 3000",
     "export": "next export",
@@ -14,6 +16,7 @@
     "@emotion/react": "^11.9.3",
     "@hookform/devtools": "^4.3.1",
     "@hookform/resolvers": "^3.9.0",
+    "@microsoft/signalr": "^8.0.17",
     "@mui/icons-material": "^5.8.4",
     "@mui/lab": "^5.0.0-alpha.158",
     "@mui/material": "^5.8.6",
