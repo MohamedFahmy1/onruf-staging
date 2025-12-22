@@ -15,6 +15,7 @@ import CheckoutModal from "./CheckoutModal"
 import { useFetch } from "../../../../hooks/useFetch"
 import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEmbeddedCard"
 import { Modal } from "react-bootstrap"
+import PointsModal from "./PointsModal"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname } = useRouter()
@@ -25,6 +26,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [loading, setLoading] = useState(false)
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const { data: freePublishPrice } = useFetch(`/ShowProductPublishPrice`)
+
+  // null => show the "choose payment method" UI
+  // "card" => show embedded card UI
+  // "points" => points selected (opens PointsModal)
+  const [paymentMethod, setPaymentMethod] = useState(null) // null | "card" | "points"
+  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
+  const [pointsData, setPointsData] = useState({})
 
   const [mfInitiatedSessionId, setMfInitiatedSessionId] = useState("")
   const hasSubmittedAfterPaymentRef = useRef(false)
@@ -198,7 +206,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   }
 
   const buildProductFormData = useCallback(
-    ({ sessionIdOverride } = {}) => {
+    ({ sessionIdOverride, pointsNumberOverride, paymentType = "card" } = {}) => {
       let formData = new FormData()
 
       productFullData.listImageFile.forEach((ele, indx) => {
@@ -245,21 +253,28 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       if (pathname.includes("add") || pathname.includes("repost") || pathname.includes("edit")) {
         formData.append("ExecutePaymentDto.TotalAmount", totalAmount)
 
-        // Per your requirement: send the InitiateSession sessionId in the payload.
-        const sid = sessionIdOverride || mfInitiatedSessionId
-        if (sid) formData.append("ExecutePaymentDto.SessionId", sid)
+        if (paymentType === "points") {
+          const pn = pointsNumberOverride ?? pointsData?.pointsNumber
+          if (pn) formData.append("ExecutePaymentDto.PointsNumber", pn)
+          // Legacy ID previously used for points payment in this flow
+          formData.append("ExecutePaymentDto.PaymentMethodId", 6)
+        } else {
+          // Card (MyFatoorah embedded)
+          const sid = sessionIdOverride || mfInitiatedSessionId
+          if (sid) formData.append("ExecutePaymentDto.SessionId", sid)
+        }
       }
 
       return formData
     },
-    [mfInitiatedSessionId, pathname, productFullData, totalAmount],
+    [mfInitiatedSessionId, pathname, pointsData?.pointsNumber, productFullData, totalAmount],
   )
 
   const submitProduct = useCallback(
-    async ({ sessionIdOverride } = {}) => {
+    async ({ sessionIdOverride, pointsNumberOverride, paymentType = "card" } = {}) => {
       setLoading(true)
 
-      const formData = buildProductFormData({ sessionIdOverride })
+      const formData = buildProductFormData({ sessionIdOverride, pointsNumberOverride, paymentType })
 
       // Add product
       if (pathname.includes("add")) {
@@ -281,7 +296,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       if (hasRequestedPaymentRef.current) return null
       hasRequestedPaymentRef.current = true
       try {
-        return await submitProduct({ sessionIdOverride: sessionId })
+        return await submitProduct({ sessionIdOverride: sessionId, paymentType: "card" })
       } catch (e) {
         hasRequestedPaymentRef.current = false
         throw e
@@ -289,6 +304,44 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     },
     [submitProduct],
   )
+
+  const handleAcceptPoints = (pointsValue, pointsNumber) => {
+    setPaymentMethod("points")
+    setIsPointsModalOpen(false)
+    setPointsData({ pointsValue, pointsNumber })
+
+    // Immediately submit using points (same behavior as the old flow: API response determines success/fail)
+    setIsCheckoutModalOpen("loading")
+    Promise.resolve(submitProduct({ paymentType: "points", pointsNumberOverride: pointsNumber }))
+      .then(() => setIsCheckoutModalOpen("success"))
+      .catch(() => setIsCheckoutModalOpen("failed"))
+      .finally(() => setLoading(false))
+  }
+
+  const toggleOffPaymentOption = () => {
+    // Used by PointsModal when points are not sufficient or user closes it
+    setPaymentMethod(null)
+    setPointsData({})
+  }
+
+  const handleChooseCard = () => {
+    setPaymentMethod("card")
+    setPointsData({})
+  }
+
+  const handleChoosePoints = () => {
+    setPaymentMethod("points")
+    setIsPointsModalOpen(true)
+  }
+
+  const handleChangePaymentMethod = () => {
+    setPaymentMethod(null)
+    setPointsData({})
+    setIsPaymentModalOpen(false)
+    setPaymentIframeUrl("")
+    hasRequestedPaymentRef.current = false
+    setMfResetKey((k) => k + 1)
+  }
 
   const handlePaymentStatus = useCallback(async (status) => {
     // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
@@ -377,8 +430,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         button: {
           useCustomButton: false,
           textContent: "Pay Now",
-          fontSize: "20px",
-          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          fontSize: "18px",
+          fontFamily: "serif",
           color: "#ffffff",
           backgroundColor: "#ee6c4d",
           height: "52px",
@@ -839,58 +892,120 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     {locale === "en" ? "No payment is required for this publish." : "لا يلزم الدفع لنشر هذا المنتج."}
                   </div>
                 ) : (
-                  <MyFatoorahEmbeddedCard
-                    amount={totalAmount}
-                    currencyCode="KWD"
-                    language={locale}
-                    environment={
-                      process.env.NEXT_PUBLIC_MYFATOORAH_ENV ||
-                      (process.env.NODE_ENV === "production" ? "live" : "test")
-                    }
-                    containerId="card"
-                    settings={myFatoorahSettings}
-                    onReady={({ sessionData }) => {
-                      setMfInitiatedSessionId(sessionData?.sessionId || "")
-                    }}
-                    onEmbeddedCallback={(response) => {
-                      const cbSession =
-                        response?.sessionId ||
-                        response?.SessionId ||
-                        response?.data?.sessionId ||
-                        response?.Data?.SessionId ||
-                        response?.Data?.sessionId
-                      if (cbSession) setMfInitiatedSessionId(cbSession)
-                    }}
-                    executePayment={executePayment}
-                    iframeEnabled
-                    hideDefaultIframe
-                    resetKey={mfResetKey}
-                    onIframeUrlChange={(url) => {
-                      setPaymentIframeUrl(url)
-                      setIsPaymentModalOpen(true)
-                    }}
-                    // keep iframe visible; show final status via SignalR
-                    closeIframeOn3DSMessage={false}
-                    on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
-                    signalR={{
-                      hubUrl: signalRHubUrl,
-                      eventName: "PaymentStatusMessage",
-                      // Start SignalR when user clicks Pay Now (embedded callback)
-                      start: "onPay",
-                      // To avoid /negotiate, SignalR requires WebSockets + skipNegotiation.
-                      // Only enable this if your server/proxy supports WebSockets properly.
-                      skipNegotiation: true,
-                      transport: "WebSockets",
-                      // Recommended: set NEXT_PUBLIC_SIGNALR_HUB_URL to your real hub, e.g. https://domain.com/chatHub
-                    }}
-                    onPaymentStatus={handlePaymentStatus}
-                    onError={(e) => {
-                      console.error(e)
-                      toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
-                      setIsCheckoutModalOpen("failed")
-                      setLoading(false)
-                    }}
-                  />
+                  <div>
+                    {paymentMethod === null && (
+                      <div className="row">
+                        <div className="col-lg-12">
+                          <div className="form-group">
+                            <div className="form-control outer-check-input  d-flex justify-content-between">
+                              <div className="form-check form-switch p-0 m-0 d-flex w-auto">
+                                <input
+                                  className="form-check-input m-0"
+                                  type="checkbox"
+                                  role="switch"
+                                  id="visa"
+                                  checked={paymentMethod === "card"}
+                                  onChange={handleChooseCard}
+                                />
+                                <span className="bord" />
+                              </div>
+                              <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="col-lg-12">
+                          <div className="form-group">
+                            <div className="form-control outer-check-input d-flex justify-content-between">
+                              <div className="form-check form-switch p-0 m-0 w-auto">
+                                <input
+                                  className="form-check-input m-0"
+                                  type="checkbox"
+                                  role="switch"
+                                  id="wallet"
+                                  checked={paymentMethod === "points"}
+                                  onChange={handleChoosePoints}
+                                />
+                                <span className="bord" />
+                              </div>
+                              <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === "card" && (
+                      <div>
+                        <MyFatoorahEmbeddedCard
+                          amount={totalAmount}
+                          currencyCode="KWD"
+                          language={locale}
+                          environment={process.env.NODE_ENV === "production" ? "live" : "test"}
+                          containerId="card"
+                          settings={myFatoorahSettings}
+                          onReady={({ sessionData }) => {
+                            setMfInitiatedSessionId(sessionData?.sessionId || "")
+                          }}
+                          onEmbeddedCallback={(response) => {
+                            const cbSession =
+                              response?.sessionId ||
+                              response?.SessionId ||
+                              response?.data?.sessionId ||
+                              response?.Data?.SessionId ||
+                              response?.Data?.sessionId
+                            if (cbSession) setMfInitiatedSessionId(cbSession)
+                          }}
+                          executePayment={executePayment}
+                          iframeEnabled
+                          hideDefaultIframe
+                          resetKey={mfResetKey}
+                          onIframeUrlChange={(url) => {
+                            setPaymentIframeUrl(url)
+                            setIsPaymentModalOpen(true)
+                          }}
+                          // keep iframe visible; show final status via SignalR
+                          closeIframeOn3DSMessage={false}
+                          on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
+                          signalR={{
+                            hubUrl: signalRHubUrl,
+                            eventName: "PaymentStatusMessage",
+                            // Start SignalR when user clicks Pay Now (embedded callback)
+                            start: "onPay",
+                            skipNegotiation: true,
+                            transport: "WebSockets",
+                          }}
+                          onPaymentStatus={handlePaymentStatus}
+                          onError={(e) => {
+                            console.error(e)
+                            toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
+                            setIsCheckoutModalOpen("failed")
+                            setLoading(false)
+                          }}
+                        />
+
+                        <button
+                          type="button"
+                          className="btn-main w-100 mt-3"
+                          onClick={handleChangePaymentMethod}
+                          style={{ fontSize: "18px", fontWeight: "normal" }}
+                        >
+                          {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
+                        </button>
+                      </div>
+                    )}
+
+                    {paymentMethod === "points" && (
+                      <button
+                        type="button"
+                        className="btn-main w-100 mt-2"
+                        onClick={handleChangePaymentMethod}
+                        style={{ fontSize: "18px", fontWeight: "normal" }}
+                      >
+                        {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             )}
@@ -917,13 +1032,21 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               </button>
             )}
 
-            {!pathname.includes("edit") && totalAmount > 0 && (
+            {/* {!pathname.includes("edit") && totalAmount > 0 && paymentMethod === "card" && (
               <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
                 {locale === "en"
                   ? "Complete card payment above (Pay Now). The product will be published after payment confirmation."
                   : "أكمل الدفع بالبطاقة أعلاه (ادفع الآن). سيتم نشر المنتج بعد تأكيد الدفع."}
               </div>
-            )}
+            )} */}
+
+            {/* {!pathname.includes("edit") && totalAmount > 0 && paymentMethod === "points" && (
+              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
+                {locale === "en"
+                  ? "Use My Points to complete the payment. The product will be published after confirmation."
+                  : "استخدم نقاطي لإتمام الدفع. سيتم نشر المنتج بعد التأكيد."}
+              </div>
+            )} */}
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               style={{ backgroundColor: "#45495E" }}
@@ -935,6 +1058,16 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         </Col>
         {isCheckoutModalOpen && (
           <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
+        )}
+
+        {isPointsModalOpen && (
+          <PointsModal
+            isPointsModalOpen={isPointsModalOpen}
+            setIsPointsModalOpen={setIsPointsModalOpen}
+            totalCost={totalAmount}
+            handleAccept={handleAcceptPoints}
+            toggleOffPaymentOption={toggleOffPaymentOption}
+          />
         )}
 
         <Modal

@@ -9,6 +9,7 @@ import Alerto from "../../../../common/Alerto"
 import axios from "axios"
 import { Box, Chip, FormControl, MenuItem, OutlinedInput, Select } from "@mui/material"
 import { onlyNumbersInInputs } from "../../../../common/functions"
+import { useSelector } from "react-redux"
 
 const ITEM_HEIGHT = 48
 const ITEM_PADDING_TOP = 8
@@ -33,12 +34,23 @@ const ProductDetails = ({
   const [specifications, setSpecifications] = useState([])
   const [multiSelectedSpecifications, setMultiSelectedSpecifications] = useState({})
   const hasRunEffect = useRef(false)
+  const providerId = useSelector((state) => state.authSlice.providerId)
 
   const fetchSpecificationsList = useCallback(async () => {
     try {
+      const plainAxios = axios.create({
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+      })
+      delete plainAxios.defaults.headers.common["Business-Account-Id"]
       const {
         data: { data: spefications },
-      } = await axios(`/Advertisement/ListAllSpecificationAndSubSpecificationByCatId?id=${catId}`)
+      } = await plainAxios.get(`/ListAllSpecificationAndSubSpecificationByCatId?id=${catId}&User-Language=en`, {
+        headers: {
+          "User-Language": "en",
+          "Provider-Id": providerId,
+          "Application-Source": "BusinessAccount",
+        },
+      })
       setSpecifications(spefications)
     } catch (e) {
       Alerto(e)

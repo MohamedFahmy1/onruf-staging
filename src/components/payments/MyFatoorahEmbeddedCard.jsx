@@ -181,8 +181,8 @@ const DEFAULT_CARD_SETTINGS = {
       button: {
         useCustomButton: false,
         textContent: "Pay Now",
-        fontSize: "20px",
-        fontFamily: "Madani-Arabic-Regular, sans-serif",
+        fontSize: "18px",
+        fontFamily: "serif",
         color: "#ffffff",
         backgroundColor: "#ee6c4d",
         height: "52px",
