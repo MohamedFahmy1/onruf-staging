@@ -62,17 +62,19 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
               </button>
             </div>
           </Col> */}
-          <Col md={12}>
-            <div className="mb-2 text-center">
-              <button
-                className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 3 ? `main-color` : ``}`}
-                disabled={isLoading}
-                onClick={() => changeOrderStatus(3)}
-              >
-                {pathOr("", [locale, "Orders", "in_progress"], t)}
-              </button>
-            </div>
-          </Col>
+          {selectedOrder?.[0]?.orderStatus <= 3 && (
+            <Col md={12}>
+              <div className="mb-2 text-center">
+                <button
+                  className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 3 ? `main-color` : ``}`}
+                  disabled={isLoading}
+                  onClick={() => changeOrderStatus(3)}
+                >
+                  {pathOr("", [locale, "Orders", "in_progress"], t)}
+                </button>
+              </div>
+            </Col>
+          )}
           {/* <Col md={12}>
             <div className="mb-2 text-center">
               <button
@@ -84,39 +86,45 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
               </button>
             </div>
           </Col> */}
-          <Col md={12}>
-            <div className="mb-2 text-center">
-              <button
-                className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 5 ? `main-color` : ``}`}
-                disabled={isLoading}
-                onClick={() => changeOrderStatus(5)}
-              >
-                {pathOr("", [locale, "Orders", "delivery_in_progress"], t)}
-              </button>
-            </div>
-          </Col>
-          <Col md={12}>
-            <div className="mb-2 text-center">
-              <button
-                className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 6 ? `main-color` : ``}`}
-                disabled={isLoading}
-                onClick={() => changeOrderStatus(6)}
-              >
-                {pathOr("", [locale, "Orders", "delivered"], t)}
-              </button>
-            </div>
-          </Col>
-          <Col md={12}>
-            <div className="mb-2 text-center">
-              <button
-                className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 7 ? `main-color` : ``}`}
-                disabled={isLoading}
-                onClick={() => changeOrderStatus(7)}
-              >
-                {pathOr("", [locale, "Orders", "canceled"], t)}
-              </button>
-            </div>
-          </Col>
+          {selectedOrder?.[0]?.orderStatus <= 5 && (
+            <Col md={12}>
+              <div className="mb-2 text-center">
+                <button
+                  className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 5 ? `main-color` : ``}`}
+                  disabled={isLoading}
+                  onClick={() => changeOrderStatus(5)}
+                >
+                  {pathOr("", [locale, "Orders", "delivery_in_progress"], t)}
+                </button>
+              </div>
+            </Col>
+          )}
+          {selectedOrder?.[0]?.orderStatus <= 6 && (
+            <Col md={12}>
+              <div className="mb-2 text-center">
+                <button
+                  className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 6 ? `main-color` : ``}`}
+                  disabled={isLoading}
+                  onClick={() => changeOrderStatus(6)}
+                >
+                  {pathOr("", [locale, "Orders", "delivered"], t)}
+                </button>
+              </div>
+            </Col>
+          )}
+          {selectedOrder?.[0]?.orderStatus != 6 && (
+            <Col md={12}>
+              <div className="mb-2 text-center">
+                <button
+                  className={`fs-5 f-b ${selectedOrder[0]?.orderStatus == 7 ? `main-color` : ``}`}
+                  disabled={isLoading}
+                  onClick={() => changeOrderStatus(7)}
+                >
+                  {pathOr("", [locale, "Orders", "canceled"], t)}
+                </button>
+              </div>
+            </Col>
+          )}
         </Row>
       </Modal.Body>
     </Modal>

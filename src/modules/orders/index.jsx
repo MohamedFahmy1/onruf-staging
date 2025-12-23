@@ -115,7 +115,7 @@ const Orders = () => {
     }
     setSelectedRows()
     setOrders(data)
-  }, [orderStatus])
+  }, [orderStatus, locale])
 
   useEffect(() => {
     getOrders()
@@ -228,7 +228,7 @@ const Orders = () => {
         Cell: ({ row: { original } }) => (
           <Link href={`${`orders/${original.orderId}`}`}>
             <div className="f-b" style={{ cursor: "pointer" }}>
-              {paymentTypesTranslation(original?.paymentType, locale)}
+              {original?.paymentType}
             </div>
           </Link>
         ),
