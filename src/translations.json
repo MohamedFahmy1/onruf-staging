@@ -28,7 +28,8 @@
       "please_add_reason": "من فضلك أضف سبب",
       "write_reject_reason": "اكتب سبب الرفض",
       "seller": "بائع",
-      "noOffersFound": "لم يتم العثور على عروض تفاوض"
+      "noOffersFound": "لم يتم العثور على عروض تفاوض",
+      "noResponse": "لا يوجد رد"
     },
     "sidebar": {
       "home": "الرئيسية",
@@ -812,7 +813,8 @@
       "please_add_reason": "Please add reason",
       "write_reject_reason": "Write Reject Reason",
       "seller": "Seller",
-      "noOffersFound": "No Negotiation Offers Found"
+      "noOffersFound": "No Negotiation Offers Found",
+      "noResponse": "No Response"
     },
     "sidebar": {
       "home": "Home",
