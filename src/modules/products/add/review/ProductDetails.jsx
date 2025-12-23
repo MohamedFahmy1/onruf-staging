@@ -16,6 +16,7 @@ import { useFetch } from "../../../../hooks/useFetch"
 import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEmbeddedCard"
 import { Modal } from "react-bootstrap"
 import PointsModal from "./PointsModal"
+import wallet from "../../../../../public/images/wallet.png"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname } = useRouter()
@@ -26,10 +27,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [loading, setLoading] = useState(false)
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
   const { data: freePublishPrice } = useFetch(`/ShowProductPublishPrice`)
-
-  // null => show the "choose payment method" UI
-  // "card" => show embedded card UI
-  // "points" => points selected (opens PointsModal)
   const [paymentMethod, setPaymentMethod] = useState(null) // null | "card" | "points"
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [pointsData, setPointsData] = useState({})
@@ -309,13 +306,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setPaymentMethod("points")
     setIsPointsModalOpen(false)
     setPointsData({ pointsValue, pointsNumber })
-
-    // Immediately submit using points (same behavior as the old flow: API response determines success/fail)
-    setIsCheckoutModalOpen("loading")
-    Promise.resolve(submitProduct({ paymentType: "points", pointsNumberOverride: pointsNumber }))
-      .then(() => setIsCheckoutModalOpen("success"))
-      .catch(() => setIsCheckoutModalOpen("failed"))
-      .finally(() => setLoading(false))
   }
 
   const toggleOffPaymentOption = () => {
@@ -404,8 +394,8 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
           borderWidth: "1px",
           borderRadius: "8px",
           placeHolder: {
-            holderName: "Card Holder Name",
-            cardNumber: "Card Number",
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
             expiryDate: "MM/YY",
             securityCode: "CVV",
           },
@@ -417,9 +407,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
           fontWeight: "bold",
           fontFamily: "Madani-Arabic-Regular, sans-serif",
           text: {
-            holderName: "Card Holder Name",
-            cardNumber: "Card Number",
-            expiryDate: "Expiry Date",
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
+            expiryDate: locale === "en" ? "Expiry Date" : "تاريخ الانتهاء",
             securityCode: "CVV",
           },
         },
@@ -429,7 +419,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         },
         button: {
           useCustomButton: false,
-          textContent: "Pay Now",
+          textContent: locale === "en" ? "Pay Now" : "ادفع الآن",
           fontSize: "18px",
           fontFamily: "serif",
           color: "#ffffff",
@@ -893,7 +883,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                   </div>
                 ) : (
                   <div>
-                    {paymentMethod === null && (
+                    {paymentMethod !== "card" && (
                       <div className="row">
                         <div className="col-lg-12">
                           <div className="form-group">
@@ -924,13 +914,35 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                                   role="switch"
                                   id="wallet"
                                   checked={paymentMethod === "points"}
-                                  onChange={handleChoosePoints}
+                                  onChange={() => {
+                                    if (paymentMethod === "points") toggleOffPaymentOption()
+                                    else handleChoosePoints()
+                                  }}
                                 />
                                 <span className="bord" />
                               </div>
                               <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
                             </div>
                           </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {paymentMethod === "points" && !!pointsData?.pointsValue && (
+                      <div className="form-group mt-2">
+                        <div
+                          style={{
+                            border: "1px solid var(--main)",
+                            borderRadius: "19px",
+                            padding: "20px",
+                          }}
+                          className="d-flex justify-content-center align-items-center gap-2"
+                        >
+                          <Image src={wallet} alt="wallet" width={55} height={55} />
+                          <p style={{ fontSize: "16px", margin: 0 }}>
+                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData.pointsValue}{" "}
+                            {pathOr("", [locale, "Products", "currency"], t)}
+                          </p>
                         </div>
                       </div>
                     )}
@@ -994,30 +1006,29 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         </button>
                       </div>
                     )}
-
-                    {paymentMethod === "points" && (
-                      <button
-                        type="button"
-                        className="btn-main w-100 mt-2"
-                        onClick={handleChangePaymentMethod}
-                        style={{ fontSize: "18px", fontWeight: "normal" }}
-                      >
-                        {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
-                      </button>
-                    )}
                   </div>
                 )}
               </div>
             )}
 
-            {(pathname.includes("edit") || totalAmount === 0) && (
+            {(pathname.includes("edit") || totalAmount === 0 || paymentMethod === "points") && (
               <button
                 className={`${styles["btn-main"]} btn-main mt-2 w-100`}
-                disabled={loading}
+                disabled={loading || (paymentMethod === "points" && totalAmount > 0 && !pointsData?.pointsNumber)}
                 onClick={async () => {
                   try {
                     setIsCheckoutModalOpen("loading")
-                    await submitProduct()
+
+                    if (paymentMethod === "points" && totalAmount > 0) {
+                      if (!pointsData?.pointsNumber) {
+                        setIsPointsModalOpen(true)
+                        setIsCheckoutModalOpen(false)
+                        return
+                      }
+                      await submitProduct({ paymentType: "points", pointsNumberOverride: pointsData.pointsNumber })
+                    } else {
+                      await submitProduct()
+                    }
                     setIsCheckoutModalOpen("success")
                   } catch (e) {
                     setIsCheckoutModalOpen("failed")
@@ -1031,22 +1042,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 {pathname.includes("repost") && pathOr("", [locale, "Products", "repost_product"], t)}
               </button>
             )}
-
-            {/* {!pathname.includes("edit") && totalAmount > 0 && paymentMethod === "card" && (
-              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
-                {locale === "en"
-                  ? "Complete card payment above (Pay Now). The product will be published after payment confirmation."
-                  : "أكمل الدفع بالبطاقة أعلاه (ادفع الآن). سيتم نشر المنتج بعد تأكيد الدفع."}
-              </div>
-            )} */}
-
-            {/* {!pathname.includes("edit") && totalAmount > 0 && paymentMethod === "points" && (
-              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
-                {locale === "en"
-                  ? "Use My Points to complete the payment. The product will be published after confirmation."
-                  : "استخدم نقاطي لإتمام الدفع. سيتم نشر المنتج بعد التأكيد."}
-              </div>
-            )} */}
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
               style={{ backgroundColor: "#45495E" }}

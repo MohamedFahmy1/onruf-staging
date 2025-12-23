@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
 import { useSignalRPaymentStatus } from "../../hooks/useSignalRPaymentStatus"
+import { useRouter } from "next/router"
 
 function defaultMyFatoorahScriptSrc(environment) {
   // Kuwait live uses "portal.myfatoorah.com" per the docs (Kuwait/UAE/Bahrain/Jordan/Oman).
@@ -138,73 +139,6 @@ function extractPaymentUrl(executeResponse) {
   return null
 }
 
-const DEFAULT_CARD_SETTINGS = {
-  card: {
-    style: {
-      hideNetworkIcons: false,
-      cardHeight: "250px",
-      tokenHeight: "230px",
-      input: {
-        color: "#333333",
-        fontSize: "15px",
-        fontFamily: "Arial, sans-serif",
-        inputHeight: "42px",
-        inputMargin: "8px",
-        borderColor: "#d1d5db",
-        backgroundColor: "#ffffff",
-        borderWidth: "1px",
-        borderRadius: "8px",
-        placeHolder: {
-          holderName: "Card Holder Name",
-          cardNumber: "Card Number",
-          expiryDate: "MM/YY",
-          securityCode: "CVV",
-        },
-      },
-      label: {
-        display: true,
-        color: "#374151",
-        fontSize: "14px",
-        fontWeight: "bold",
-        fontFamily: "Madani-Arabic-Regular, sans-serif",
-        text: {
-          holderName: "Card Holder Name",
-          cardNumber: "Card Number",
-          expiryDate: "Expiry Date",
-          securityCode: "CVV",
-        },
-      },
-      error: {
-        borderColor: "#ef4444",
-        borderRadius: "8px",
-      },
-      button: {
-        useCustomButton: false,
-        textContent: "Pay Now",
-        fontSize: "18px",
-        fontFamily: "serif",
-        color: "#ffffff",
-        backgroundColor: "#ee6c4d",
-        height: "52px",
-        borderRadius: "50px",
-        width: "100%",
-        margin: "16px auto 0 auto",
-        cursor: "pointer",
-      },
-      text: {
-        saveCard: "Save card for future payments",
-        addCard: "Use another card",
-        deleteAlert: {
-          title: "Delete Card",
-          message: "Are you sure you want to delete this card?",
-          confirm: "Yes",
-          cancel: "No",
-        },
-      },
-    },
-  },
-}
-
 function deepMerge(a, b) {
   if (!b) return a
   const out = Array.isArray(a) ? [...a] : { ...(a || {}) }
@@ -279,6 +213,7 @@ export default function MyFatoorahEmbeddedCard({
   const [iframeUrl, setIframeUrl] = useState(null)
   const [last3dsUrl, setLast3dsUrl] = useState(null)
   const [hasPayStarted, setHasPayStarted] = useState(false)
+  const { locale } = useRouter()
 
   const initKeyRef = useRef(null)
   const initiateKeyRef = useRef(null)
@@ -328,6 +263,73 @@ export default function MyFatoorahEmbeddedCard({
     if (signalRStart === "onMount") return true
     return false
   })
+
+  const DEFAULT_CARD_SETTINGS = {
+    card: {
+      style: {
+        hideNetworkIcons: false,
+        cardHeight: "250px",
+        tokenHeight: "230px",
+        input: {
+          color: "#333333",
+          fontSize: "15px",
+          fontFamily: "Arial, sans-serif",
+          inputHeight: "42px",
+          inputMargin: "8px",
+          borderColor: "#d1d5db",
+          backgroundColor: "#ffffff",
+          borderWidth: "1px",
+          borderRadius: "8px",
+          placeHolder: {
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
+            expiryDate: "MM/YY",
+            securityCode: "CVV",
+          },
+        },
+        label: {
+          display: true,
+          color: "#374151",
+          fontSize: "14px",
+          fontWeight: "bold",
+          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          text: {
+            holderName: "Card Holder Name",
+            cardNumber: "Card Number",
+            expiryDate: "Expiry Date",
+            securityCode: "CVV",
+          },
+        },
+        error: {
+          borderColor: "#ef4444",
+          borderRadius: "8px",
+        },
+        button: {
+          useCustomButton: false,
+          textContent: locale === "en" ? "Pay Now" : "ادفع الآن",
+          fontSize: "18px",
+          fontFamily: "serif",
+          color: "#ffffff",
+          backgroundColor: "#ee6c4d",
+          height: "52px",
+          borderRadius: "50px",
+          width: "100%",
+          margin: "16px auto 0 auto",
+          cursor: "pointer",
+        },
+        text: {
+          saveCard: "Save card for future payments",
+          addCard: "Use another card",
+          deleteAlert: {
+            title: "Delete Card",
+            message: "Are you sure you want to delete this card?",
+            confirm: "Yes",
+            cancel: "No",
+          },
+        },
+      },
+    },
+  }
 
   useEffect(() => {
     // Allow parent to hard-disable

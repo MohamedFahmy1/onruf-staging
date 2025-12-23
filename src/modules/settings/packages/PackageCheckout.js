@@ -173,8 +173,8 @@ const PackageCheckout = () => {
           borderWidth: "1px",
           borderRadius: "8px",
           placeHolder: {
-            holderName: "Card Holder Name",
-            cardNumber: "Card Number",
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
             expiryDate: "MM/YY",
             securityCode: "CVV",
           },
@@ -186,9 +186,9 @@ const PackageCheckout = () => {
           fontWeight: "bold",
           fontFamily: "Madani-Arabic-Regular, sans-serif",
           text: {
-            holderName: "Card Holder Name",
-            cardNumber: "Card Number",
-            expiryDate: "Expiry Date",
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
+            expiryDate: locale === "en" ? "Expiry Date" : "تاريخ الانتهاء",
             securityCode: "CVV",
           },
         },
@@ -198,7 +198,7 @@ const PackageCheckout = () => {
         },
         button: {
           useCustomButton: false,
-          textContent: "Pay Now",
+          textContent: locale === "en" ? "Pay Now" : "ادفع الآن",
           fontSize: "20px",
           fontFamily: "Madani-Arabic-Regular, sans-serif",
           color: "#ffffff",
