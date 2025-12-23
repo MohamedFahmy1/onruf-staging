@@ -240,10 +240,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
             </div>
             <div className="mx-4">
               <h6 className="m-0 f-b"> {propOr("-", ["name"], original)} </h6>
-              <div className="gray-color">
-                {formatDate(propOr("-", ["auctionClosingTime"], original)) ||
-                  formatDate(propOr("-", ["createdAt"], original))}
-              </div>
+              <div className="gray-color">{formatDate(propOr("-", ["createdAt"], original))}</div>
             </div>
           </div>
         ),
