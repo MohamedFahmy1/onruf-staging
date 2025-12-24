@@ -103,29 +103,29 @@ export const orderTypesTranslation = (typeFromApi, locale) => {
   } else return "Unknown order type"
 }
 
-export const negotiationTypeTranslation = (dataFromApi, locale) => {
-  if (dataFromApi?.match(/Expired/gi)) {
-    return pathOr("", [locale, "negotiation", "expired"], t)
-  } else if (dataFromApi?.match(/Canceled/gi)) {
-    return pathOr("", [locale, "negotiation", "canceled"], t)
-  } else if (dataFromApi?.match(/Lost/gi)) {
-    return pathOr("", [locale, "negotiation", "lost"], t)
-  } else if (dataFromApi?.match(/Purchased/gi)) {
-    return pathOr("", [locale, "negotiation", "purchased"], t)
-  } else if (dataFromApi?.match(/New/gi)) {
-    return pathOr("", [locale, "negotiation", "new"], t)
-  } else if (dataFromApi?.match(/Accepted/gi)) {
-    return pathOr("", [locale, "negotiation", "Accepted"], t)
-  } else if (dataFromApi?.match(/Purchcased/gi)) {
-    return pathOr("", [locale, "negotiation", "Purchcased"], t)
-  } else if (dataFromApi?.match(/Refused/gi)) {
-    return pathOr("", [locale, "negotiation", "refused"], t)
-  } else if (dataFromApi?.match(/Response/gi)) {
-    return pathOr("", [locale, "negotiation", "noResponse"], t)
-  } else if (dataFromApi?.match(/WaitingForReply/gi)) {
-    return pathOr("", [locale, "negotiation", "waitingForReply"], t)
-  } else return dataFromApi
-}
+// export const negotiationTypeTranslation = (dataFromApi, locale) => {
+//   if (dataFromApi?.match(/Expired/gi)) {
+//     return pathOr("", [locale, "negotiation", "expired"], t)
+//   } else if (dataFromApi?.match(/Canceled/gi)) {
+//     return pathOr("", [locale, "negotiation", "canceled"], t)
+//   } else if (dataFromApi?.match(/Lost/gi)) {
+//     return pathOr("", [locale, "negotiation", "lost"], t)
+//   } else if (dataFromApi?.match(/Purchased/gi)) {
+//     return pathOr("", [locale, "negotiation", "purchased"], t)
+//   } else if (dataFromApi?.match(/New/gi)) {
+//     return pathOr("", [locale, "negotiation", "new"], t)
+//   } else if (dataFromApi?.match(/Accepted/gi)) {
+//     return pathOr("", [locale, "negotiation", "Accepted"], t)
+//   } else if (dataFromApi?.match(/Purchcased/gi)) {
+//     return pathOr("", [locale, "negotiation", "Purchcased"], t)
+//   } else if (dataFromApi?.match(/Refused/gi)) {
+//     return pathOr("", [locale, "negotiation", "refused"], t)
+//   } else if (dataFromApi?.match(/Response/gi)) {
+//     return pathOr("", [locale, "negotiation", "noResponse"], t)
+//   } else if (dataFromApi?.match(/WaitingForReply/gi)) {
+//     return pathOr("", [locale, "negotiation", "waitingForReply"], t)
+//   } else return dataFromApi
+// }
 
 export const handleShowRatingEmoji = (rating) => {
   if (rating >= 1 && rating < 2) {

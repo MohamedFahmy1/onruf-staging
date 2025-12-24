@@ -4,7 +4,7 @@ import { pathOr } from "ramda"
 import { useState } from "react"
 import t from "../../translations.json"
 import AcceptModal from "./AcceptModal"
-import { handleNavigateToProductDetails, negotiationTypeTranslation } from "../../common/functions"
+import { handleNavigateToProductDetails } from "../../common/functions"
 import RefuseModal from "./RefuseModal"
 import ResponsiveImage from "../../common/ResponsiveImage"
 
@@ -36,7 +36,7 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
       >
         <Box sx={{ backgroundColor: "#ee6c4d", padding: 1, borderBottom: "1px solid #e0e0e0" }}>
           <Typography variant="subtitle1" component="h2" color={"#fff"} align="center" m={0}>
-            {negotiationTypeTranslation(offer.offerStatus, locale)}
+            {offer.offerStatusName}
           </Typography>
         </Box>
         <CardContent
@@ -122,7 +122,7 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
               <Typography variant="caption" sx={{ color: "rgba(0, 0, 0, 0.6)", fontSize: "0.8rem", lineHeight: 1 }}>
                 {offer?.offerStatus == "New"
                   ? pathOr("", [locale, "negotiation", "waiting_for_your_response"], t)
-                  : negotiationTypeTranslation(offer?.offerStatus, locale)}
+                  : offer?.offerStatusName}
               </Typography>
             </Box>
           </Box>
