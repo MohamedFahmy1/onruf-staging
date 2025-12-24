@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { useRef, useState, useMemo } from "react"
 import styles from "./stepTwo.module.css"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
@@ -10,6 +10,16 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
   const { locale } = useRouter()
   const [activeElementIndex, setActiveElementIndex] = useState(null)
   const dateTimeInput = useRef(null)
+
+  const nowMoment = useMemo(() => moment(), [])
+  const nowFormatted = useMemo(() => nowMoment.format("YYYY-MM-DD[T]HH:mm"), [nowMoment])
+
+  const safeDefaultValue = useMemo(() => {
+    if (!productPayload.AuctionClosingTime) return nowFormatted
+
+    const payloadTime = moment(productPayload.AuctionClosingTime)
+    return payloadTime.isBefore(nowMoment) ? nowFormatted : payloadTime.format("YYYY-MM-DD[T]HH:mm")
+  }, [productPayload.AuctionClosingTime, nowFormatted, nowMoment])
 
   function renderFixedLengthDays(item) {
     switch (item) {
@@ -46,7 +56,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
   const calculateFutureDate = (item, unit) => {
     const unitMapping = { 1: "days", 2: "weeks", 3: "months" }
-    return moment().add(+item, unitMapping[unit]).format("YYYY-MM-DDTHH:mm")
+    return moment().add(+item, unitMapping[unit]).format("YYYY-MM-DD[T]HH:mm")
   }
 
   const handleSelection = (item, auctionClosingTime) => {
@@ -56,10 +66,22 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
       IsAuctionClosingTimeFixed: true,
     })
     setActiveElementIndex(+item)
-    dateTimeInput.current.value = null
+    if (dateTimeInput.current) dateTimeInput.current.value = ""
   }
 
   const handleChangeAuctionClosingTime = (e) => {
+    const selected = moment(e.target.value)
+
+    if (selected.isBefore(moment())) {
+      e.target.value = nowFormatted
+      setProductPayload({
+        ...productPayload,
+        AuctionClosingTime: nowFormatted,
+        IsAuctionClosingTimeFixed: false,
+      })
+      return
+    }
+
     setProductPayload({
       ...productPayload,
       AuctionClosingTime: e.target.value,
@@ -82,15 +104,19 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           <input
             type="radio"
             name="AuctionDuration"
-            id="AuctionDuration"
             onChange={() => {
               setActiveElementIndex(null)
-              setProductPayload({ ...productPayload, AuctionClosingTime: "", IsAuctionClosingTimeFixed: true })
-              dateTimeInput.current.value = null
+              setProductPayload({
+                ...productPayload,
+                AuctionClosingTime: "",
+                IsAuctionClosingTimeFixed: true,
+              })
+              if (dateTimeInput.current) dateTimeInput.current.value = ""
             }}
             checked={productPayload.IsAuctionClosingTimeFixed}
           />
         </div>
+
         <div className="d-flex gap-3 flex-wrap">
           {selectedCatProps.auctionClosingPeriods.split(",").map((item, index) => {
             const auctionClosingTime = calculateFutureDate(item, selectedCatProps.auctionClosingPeriodsUnit)
@@ -108,6 +134,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           })}
         </div>
       </div>
+
       <div
         className={`form-group contint_paner w-100 ${styles.p_select} ${
           productPayload.IsAuctionClosingTimeFixed === false ? styles.p_select_active : ""
@@ -120,15 +147,21 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           <input
             type="radio"
             name="AuctionDuration"
-            id="AuctionDuration"
             onChange={() => {
-              setProductPayload({ ...productPayload, AuctionClosingTime: "", IsAuctionClosingTimeFixed: false })
+              setProductPayload({
+                ...productPayload,
+                AuctionClosingTime: nowFormatted,
+                IsAuctionClosingTimeFixed: false,
+              })
               setActiveElementIndex(null)
-              dateTimeInput.current.value = null
+              if (dateTimeInput.current) {
+                dateTimeInput.current.value = nowFormatted
+              }
             }}
             checked={productPayload.IsAuctionClosingTimeFixed === false}
           />
         </div>
+
         {!!selectedCatProps?.auctionClosingTimeFee && (
           <p
             className="mb-2"
@@ -139,12 +172,13 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
             } ${pathOr("", [locale, "Products", "currency"], t)}`}
           </p>
         )}
+
         <input
           type="datetime-local"
           ref={dateTimeInput}
+          min={nowFormatted}
+          defaultValue={safeDefaultValue}
           onChange={handleChangeAuctionClosingTime}
-          min={moment().format("YYYY-MM-DDTHH:mm")}
-          defaultValue={productPayload.AuctionClosingTime}
           className="rounded"
         />
       </div>
