@@ -29,7 +29,8 @@
       "write_reject_reason": "اكتب سبب الرفض",
       "seller": "بائع",
       "noOffersFound": "لم يتم العثور على عروض تفاوض",
-      "noResponse": "لا يوجد رد"
+      "noResponse": "لا يوجد رد",
+      "waitingForReply": "في انتظار الرد"
     },
     "sidebar": {
       "home": "الرئيسية",
@@ -814,7 +815,8 @@
       "write_reject_reason": "Write Reject Reason",
       "seller": "Seller",
       "noOffersFound": "No Negotiation Offers Found",
-      "noResponse": "No Response"
+      "noResponse": "No Response",
+      "waitingForReply": "Waiting For Reply"
     },
     "sidebar": {
       "home": "Home",

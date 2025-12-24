@@ -122,7 +122,9 @@ export const negotiationTypeTranslation = (dataFromApi, locale) => {
     return pathOr("", [locale, "negotiation", "refused"], t)
   } else if (dataFromApi?.match(/Response/gi)) {
     return pathOr("", [locale, "negotiation", "noResponse"], t)
-  } else return "Unknown negotiation type"
+  } else if (dataFromApi?.match(/WaitingForReply/gi)) {
+    return pathOr("", [locale, "negotiation", "waitingForReply"], t)
+  } else return dataFromApi
 }
 
 export const handleShowRatingEmoji = (rating) => {
