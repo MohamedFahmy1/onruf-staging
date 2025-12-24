@@ -61,7 +61,7 @@ export const orderStatusTranslate = (statusFromApi, locale) => {
         return pathOr("", [locale, "Orders", "delivered"], t)
       } else if (statusFromApi?.match(/cancel/gi) || statusFromApi === "ملغية") {
         return pathOr("", [locale, "Orders", "canceled"], t)
-      } else return "Unknown payment type"
+      } else return statusFromApi
   }
 }
 
@@ -89,7 +89,7 @@ export const paymentTypesTranslation = (typeFromApi, locale) => {
       } else if (typeFromApi?.match(/wallet/gi)) {
         return pathOr("", [locale, "Products", "Wallet"], t)
       }
-      return "Unknown payment type"
+      return typeFromApi
   }
 }
 
@@ -100,7 +100,7 @@ export const orderTypesTranslation = (typeFromApi, locale) => {
     return pathOr("", [locale, "Orders", "negotiation"], t)
   } else if (typeFromApi?.match(/auction/gi)) {
     return pathOr("", [locale, "Orders", "auction"], t)
-  } else return "Unknown order type"
+  } else return typeFromApi
 }
 
 // export const negotiationTypeTranslation = (dataFromApi, locale) => {

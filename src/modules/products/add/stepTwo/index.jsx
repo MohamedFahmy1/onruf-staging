@@ -94,8 +94,8 @@ const AddProductStepTwo = ({
 
       if (spec?.isRequired) {
         if (
-          productPayload.productSep[i].ValueSpeAr === "" ||
-          productPayload.productSep[i].ValueSpeEn === "" ||
+          productPayload.productSep[i].ValueSpeAr?.trim() === "" ||
+          productPayload.productSep[i].ValueSpeEn?.trim() === "" ||
           !productPayload.productSep[i].ValueSpeAr ||
           !productPayload.productSep[i].ValueSpeEn
         ) {
