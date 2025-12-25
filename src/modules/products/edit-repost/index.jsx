@@ -20,10 +20,21 @@ const EditProduct = () => {
 
   const fetchSpecificationsList = useCallback(async () => {
     try {
+      const plainAxios = axios.create({
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+      })
+      delete plainAxios.defaults.headers.common["Business-Account-Id"]
       const {
         data: { data: spefications },
-      } = await axios(
-        `/ListAllSpecificationAndSubSpecificationByCatId?lang=${locale}&id=${selectedCatProps.id}&currentPage=1`,
+      } = await plainAxios.get(
+        `/ListAllSpecificationAndSubSpecificationByCatId?id=${selectedCatProps.id}&User-Language=en`,
+        {
+          headers: {
+            "User-Language": "en",
+            "Provider-Id": providerId,
+            "Application-Source": "BusinessAccount",
+          },
+        },
       )
       setProductPayload((prev) => ({
         ...prev,

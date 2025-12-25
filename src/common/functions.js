@@ -140,7 +140,7 @@ export const handleShowRatingEmoji = (rating) => {
 }
 
 export const handleNavigateToProductDetails = (id) => {
-  window.open(`${process.env.NEXT_PUBLIC_WEBSITE}Home/GetProductById?id=${id}`, "_blank")
+  window.open(`${process.env.NEXT_PUBLIC_WEBSITE}product-details/${id}`, "_blank")
 }
 
 export const handleDownloadInvoice = (invoiceLink, locale) => {
