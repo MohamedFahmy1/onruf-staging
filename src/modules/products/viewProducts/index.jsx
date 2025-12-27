@@ -138,9 +138,10 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
   )
 
   const handleEditProductQuantity = async () => {
+    console.log(quantityValueInfinity)
     try {
       const idApi = +singleSelectedRow?.id || +singleSelectedRow?.productId
-      if (quantityValue < 1) {
+      if (quantityValue < 1 && !quantityValueInfinity) {
         return toast.error(locale === "en" ? "Please put quantity more than 0" : "من فضلك ادخل كمية اكبر من 0")
       }
       const qtyApi = quantityValueInfinity ? "" : `&quantity=${quantityValue}`
