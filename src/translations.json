@@ -981,7 +981,7 @@
       "paymentOptions": "Payment Options",
       "cash": "Cash",
       "bankTransfer": "Bank Transfer",
-      "creditCard": "Credit Card",
+      "creditCard": "Visa/Master Card",
       "mada": "Mada",
       "ChooseTheBankAccount": "Choose The Bank Account",
       "AccountNumber": "Bank Account Number",
@@ -1510,7 +1510,7 @@
       "loading": "Loading..."
     },
     "BankAccounts": {
-      "creditCard": "Credit Card",
+      "creditCard": "Visa/Master Card",
       "paymentMethods": "Payment Methods",
       "mada": "Mada",
       "ChooseTheBankAccount": "Choose The Bank Account",
