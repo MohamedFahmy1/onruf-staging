@@ -16,9 +16,9 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
   const productImage = !offer?.productImage?.includes("https")
     ? offer?.productImage?.replace("http", "https")
     : offer?.productImage
-  const receiverImage = !offer?.receiverImage?.includes("https")
-    ? offer?.receiverImage?.replace("http", "https")
-    : offer?.receiverImage
+  const senderImage = !offer?.senderImage?.includes("https")
+    ? offer?.senderImage?.replace("http", "https")
+    : offer?.senderImage
 
   return (
     <Grid item xs={12} sm={12} md={6} lg={4}>
@@ -95,7 +95,7 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
         >
           <Box sx={{ display: "flex", columnGap: "20px", alignItems: "center" }}>
             <Box position={"relative"}>
-              <Avatar alt="receiver" src={receiverImage} sx={{ height: 60, width: 60 }} />
+              <Avatar alt="receiver" src={senderImage} sx={{ height: 60, width: 60 }} />
               {selectedTab === 1 && (
                 <Typography
                   variant="subtitle2"
