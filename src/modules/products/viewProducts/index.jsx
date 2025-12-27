@@ -155,7 +155,12 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
   }
   const handleAddDiscount = async () => {
     try {
-      if (priceValue > singleSelectedRow.price) return toast.error(`Discount should be <= ${singleSelectedRow.price}`)
+      if (priceValue >= singleSelectedRow.price)
+        return toast.error(
+          locale === "en"
+            ? `Discount should be < ${singleSelectedRow.price}`
+            : `يجب أن يكون الخصم أقل من ${singleSelectedRow.price}`,
+        )
       if (!priceValue && !discountDate)
         return toast.error(locale === "en" ? "Please Enter Missing Data!" : "من فضلك ادخل جميع البيانات")
 
