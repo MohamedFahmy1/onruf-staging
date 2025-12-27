@@ -19,6 +19,7 @@ const Alerto = (e) => {
       }
     }
   } else {
+    console.error("error", e)
     toast.error("!Oops something went wrong")
   }
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react"
 import ViewProducts from "./viewProducts"
 import Modal from "react-bootstrap/Modal"
-import { RiDeleteBin5Line, RiFolder5Fill } from "react-icons/ri"
+import { RiFolder5Fill } from "react-icons/ri"
 import { useRouter } from "next/router"
 import axios from "axios"
 import t from "../../translations.json"
@@ -13,6 +13,7 @@ import { flexDirectionStyle } from "../../styles/stylesObjects"
 import Alerto from "../../common/Alerto"
 import { IoIosCloseCircle } from "react-icons/io"
 import { FaCamera } from "react-icons/fa"
+import DeleteSelectedModal from "./DeleteSelectedModal"
 
 const Products = ({ products: p }) => {
   const { locale } = useRouter()
@@ -99,27 +100,6 @@ const Products = ({ products: p }) => {
     } catch (error) {
       setAddProductToFolderLoading({ loader: false })
       Alerto(error)
-    }
-  }
-
-  const handleRemoveProduct = async () => {
-    if (!productsIds?.length)
-      return toast.warning(locale === "en" ? "No products were selected!" : "من فضلك قم بأضافة المنتجات")
-    try {
-      const isDelete = confirm(
-        locale === "en" ? "Are you sure you want to delete this product ?" : "هل ترغب في مسح تلك المنتجات ؟",
-      )
-      if (!isDelete) return
-      await axios.delete(`/RemoveListProductByBusinessAccount`, { data: productsIds })
-      setOpenFolderModal(false)
-      toast.success(locale === "en" ? "Products has been deleted successfully!" : "تم حذف المنتج بنجاح")
-      const {
-        data: { data },
-      } = await axios(`/ListProductByBusinessAccountId?currentPage=1&lang=en`)
-      setProducts(data)
-    } catch (error) {
-      console.error(error)
-      toast.error(error.response.data.message)
     }
   }
 
@@ -241,14 +221,18 @@ const Products = ({ products: p }) => {
         </Modal.Footer>
       </Modal>
       <section className="btns_fixeds" style={{ left: locale === "en" ? "55%" : "42%" }}>
-        <button
-          className="btn-main rounded-0"
-          aria-label={locale === "en" ? "Delete selected" : "حذف المحدد"}
-          onClick={handleRemoveProduct}
-        >
-          {locale === "en" ? "Delete selected" : "حذف المحدد"}
-          <RiDeleteBin5Line />
-        </button>
+        <DeleteSelectedModal
+          productsIds={productsIds}
+          onDeleted={async () => {
+            setOpenFolderModal(false)
+            setSelectedRows({})
+            setProductsIds([])
+            const {
+              data: { data },
+            } = await axios(`/ListProductByBusinessAccountId?currentPage=1&lang=${locale}`)
+            setProducts(data)
+          }}
+        />
         <button
           onClick={() => {
             if (!productsIds?.length)

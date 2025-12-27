@@ -8,7 +8,6 @@ import { formatDate, handleNavigateToProductDetails, minDate } from "../../../co
 import Modal from "react-bootstrap/Modal"
 import axios from "axios"
 import { Button } from "react-bootstrap"
-import { RiDeleteBin5Line } from "react-icons/ri"
 import { FaPlusCircle } from "react-icons/fa"
 import Link from "next/link"
 import { toast } from "react-toastify"
@@ -16,6 +15,7 @@ import t from "../../../translations.json"
 import SendOfferModal from "../SendOfferModal"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
+import DeleteModal from "./DeleteModal"
 
 const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelectedRows }) => {
   const router = useRouter()
@@ -100,24 +100,6 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       setProducts(data)
     }
   }, [id, locale])
-
-  const handleDeleteProduct = useCallback(
-    async (productId) => {
-      try {
-        const isDelete = confirm(
-          locale === "en" ? "Are you sure you want to delete this product ?" : "هل ترغب في مسح تلك المنتجات ؟",
-        )
-        if (!isDelete) return
-        await axios.delete(`/RemoveProduct?id=${productId}`)
-        toast.success(locale === "en" ? "Products has been deleted successfully!" : "تم حذف المنتج بنجاح")
-        getProductData()
-        fetchDidntSell()
-      } catch (error) {
-        Alerto(error)
-      }
-    },
-    [locale, getProductData, fetchDidntSell],
-  )
 
   useEffect(() => {
     setProductsIds(selectedProductsIds)
@@ -367,7 +349,13 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
               ) : (
                 <div className="form-check form-switch p-0 m-0 d-flex">
                   <MdModeEdit className="btn_Measures" onClick={() => push(`/products/edit/${productId || id}`)} />
-                  <RiDeleteBin5Line className="btn_Measures" onClick={() => handleDeleteProduct(productId || id)} />
+                  <DeleteModal
+                    id={productId || id}
+                    onDeleted={async () => {
+                      await getProductData()
+                      await fetchDidntSell()
+                    }}
+                  />
                   <input
                     readOnly
                     className="form-check-input m-0 btn_Measures"
@@ -392,10 +380,11 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       openPriceModal,
       openQuantityModal,
       selectedFilter,
-      handleDeleteProduct,
       push,
       handleChangeStatus,
       getSaleTypes,
+      getProductData,
+      fetchDidntSell,
     ],
   )
 

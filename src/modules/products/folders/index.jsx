@@ -30,10 +30,8 @@ const Folders = () => {
   const [folderName, setFolderName] = useState("")
   const [editedFolderName, setEditedFolderName] = useState("")
   const [folderImage, setFolderImage] = useState("")
-
   const [editModal, setEditModal] = useState(false)
   const [folderId, setFolderId] = useState(false)
-
   const [loading, setLoading] = useState(false)
 
   const editFolder = async () => {
