@@ -953,7 +953,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                           amount={totalAmount}
                           currencyCode="KWD"
                           language={locale}
-                          environment={process.env.NODE_ENV === "production" ? "live" : "test"}
+                          environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
                           containerId="card"
                           settings={myFatoorahSettings}
                           onReady={({ sessionData }) => {

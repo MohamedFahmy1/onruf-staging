@@ -352,9 +352,7 @@ const PackageCheckout = () => {
                   amount={totalAmount}
                   currencyCode="KWD"
                   language={locale}
-                  environment={
-                    process.env.NEXT_PUBLIC_MYFATOORAH_ENV || (process.env.NODE_ENV === "production" ? "live" : "test")
-                  }
+                  environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
                   containerId="card"
                   settings={myFatoorahSettings}
                   resetKey={mfResetKey}
