@@ -4,7 +4,7 @@ import Pagination from "./../../../common/pagination"
 import { useRouter } from "next/router"
 import { propOr, pathOr } from "ramda"
 import { MdModeEdit } from "react-icons/md"
-import { formatDate, handleNavigateToProductDetails, minDate } from "../../../common/functions"
+import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
 import Modal from "react-bootstrap/Modal"
 import axios from "axios"
 import { Button } from "react-bootstrap"
@@ -16,6 +16,7 @@ import SendOfferModal from "../SendOfferModal"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
 import DeleteModal from "./DeleteModal"
+import moment from "moment"
 
 const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelectedRows }) => {
   const router = useRouter()
@@ -136,6 +137,10 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
     },
     [getProductData, locale],
   )
+
+  const minDate = () => {
+    return moment().add(1, "days").format("YYYY-MM-DD")
+  }
 
   const handleEditProductQuantity = async () => {
     console.log(quantityValueInfinity)
@@ -553,7 +558,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                 <input
                   type="date"
                   className="form-control"
-                  min={minDate()}
+                  min={moment().add(1, "days").format("YYYY-MM-DD")}
                   onChange={(e) => setDiscountDate(e.target.value)}
                   value={discountDate}
                 />
