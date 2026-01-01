@@ -445,7 +445,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   }
 
   return (
-    <div className="body-content">
+    <div style={{ padding: "20px 1% !important" }}>
       {pathname.includes("add") && (
         <div className="d-flex justify-content-between align-items-center">
           <h5>{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h5>

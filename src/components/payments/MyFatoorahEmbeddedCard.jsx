@@ -171,7 +171,7 @@ export default function MyFatoorahEmbeddedCard({
   initiateSession, // optional async function override: () => ({ sessionId, countryCode, amount? })
 
   // MyFatoorah script
-  environment = "test", // "test" | "live"
+  environment = process.env.NEXT_PUBLIC_MYFATOORAH_ENV?.toString(), // "test" | "live"
   scriptSrc,
 
   // Embedded config
