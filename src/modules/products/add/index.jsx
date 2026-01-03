@@ -92,7 +92,7 @@ const AddProduct = () => {
   }
 
   return (
-    <div className="body-content">
+    <div className="body-content px-4">
       <div>
         {(step === 1 || step === 2) && (
           <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">

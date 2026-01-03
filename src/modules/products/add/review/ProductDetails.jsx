@@ -230,7 +230,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         } else if (Array.isArray(value)) {
           if (key == "ShippingOptions") {
             value.forEach((item) => {
-              formData.append(key, Number(item))
+              if (item > 0) {
+                formData.append(key, Number(item))
+              }
             })
           }
           // if array is empty don't send it to the api
@@ -445,7 +447,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   }
 
   return (
-    <div style={{ padding: "20px 1% !important" }}>
+    <div style={{ padding: "20px 0 !important" }}>
       {pathname.includes("add") && (
         <div className="d-flex justify-content-between align-items-center">
           <h5>{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h5>
