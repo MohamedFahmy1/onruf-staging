@@ -1,7 +1,8 @@
 import axios from "axios"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { toast } from "react-toastify"
 import t from "../../../translations.json"
 import email from "../../../assets/images/email.png"
 import sms from "../../../assets/images/sms.png"
@@ -10,6 +11,7 @@ import delivery from "../../../assets/images/delivery-truck.png"
 import Image from "next/image"
 import ChangeSingleStatusModal from "./ChangeSingleStatusModal"
 import ChangeBranchModal from "../ChangeBranchModal"
+import Alerto from "../../../common/Alerto"
 import {
   handleDownloadInvoice,
   handleNavigateToProductDetails,
@@ -19,6 +21,7 @@ import {
 } from "../../../common/functions"
 import ResponsiveImage from "../../../common/ResponsiveImage"
 import moment from "moment"
+import { multiFormData } from "../../../common/axiosHeaders"
 
 export const OrderDetails = () => {
   const {
@@ -30,6 +33,9 @@ export const OrderDetails = () => {
   const [openModal, setOpenModal] = useState(false)
   const [openBranchModal, setOpenBranchModal] = useState(false)
   const [orderStatusHistory, setOrderStatusHistory] = useState()
+  const [invoiceUploading, setInvoiceUploading] = useState(false)
+  const [invoiceFileName, setInvoiceFileName] = useState("")
+  const invoiceInputRef = useRef(null)
 
   const getOrderData = async (id) => {
     const {
@@ -40,6 +46,30 @@ export const OrderDetails = () => {
       },
     })
     setOrderData(orderData)
+  }
+
+  const handleInvoiceUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file || !id) return
+
+    try {
+      setInvoiceUploading(true)
+      setInvoiceFileName(file.name || "")
+
+      const formData = new FormData()
+      formData.append("OrderId", id)
+      formData.append("OrderInvoice", file)
+
+      await axios.post("/UploadInvoiceByBusinessAccount", formData, multiFormData)
+      toast.success(locale === "en" ? "Invoice uploaded successfully" : "تم رفع الفاتورة بنجاح")
+      await getOrderData(id)
+    } catch (error) {
+      setInvoiceFileName("")
+      Alerto(error)
+    } finally {
+      setInvoiceUploading(false)
+      e.target.value = ""
+    }
   }
 
   useEffect(() => {
@@ -97,9 +127,27 @@ export const OrderDetails = () => {
     <div style={{ padding: "24px" }}>
       <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
         <h6 className="f-b m-0 fs-5">{pathOr("", [locale, "Orders", "order_details"], t)}</h6>
-        <button className="btn-main" onClick={() => handleDownloadInvoice(orderData?.orderInvoice, locale)}>
-          {pathOr("", [locale, "Orders", "download_invoice"], t)}
-        </button>
+        <div>
+          <button
+            type="button"
+            className="btn-main"
+            disabled={invoiceUploading}
+            onClick={() => invoiceInputRef.current?.click()}
+          >
+            {invoiceUploading && (
+              <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" />
+            )}
+            {pathOr(locale === "en" ? "Upload Invoice" : "رفع الفاتورة", [locale, "Orders", "upload_invoice"], t)}
+          </button>
+          <input
+            ref={invoiceInputRef}
+            type="file"
+            accept=".pdf,.png,.jpg,.jpeg"
+            className="d-none"
+            disabled={invoiceUploading}
+            onChange={handleInvoiceUpload}
+          />
+        </div>
       </div>
 
       <div className="row">
@@ -127,7 +175,7 @@ export const OrderDetails = () => {
               </div>
             </div>
 
-            <div className="form-group flex-grow-1 mb-1">
+            {/* <div className="form-group flex-grow-1 mb-1">
               <div className="po_R">
                 <label htmlFor="select_branch">{pathOr("", [locale, "Orders", "select_branch"], t)}</label>
                 <select
@@ -150,7 +198,7 @@ export const OrderDetails = () => {
                   getOrderData={getOrderData}
                 />
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="contint_paner p-0">
@@ -229,26 +277,26 @@ export const OrderDetails = () => {
                 <li>
                   <span>{pathOr("", [locale, "Orders", "subtotal"], t)}</span>{" "}
                   <span className="font-18">
-                    {totalOrderPrice} {pathOr("", [locale, "Products", "currency"], t)}
+                    {totalOrderPrice?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
                 <li>
                   <span>{pathOr("", [locale, "Orders", "delivery_cost"], t)}</span>{" "}
                   <span className="font-18">
-                    {shippingFee} {pathOr("", [locale, "Products", "currency"], t)}
+                    {shippingFee?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
                 <li>
                   <span>{pathOr("", [locale, "Orders", "added_tax"], t)}</span>{" "}
                   <span className="font-18">
-                    {totalOrderPrice * (12 / 100)} {pathOr("", [locale, "Products", "currency"], t)}
+                    {(totalOrderPrice * (12 / 100))?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
               </ul>
               <aside>
                 <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
                 <span className="font-18 f-b">
-                  {totalOrderPrice} {pathOr("", [locale, "Products", "currency"], t)}
+                  {totalOrderPrice?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                 </span>
               </aside>
             </div>
@@ -293,29 +341,44 @@ export const OrderDetails = () => {
               </ul>
             </div>
             <div className="all_list_producto p-3">
-              {/*<div className="info_shan">
-                <span>{pathOr("", [locale, "Orders", "shipping"], t)}</span>{" "}
-                <span className="f-b">{pathOr("", [locale, "Orders", "free_shipping_in_saudi"], t)}</span>
-              </div>*/}
               <div className="info_shan">
                 <span>{pathOr("", [locale, "Orders", "payment_method"], t)}</span>
                 <span className="f-b">{paymentTypesTranslation(paymentType, locale)}</span>
               </div>
-              <div className="po_R upload_filo my-3">
-                <label htmlFor="invoice" className="visually-hidden">
-                  تم ارفاق الفاتورة
-                </label>
-                <input type="text" id="invoice" className="form-control" readOnly value="تم ارفاق الفاتورة" />
-                <div className="btn_file">
-                  <button
-                    htmlFor="download_invoice"
-                    className="btn-main"
-                    onClick={() => handleDownloadInvoice(orderData?.orderInvoice, locale)}
-                  >
-                    {pathOr("", [locale, "Orders", "download_invoice"], t)}
-                  </button>
+              {orderData?.orderInvoice && (
+                <div className="po_R upload_filo my-3">
+                  <label htmlFor="invoice" className="visually-hidden">
+                    {locale === "en" ? "Invoice" : "الفاتورة"}
+                  </label>
+                  <input
+                    type="text"
+                    id="invoice"
+                    className="form-control"
+                    readOnly
+                    value={
+                      invoiceFileName ||
+                      (orderData?.orderInvoice
+                        ? locale === "en"
+                          ? "Invoice attached"
+                          : "تم ارفاق الفاتورة"
+                        : locale === "en"
+                        ? "No invoice uploaded"
+                        : "لم يتم رفع فاتورة")
+                    }
+                    style={{ paddingLeft: 155 }}
+                  />
+                  <div className="btn_file">
+                    <button
+                      type="button"
+                      className="btn-main"
+                      disabled={!orderData?.orderInvoice}
+                      onClick={() => handleDownloadInvoice(orderData?.orderInvoice, locale)}
+                    >
+                      {pathOr("", [locale, "Orders", "download_invoice"], t)}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
               <div className="info_shan">
                 <span>{pathOr("", [locale, "Orders", "shipping_total"], t)}</span>{" "}
                 <span className="f-b main-color">

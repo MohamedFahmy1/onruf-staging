@@ -169,7 +169,21 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       if (!priceValue && !discountDate)
         return toast.error(locale === "en" ? "Please Enter Missing Data!" : "من فضلك ادخل جميع البيانات")
 
-      const dateParam = discountDate ? "&discountEndDate=" + discountDate : ""
+      if (discountDate) {
+        const selectedDiscountEnd = moment(discountDate, moment.HTML5_FMT.DATETIME_LOCAL, true)
+        if (!selectedDiscountEnd.isValid()) {
+          return toast.error(
+            locale === "en" ? "Please enter a valid discount end date" : "من فضلك أدخل تاريخ انتهاء خصم صحيح",
+          )
+        }
+        if (selectedDiscountEnd.isSameOrBefore(moment())) {
+          return toast.error(
+            locale === "en" ? "Discount end date must be in the future" : "تاريخ انتهاء الخصم يجب أن يكون في المستقبل",
+          )
+        }
+      }
+
+      const dateParam = discountDate ? "&discountEndDate=" + discountDate.replace("T", " ") : ""
       await axios.post(
         `/ProductDiscount?productId=${
           singleSelectedRow?.id || singleSelectedRow?.productId
@@ -556,10 +570,27 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
               <div className="form-group">
                 <label>{pathOr("", [locale, "Products", "discountEndDate"], t)}</label>
                 <input
-                  type="date"
+                  type="datetime-local"
                   className="form-control"
-                  min={moment().add(1, "days").format("YYYY-MM-DD")}
-                  onChange={(e) => setDiscountDate(e.target.value)}
+                  min={moment().add(1, "minute").format("YYYY-MM-DDTHH:mm")}
+                  onChange={(e) => {
+                    const value = e.target.value
+                    if (!value) return setDiscountDate(value)
+
+                    const selected = moment(value, moment.HTML5_FMT.DATETIME_LOCAL, true)
+                    if (!selected.isValid()) return setDiscountDate(value)
+
+                    if (selected.isSameOrBefore(moment())) {
+                      toast.error(
+                        locale === "en"
+                          ? "Discount end date must be in the future"
+                          : "تاريخ انتهاء الخصم يجب أن يكون في المستقبل",
+                      )
+                      return setDiscountDate("")
+                    }
+
+                    setDiscountDate(value)
+                  }}
                   value={discountDate}
                 />
               </div>

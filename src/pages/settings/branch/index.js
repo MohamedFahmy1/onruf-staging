@@ -12,7 +12,7 @@ const BranchPage = () => {
       {/* <Head>
         <title>{pathOr("", [locale, "websiteTitles", "Branches"], t)}</title>
       </Head> */}
-      <Branches />
+      {/* <Branches /> */}
     </main>
   )
 }

@@ -75,7 +75,7 @@ const Options = ({ userWalletState }) => {
             </div>
           </Col>
         )}
-        {isExists("ProviderSettingsBranches") && (
+        {/* {isExists("ProviderSettingsBranches") && (
           <Col xl={3} lg={4} md={6}>
             <div className="box-setting_">
               <Image src={Branch} {...Branch} alt="branches" height={100} />
@@ -85,7 +85,7 @@ const Options = ({ userWalletState }) => {
               </Link>
             </div>
           </Col>
-        )}
+        )} */}
         {isExists("ProviderSettingsEmployees") && (
           <Col xl={3} lg={4} md={6}>
             <div className="box-setting_">
