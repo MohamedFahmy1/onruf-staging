@@ -286,12 +286,12 @@ export const OrderDetails = () => {
                     {shippingFee?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
-                <li>
+                {/* <li>
                   <span>{pathOr("", [locale, "Orders", "added_tax"], t)}</span>{" "}
                   <span className="font-18">
                     {(totalOrderPrice * (12 / 100))?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
-                </li>
+                </li> */}
               </ul>
               <aside>
                 <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
