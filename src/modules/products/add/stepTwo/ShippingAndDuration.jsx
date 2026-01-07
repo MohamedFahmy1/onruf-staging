@@ -21,19 +21,19 @@ const ShippingAndDuration = ({
   const { data: shippingOptions } = useFetch("/GetAllShippingOptions")
   const secondaryShippingOptions = [
     {
-      id: -1,
+      id: 4,
       shippingOptionName: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
       shippingOptionDescription: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
       shippingOptionImage: "",
     },
     {
-      id: -2,
+      id: 5,
       shippingOptionName: pathOr("", [locale, "Products", "freeShippingWithinSaudi"], t),
       shippingOptionDescription: pathOr("", [locale, "Products", "freeShippingWithinSaudi"], t),
       shippingOptionImage: "",
     },
     {
-      id: -3,
+      id: 6,
       shippingOptionName: pathOr("", [locale, "Products", "arrangementWithBuyer"], t),
       shippingOptionDescription: pathOr("", [locale, "Products", "arrangementWithBuyer"], t),
       shippingOptionImage: "",
@@ -64,13 +64,13 @@ const ShippingAndDuration = ({
           ShippingOptions: prev.ShippingOptions.filter((value) => value < 4),
         }))
       }
-      if (optionIndex === -1) {
+      if (optionIndex === 4) {
         setShowModal(true)
       }
     }
     // if the shipping option is already selected
     else if (productPayload.ShippingOptions?.includes(optionIndex)) {
-      if (optionIndex === -1) {
+      if (optionIndex === 4) {
         setProductPayload((prev) => ({
           ...prev,
           ShippingOptions: prev.ShippingOptions.filter((value) => value !== optionIndex),
@@ -169,7 +169,7 @@ const ShippingAndDuration = ({
         show={showModal}
         onHide={() => {
           setShowModal(false)
-          handleShippingOptions(-1)
+          handleShippingOptions(4)
           setProductPayload((prev) => ({
             ...prev,
             "Box.Weight": "",

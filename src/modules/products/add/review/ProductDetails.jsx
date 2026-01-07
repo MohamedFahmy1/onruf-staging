@@ -230,9 +230,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         } else if (Array.isArray(value)) {
           if (key == "ShippingOptions") {
             value.forEach((item) => {
-              if (item > 0) {
-                formData.append(key, Number(item))
-              }
+              formData.append(key, Number(item))
             })
           }
           // if array is empty don't send it to the api
