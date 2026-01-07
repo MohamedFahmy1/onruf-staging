@@ -12,7 +12,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
   const dateTimeInput = useRef(null)
 
   const nowMoment = useMemo(() => moment(), [])
-  const nowFormatted = useMemo(() => nowMoment.format("YYYY-MM-DD[T]HH:mm"), [nowMoment])
+  const nowFormatted = useMemo(() => nowMoment.add(4, "hours").format("YYYY-MM-DD[T]HH:mm"), [nowMoment])
 
   const safeDefaultValue = useMemo(() => {
     if (!productPayload.AuctionClosingTime) return nowFormatted
@@ -72,7 +72,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
   const handleChangeAuctionClosingTime = (e) => {
     const selected = moment(e.target.value)
 
-    if (selected.isBefore(moment())) {
+    if (selected.isBefore(moment().add(4, "hours"))) {
       e.target.value = nowFormatted
       setProductPayload({
         ...productPayload,
