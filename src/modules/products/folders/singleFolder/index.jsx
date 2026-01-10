@@ -56,15 +56,18 @@ const SingleFolder = () => {
         selectedRows={selectedRows}
         setSelectedRows={setSelectedRows}
       />
-      <div className="btns_fixeds" style={{ left: locale === "en" ? "55%" : "42%" }}>
-        <button
-          className="btn-main rounded-0"
-          aria-label={pathOr("", [locale, "Products", "remove_product_from_folder"], t)}
-          onClick={handleRemoveProductFromFolder}
-        >
-          {pathOr("", [locale, "Products", "remove_product_from_folder"], t)}
-        </button>
-      </div>
+      {products?.length > 0 && (
+        <div className="btns_fixeds" style={{ left: locale === "en" ? "55%" : "42%" }}>
+          <button
+            className="btn-main rounded-0"
+            aria-label={pathOr("", [locale, "Products", "remove_product_from_folder"], t)}
+            onClick={handleRemoveProductFromFolder}
+          >
+            {pathOr("", [locale, "Products", "remove_product_from_folder"], t)}
+          </button>
+        </div>
+      )}
+      |
     </Fragment>
   )
 }

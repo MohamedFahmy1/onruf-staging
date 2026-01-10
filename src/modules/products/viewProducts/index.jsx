@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react"
 import Table from "../../../common/table"
 import Pagination from "./../../../common/pagination"
 import { useRouter } from "next/router"
-import { propOr, pathOr } from "ramda"
+import { propOr, pathOr, set } from "ramda"
 import { MdModeEdit } from "react-icons/md"
 import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
 import Modal from "react-bootstrap/Modal"
@@ -26,6 +26,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
   const [products, setProducts] = useState(p)
   const [selectedFilter, setSelectedFilter] = useState("avaliableProducts")
   const [didnotSellProducts, setDidnotSellProducts] = useState()
+  const [dropShipProducts, setDropShipProducts] = useState()
   const [openQuantityModal, setOpenQuantityModal] = useState(false)
   const [openPriceModal, setOpenPriceModal] = useState(false)
   const [sendOfferModal, setSendOfferModal] = useState(false)
@@ -64,6 +65,8 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
         ? productsAlmostOut
         : selectedFilter === "didnotSell"
         ? didnotSell
+        : selectedFilter === "dropShipping"
+        ? dropShipProducts
         : inActiveProducts
 
     const selectedProductsIds = Object.keys(selectedRows || {})
@@ -77,7 +80,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       filterProducts,
       selectedProductsIds,
     }
-  }, [products, selectedRows, selectedFilter, didnotSellProducts])
+  }, [products, selectedRows, selectedFilter, didnotSellProducts, dropShipProducts])
 
   const fetchDidntSell = useCallback(async () => {
     if (!id) {
@@ -87,6 +90,13 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       setDidnotSellProducts(prod)
     }
   }, [id])
+
+  const fetchDropShipping = useCallback(async () => {
+    const {
+      data: { data: prod },
+    } = await axios(`/ListDropShippingProducts`)
+    setDropShipProducts(prod)
+  }, [])
 
   const getProductData = useCallback(async () => {
     if (id) {
@@ -122,8 +132,9 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
   useEffect(() => {
     if (!id) {
       fetchDidntSell()
+      fetchDropShipping()
     }
-  }, [id, fetchDidntSell])
+  }, [id, fetchDidntSell, fetchDropShipping])
 
   const handleChangeStatus = useCallback(
     async (id) => {
@@ -137,10 +148,6 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
     },
     [getProductData, locale],
   )
-
-  const minDate = () => {
-    return moment().add(1, "days").format("YYYY-MM-DD")
-  }
 
   const handleEditProductQuantity = async () => {
     console.log(quantityValueInfinity)
@@ -222,8 +229,11 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
         Header: pathOr("", [locale, "Products", "ProductId"], t),
         accessor: "productId",
         Cell: ({ row: { original } }) => (
-          <div onClick={() => handleNavigateToProductDetails(original.id)} style={{ cursor: "pointer" }}>
-            <h6 className="m-0 f-b">#{original.id}</h6>
+          <div
+            onClick={() => handleNavigateToProductDetails(original.id || original.productId)}
+            style={{ cursor: "pointer" }}
+          >
+            <h6 className="m-0 f-b">#{original.id || original.productId}</h6>
           </div>
         ),
       },
@@ -379,6 +389,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                     onDeleted={async () => {
                       await getProductData()
                       await fetchDidntSell()
+                      await fetchDropShipping()
                     }}
                   />
                   <input
@@ -410,6 +421,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       getSaleTypes,
       getProductData,
       fetchDidntSell,
+      fetchDropShipping,
     ],
   )
 
@@ -468,6 +480,17 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
             }}
           >
             {pathOr("", [locale, "Products", "didnt_sell"], t)} ({didnotSell?.length})
+          </button>
+        )}
+        {!id && (
+          <button
+            className={`btn-main ${selectedFilter === "dropShipping" ? "active" : ""}`}
+            onClick={() => {
+              setSelectedFilter("dropShipping")
+              push({ query: { page: 1 } })
+            }}
+          >
+            {pathOr("", [locale, "Products", "dropShipping"], t)} ({dropShipProducts?.length})
           </button>
         )}
       </div>
@@ -613,6 +636,9 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
         )}
         {selectedFilter == "" && inActiveProducts.length > 5 && (
           <Pagination listLength={inActiveProducts.length} pageSize={5} />
+        )}
+        {selectedFilter == "dropShipping" && dropShipProducts?.length > 5 && (
+          <Pagination listLength={dropShipProducts?.length} pageSize={5} />
         )}
         {sendOfferModal && (
           <SendOfferModal
