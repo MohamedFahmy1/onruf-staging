@@ -491,9 +491,9 @@ const Orders = () => {
         >
           {pathOr("", [locale, "Orders", "selectBranch"], t)}
         </button> */}
-        <button className="btn-main btn-w rounded-0" onClick={downloadSelectorInvoice}>
+        {/* <button className="btn-main btn-w rounded-0" onClick={downloadSelectorInvoice}>
           {pathOr("", [locale, "Orders", "downloadSelectorInvoice"], t)}
-        </button>
+        </button> */}
       </div>
     </>
   )
