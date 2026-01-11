@@ -28,7 +28,8 @@ const Table = ({
     {
       columns,
       data,
-      getRowId: (row, index) => row.orderId || row.id || row.orderMasterId || `${row.name || "row"}-${index}`,
+      getRowId: (row, index) =>
+        row.orderId || row.id || row.orderMasterId || row.productId || `${row.name || "row"}-${index}`,
       initialState: {
         selectedRowIds: selectedRows,
       },

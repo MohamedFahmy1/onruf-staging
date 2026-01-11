@@ -150,7 +150,6 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
   )
 
   const handleEditProductQuantity = async () => {
-    console.log(quantityValueInfinity)
     try {
       const idApi = +singleSelectedRow?.id || +singleSelectedRow?.productId
       if (quantityValue < 1 && !quantityValueInfinity) {
