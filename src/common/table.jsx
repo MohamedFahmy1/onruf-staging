@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import { useTable, useRowSelect, useMountedLayoutEffect } from "react-table"
 import Checkbox from "./tableCheckbox"
 import { useRouter } from "next/router"
@@ -14,6 +14,7 @@ const Table = ({
   onSelectedRowsChange = () => null,
 }) => {
   const [isLoading, setIsLoading] = useState(true)
+  const loadingTimeoutRef = useRef(null)
   const { locale, query } = useRouter()
   const page = parseInt(query.page, 10) || 1
 
@@ -56,12 +57,32 @@ const Table = ({
   }, [onSelectedRowsChange, selectedRowIds])
 
   useEffect(() => {
-    if (data.length > 0 || !Array.isArray(data)) {
-      setIsLoading(false)
+    if (loadingTimeoutRef.current) {
+      clearTimeout(loadingTimeoutRef.current)
+      loadingTimeoutRef.current = null
     }
 
-    return () => {
+    if (!Array.isArray(data)) {
       setIsLoading(false)
+      return
+    }
+
+    if (data.length > 0) {
+      setIsLoading(false)
+      return
+    }
+
+    setIsLoading(true)
+    loadingTimeoutRef.current = setTimeout(() => {
+      setIsLoading(false)
+      loadingTimeoutRef.current = null
+    }, 5000)
+
+    return () => {
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current)
+        loadingTimeoutRef.current = null
+      }
     }
   }, [data])
 
