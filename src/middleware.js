@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 export default function middleware(req) {
   let url = req.url
-  let domainName = process.env.NODE_ENV === "development" ? "http://localhost:3000/" : "https://onruf.vercel.app/"
+  let domainName = process.env.NODE_ENV === "development" ? "http://localhost:3040/" : "https://onruf.vercel.app/"
   if (
     url.includes("businessAccountId") &&
     url.includes("ProviderId") &&

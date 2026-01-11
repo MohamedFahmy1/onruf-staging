@@ -6,7 +6,7 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "next -p 3000",
+    "dev": "next -p 3040",
     "export": "next export",
     "build": "next build",
     "start": "next start",

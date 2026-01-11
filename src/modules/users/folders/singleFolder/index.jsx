@@ -27,10 +27,9 @@ const SingleFolder = () => {
 
   const rows = Object.keys(selectedRows)
   const selectedUsersIds = rows.map((row) => {
-    const selectedRow = users?.listUser.filter((_, index) => index === +row)
+    const selectedRow = users?.listUser.filter((item) => item.id == row)
     return `${selectedRow[0]?.id}`
   })
-
   const handleRemoveUserFromFolder = async () => {
     if (!selectedUsersIds?.length)
       return toast.warning(locale === "en" ? "No user was selected!" : "من فضلك قم بأضافة المنتجات")
@@ -48,7 +47,6 @@ const SingleFolder = () => {
       Alerto(error)
     }
   }
-
   const columns = useMemo(
     () => [
       {
@@ -100,7 +98,6 @@ const SingleFolder = () => {
     ],
     [locale],
   )
-
   if (isLoading) return <LoadingScreen />
 
   return (
