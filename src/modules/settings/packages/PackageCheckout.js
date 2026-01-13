@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Col, Modal, Row } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { useRouter } from "next/router"
+import Image from "next/image"
 import t from "../../../translations.json"
 import styles from "./package.module.css"
 import axios from "axios"
@@ -12,6 +13,8 @@ import { useSelector } from "react-redux"
 import moment from "moment"
 import PackageCheckoutModal from "./PackageCheckoutModal"
 import MyFatoorahEmbeddedCard from "../../../components/payments/MyFatoorahEmbeddedCard"
+import PointsModal from "../../products/add/review/PointsModal"
+import wallet from "../../../../public/images/wallet.png"
 
 const PackageCheckout = () => {
   const providerId = useSelector((state) => state.authSlice.providerId)
@@ -22,6 +25,10 @@ const PackageCheckout = () => {
   const [couponCode, setCouponCode] = useState("")
   const [packageDetails, setPackageDetails] = useState()
   const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState(null) // null | "card" | "points"
+  const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
+  const [pointsData, setPointsData] = useState({})
 
   // Embedded payment state
   const [mfSessionId, setMfSessionId] = useState("")
@@ -29,6 +36,10 @@ const PackageCheckout = () => {
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false)
   const [mfResetKey, setMfResetKey] = useState(0)
   const hasRequestedPaymentRef = useRef(false)
+
+  useEffect(() => {
+    hasRequestedPaymentRef.current = false
+  }, [mfSessionId])
 
   const fetchCurrentPackages = async () => {
     try {
@@ -60,30 +71,81 @@ const PackageCheckout = () => {
   const totalWithTax = totalCost + taxValue
   const totalAmount = totalWithTax <= 0 ? 0 : totalWithTax
 
+  const buildPackagePayload = useCallback(
+    ({ sessionIdOverride, pointsNumberOverride, paymentType = "card" } = {}) => {
+      const body = { pakatIds: [packageDetails.id] }
+      const executePaymentDto = { totalAmount: totalAmount }
+
+      if (paymentType === "points") {
+        const pn = pointsNumberOverride ?? pointsData?.pointsNumber
+        if (pn) executePaymentDto.pointsNumber = pn
+        executePaymentDto.paymentMethodId = 6
+      } else {
+        const sid = sessionIdOverride || mfSessionId
+        if (sid) executePaymentDto.sessionId = sid
+      }
+
+      body.executePaymentDto = executePaymentDto
+      return body
+    },
+    [packageDetails?.id, totalAmount, pointsData?.pointsNumber, mfSessionId],
+  )
+
+  const submitPackage = useCallback(
+    async ({ sessionIdOverride, pointsNumberOverride, paymentType = "card" } = {}) => {
+      if (!packageDetails?.id) return null
+      setLoading(true)
+      const body = buildPackagePayload({ sessionIdOverride, pointsNumberOverride, paymentType })
+      return axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
+    },
+    [buildPackagePayload, packageDetails?.id],
+  )
+
   const executePayment = useCallback(
     async ({ sessionId }) => {
-      if (!packageDetails || !packageDetails?.id) return null
+      if (!packageDetails?.id) return null
       if (hasRequestedPaymentRef.current) return null
       hasRequestedPaymentRef.current = true
 
-      const body = {
-        pakatIds: [packageDetails.id],
-        executePaymentDto: {
-          sessionId: sessionId || mfSessionId,
-          totalAmount: totalAmount,
-        },
-      }
-
       try {
-        // Backend should return PaymentUrl/PaymentURL for 3DS
-        return await axios.post("/AddPakatSubcription", body, { headers: { "Content-Type": "application/json" } })
+        return await submitPackage({ sessionIdOverride: sessionId, paymentType: "card" })
       } catch (e) {
         hasRequestedPaymentRef.current = false
         throw e
       }
     },
-    [packageDetails, mfSessionId, totalAmount],
+    [packageDetails?.id, submitPackage],
   )
+
+  const handleAcceptPoints = (pointsValue, pointsNumber) => {
+    setPaymentMethod("points")
+    setIsPointsModalOpen(false)
+    setPointsData({ pointsValue, pointsNumber })
+  }
+
+  const toggleOffPaymentOption = () => {
+    setPaymentMethod(null)
+    setPointsData({})
+  }
+
+  const handleChooseCard = () => {
+    setPaymentMethod("card")
+    setPointsData({})
+  }
+
+  const handleChoosePoints = () => {
+    setPaymentMethod("points")
+    setIsPointsModalOpen(true)
+  }
+
+  const handleChangePaymentMethod = () => {
+    setPaymentMethod(null)
+    setPointsData({})
+    setIsPaymentModalOpen(false)
+    setPaymentIframeUrl("")
+    hasRequestedPaymentRef.current = false
+    setMfResetKey((k) => k + 1)
+  }
 
   const handlePackageRenew = async (pakaID, id) => {
     try {
@@ -130,13 +192,14 @@ const PackageCheckout = () => {
       switch (status) {
         case "PaymentSuccessMessage":
           setIsCheckoutModalOpen("success")
+          setLoading(false)
           setIsPaymentModalOpen(false)
           setPaymentIframeUrl("")
           setMfResetKey((k) => k + 1)
-          hasRequestedPaymentRef.current = false
           return
         case "PaymentFailedMessage":
           setIsCheckoutModalOpen("failed")
+          setLoading(false)
           setIsPaymentModalOpen(false)
           setPaymentIframeUrl("")
           setMfResetKey((k) => k + 1)
@@ -146,6 +209,7 @@ const PackageCheckout = () => {
           return
         default:
           setIsCheckoutModalOpen("failed")
+          setLoading(false)
           setIsPaymentModalOpen(false)
           setPaymentIframeUrl("")
           setMfResetKey((k) => k + 1)
@@ -199,8 +263,8 @@ const PackageCheckout = () => {
         button: {
           useCustomButton: false,
           textContent: locale === "en" ? "Pay Now" : "ادفع الآن",
-          fontSize: "20px",
-          fontFamily: "Madani-Arabic-Regular, sans-serif",
+          fontSize: "18px",
+          fontFamily: "serif",
           color: "#ffffff",
           backgroundColor: "#ee6c4d",
           height: "52px",
@@ -348,59 +412,161 @@ const PackageCheckout = () => {
                   {locale === "en" ? "No payment is required." : "لا يلزم الدفع."}
                 </div>
               ) : (
-                <MyFatoorahEmbeddedCard
-                  amount={totalAmount}
-                  currencyCode="KWD"
-                  language={locale}
-                  environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
-                  containerId="card"
-                  settings={myFatoorahSettings}
-                  resetKey={mfResetKey}
-                  onReady={({ sessionData }) => {
-                    setMfSessionId(sessionData?.sessionId || "")
-                  }}
-                  onEmbeddedCallback={(response) => {
-                    const cbSession =
-                      response?.sessionId ||
-                      response?.SessionId ||
-                      response?.data?.sessionId ||
-                      response?.Data?.SessionId ||
-                      response?.Data?.sessionId
-                    if (cbSession) setMfSessionId(cbSession)
-                  }}
-                  executePayment={executePayment}
-                  iframeEnabled
-                  hideDefaultIframe
-                  onIframeUrlChange={(url) => {
-                    setPaymentIframeUrl(url)
-                    setIsPaymentModalOpen(true)
-                  }}
-                  closeIframeOn3DSMessage
-                  on3DSRedirectUrl={() => {
-                    setIsPaymentModalOpen(false)
-                    setPaymentIframeUrl("")
-                    setIsCheckoutModalOpen("loading")
-                  }}
-                  signalR={{
-                    hubUrl: signalRHubUrl,
-                    eventName: "PaymentStatusMessage",
-                    start: "onPay",
-                    skipNegotiation: true,
-                    transport: "WebSockets",
-                  }}
-                  onPaymentStatus={handlePaymentStatus}
-                  onError={(e) => {
-                    console.error(e)
-                    toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
-                    setIsCheckoutModalOpen("failed")
-                    setIsPaymentModalOpen(false)
-                    setPaymentIframeUrl("")
-                    setMfResetKey((k) => k + 1)
-                    hasRequestedPaymentRef.current = false
-                  }}
-                />
+                <div>
+                  {paymentMethod !== "card" && (
+                    <div className="row">
+                      <div className="col-lg-12">
+                        <div className="form-group">
+                          <div className="form-control outer-check-input  d-flex justify-content-between">
+                            <div className="form-check form-switch p-0 m-0 d-flex w-auto">
+                              <input
+                                className="form-check-input m-0"
+                                type="checkbox"
+                                role="switch"
+                                id="visa"
+                                checked={paymentMethod === "card"}
+                                onChange={handleChooseCard}
+                              />
+                              <span className="bord" />
+                            </div>
+                            <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-lg-12">
+                        <div className="form-group">
+                          <div className="form-control outer-check-input d-flex justify-content-between">
+                            <div className="form-check form-switch p-0 m-0 w-auto">
+                              <input
+                                className="form-check-input m-0"
+                                type="checkbox"
+                                role="switch"
+                                id="wallet"
+                                checked={paymentMethod === "points"}
+                                onChange={() => {
+                                  if (paymentMethod === "points") toggleOffPaymentOption()
+                                  else handleChoosePoints()
+                                }}
+                              />
+                              <span className="bord" />
+                            </div>
+                            <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === "points" && !!pointsData?.pointsValue && (
+                    <div className="form-group mt-2">
+                      <div
+                        style={{
+                          border: "1px solid var(--main)",
+                          borderRadius: "19px",
+                          padding: "20px",
+                        }}
+                        className="d-flex justify-content-center align-items-center gap-2"
+                      >
+                        <Image src={wallet} alt="wallet" width={55} height={55} />
+                        <p style={{ fontSize: "16px", margin: 0 }}>
+                          {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData.pointsValue}{" "}
+                          {pathOr("", [locale, "Products", "currency"], t)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === "card" && (
+                    <div>
+                      <MyFatoorahEmbeddedCard
+                        amount={totalAmount}
+                        currencyCode="KWD"
+                        language={locale}
+                        environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
+                        containerId="card"
+                        settings={myFatoorahSettings}
+                        onReady={({ sessionData }) => {
+                          setMfSessionId(sessionData?.sessionId || "")
+                        }}
+                        onEmbeddedCallback={(response) => {
+                          const cbSession =
+                            response?.sessionId ||
+                            response?.SessionId ||
+                            response?.data?.sessionId ||
+                            response?.Data?.SessionId ||
+                            response?.Data?.sessionId
+                          if (cbSession) setMfSessionId(cbSession)
+                        }}
+                        executePayment={executePayment}
+                        iframeEnabled
+                        hideDefaultIframe
+                        resetKey={mfResetKey}
+                        onIframeUrlChange={(url) => {
+                          setPaymentIframeUrl(url)
+                          setIsPaymentModalOpen(true)
+                        }}
+                        closeIframeOn3DSMessage={false}
+                        on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
+                        signalR={{
+                          hubUrl: signalRHubUrl,
+                          eventName: "PaymentStatusMessage",
+                          start: "onPay",
+                          skipNegotiation: true,
+                          transport: "WebSockets",
+                        }}
+                        onPaymentStatus={handlePaymentStatus}
+                        onError={(e) => {
+                          console.error(e)
+                          toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
+                          setIsCheckoutModalOpen("failed")
+                          setLoading(false)
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        className="btn-main w-100 mt-3"
+                        onClick={handleChangePaymentMethod}
+                        style={{ fontSize: "18px", fontWeight: "normal" }}
+                      >
+                        {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
+                      </button>
+                    </div>
+                  )}
+                </div>
               )}
             </div>
+
+            {!isSub && (totalAmount === 0 || paymentMethod === "points") && (
+              <button
+                className={`${styles["btn-main"]} btn-main mt-2 w-100`}
+                disabled={loading || (paymentMethod === "points" && totalAmount > 0 && !pointsData?.pointsNumber)}
+                onClick={async () => {
+                  try {
+                    setIsCheckoutModalOpen("loading")
+
+                    if (paymentMethod === "points" && totalAmount > 0) {
+                      if (!pointsData?.pointsNumber) {
+                        setIsPointsModalOpen(true)
+                        setIsCheckoutModalOpen(false)
+                        return
+                      }
+                      await submitPackage({ paymentType: "points", pointsNumberOverride: pointsData.pointsNumber })
+                    } else {
+                      await submitPackage()
+                    }
+                    setIsCheckoutModalOpen("success")
+                  } catch (e) {
+                    setIsCheckoutModalOpen("failed")
+                  } finally {
+                    setLoading(false)
+                  }
+                }}
+              >
+                {pathOr("", [locale, "Packages", "subscribe"], t)}
+              </button>
+            )}
 
             {isSub && (
               <button
@@ -409,14 +575,6 @@ const PackageCheckout = () => {
               >
                 {pathOr("", [locale, "Packages", "renewPaka"], t)}
               </button>
-            )}
-
-            {!isSub && totalAmount > 0 && (
-              <div style={{ fontSize: 12, opacity: 0.85, marginTop: 10 }}>
-                {locale === "en"
-                  ? "Complete card payment above (Pay Now). The package will be activated after payment confirmation."
-                  : "أكمل الدفع بالبطاقة أعلاه (ادفع الآن). سيتم تفعيل الباقة بعد تأكيد الدفع."}
-              </div>
             )}
             <button
               className={`${styles["btn-main"]} btn-main mt-2 w-100`}
@@ -430,6 +588,16 @@ const PackageCheckout = () => {
       </Row>
       {isCheckoutModalOpen && (
         <PackageCheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
+      )}
+
+      {isPointsModalOpen && (
+        <PointsModal
+          isPointsModalOpen={isPointsModalOpen}
+          setIsPointsModalOpen={setIsPointsModalOpen}
+          totalCost={totalAmount}
+          handleAccept={handleAcceptPoints}
+          toggleOffPaymentOption={toggleOffPaymentOption}
+        />
       )}
 
       <Modal
