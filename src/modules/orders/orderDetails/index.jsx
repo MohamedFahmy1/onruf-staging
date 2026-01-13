@@ -154,25 +154,27 @@ export const OrderDetails = () => {
         <div className="col-lg-4">
           <div className="d-flex gap-3">
             <div className="form-group flex-grow-1 mb-1">
-              <div className="po_R">
-                <label htmlFor="changeOrderStatus">{pathOr("", [locale, "Orders", "order_status"], t)}</label>
-                <select
-                  id="changeOrderStatus"
-                  className="form-control form-select border-0 rounded"
-                  onClick={() => setOpenModal(true)}
-                  value={""}
-                  readOnly
-                >
-                  <option hidden disabled value={""}>
-                    {pathOr("", [locale, "Orders", "changeOrderStatus"], t)}
-                  </option>
-                </select>
-                <ChangeSingleStatusModal
-                  openModal={openModal}
-                  setOpenModal={setOpenModal}
-                  selectedOrder={{ orderStatus: orderStatus, orderId: id }}
-                />
-              </div>
+              {!!(orderData?.orderStatus !== 6 && orderData?.orderStatus !== 7) && (
+                <div className="po_R">
+                  <label htmlFor="changeOrderStatus">{pathOr("", [locale, "Orders", "order_status"], t)}</label>
+                  <select
+                    id="changeOrderStatus"
+                    className="form-control form-select border-0 rounded"
+                    onClick={() => setOpenModal(true)}
+                    value={""}
+                    readOnly
+                  >
+                    <option hidden disabled value={""}>
+                      {pathOr("", [locale, "Orders", "changeOrderStatus"], t)}
+                    </option>
+                  </select>
+                  <ChangeSingleStatusModal
+                    openModal={openModal}
+                    setOpenModal={setOpenModal}
+                    selectedOrder={{ orderStatus: orderStatus, orderId: id }}
+                  />
+                </div>
+              )}
             </div>
 
             {/* <div className="form-group flex-grow-1 mb-1">

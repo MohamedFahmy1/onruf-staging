@@ -469,17 +469,19 @@ const Orders = () => {
         />
       </div>
       <div className={`btns_fixeds ${styles.buttons}`} style={{ left: locale === "en" ? "55%" : "42%" }}>
-        <button
-          className="btn-main btn-w rounded-0"
-          onClick={() => {
-            if (selectedOrdersObj.length > 0) {
-              setOpenModal(true)
-            } else
-              toast.error(locale === "en" ? "Choose at least one order from the grid!" : "!اختر طلب واحد علي الاقل")
-          }}
-        >
-          {pathOr("", [locale, "Orders", "changeSelectorStatus"], t)}
-        </button>
+        {orderStatus !== "Delivered" && orderStatus !== "Canceled" && orderStatus !== "DeliveryInProgress" && (
+          <button
+            className="btn-main btn-w rounded-0"
+            onClick={() => {
+              if (selectedOrdersObj.length > 0) {
+                setOpenModal(true)
+              } else
+                toast.error(locale === "en" ? "Choose at least one order from the grid!" : "!اختر طلب واحد علي الاقل")
+            }}
+          >
+            {pathOr("", [locale, "Orders", "changeSelectorStatus"], t)}
+          </button>
+        )}
         {/* <button
           className="btn-main btn-w rounded-0"
           onClick={() => {

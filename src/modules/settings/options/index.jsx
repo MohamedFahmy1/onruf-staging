@@ -167,7 +167,7 @@ const ManageAccountModal = ({ showModal, setShowModal }) => {
   // Handle Delete Account
   const handleDeleteAccount = async () => {
     try {
-      await axios.post(`/LogoutWebsite?deviceId=${deviceId}`)
+      // await axios.post(`/LogoutWebsite?deviceId=${deviceId}`)
       await axios.delete("/DeleteBusinessAccount", {
         params: { businessAccountId: buisnessAccountId },
       })

@@ -99,7 +99,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
               </div>
             </Col>
           )}
-          {selectedOrder?.[0]?.orderStatus <= 6 && (
+          {/* {selectedOrder?.[0]?.orderStatus <= 6 && (
             <Col md={12}>
               <div className="mb-2 text-center">
                 <button
@@ -111,8 +111,8 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrders, getOrders 
                 </button>
               </div>
             </Col>
-          )}
-          {selectedOrder?.[0]?.orderStatus != 6 && (
+          )} */}
+          {selectedOrder?.[0]?.orderStatus <= 3 && (
             <Col md={12}>
               <div className="mb-2 text-center">
                 <button
