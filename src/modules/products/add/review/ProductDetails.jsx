@@ -131,8 +131,16 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
     const shippingNames = (data?.data?.data).filter((item) => productFullData.ShippingOptions.includes(item.id))
+    if (productFullData.ShippingOptions.includes(4)) {
+      shippingNames.push({
+        id: 4,
+        shippingOptionName: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
+        shippingOptionDescription: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
+        shippingOptionImage: "",
+      })
+    }
     setShippingOptions(shippingNames)
-  }, [productFullData.ShippingOptions])
+  }, [productFullData.ShippingOptions, locale])
 
   const getPackage = useCallback(async () => {
     if (productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]) {
