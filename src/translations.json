@@ -512,6 +512,7 @@
       "ChossenPackageDetails": "تفاصيل الباقة المختارة",
       "EndDate": "تاريخ الانتهاء",
       "Subscribe": "اشترك",
+      "publish": "نشر",
       "Cancel": "الغاء"
     },
     "questionsAndReviews": {
@@ -1304,6 +1305,7 @@
       "ChossenPackageDetails": "Chossen Package Details",
       "EndDate": "End Date",
       "Subscribe": "Subscribe",
+      "publish": "Publish",
       "Cancel": "Cancel"
     },
     "questionsAndReviews": {

@@ -161,7 +161,7 @@ const Packages = () => {
                     )}
                     <li className="mb-4 d-flex justify-content-between">
                       <p>{pathOr("", [locale, "Packages", "PackageType"], t)}</p>
-                      <p>{paka?.smSsCount > 0 ? "SMS" : "Publish"}</p>
+                      <p>{paka?.smSsCount > 0 ? "SMS" : pathOr("", [locale, "Packages", "publish"], t)}</p>
                     </li>
                   </ul>
                 </div>

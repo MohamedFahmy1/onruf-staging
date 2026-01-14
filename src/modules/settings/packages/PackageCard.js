@@ -40,7 +40,9 @@ const PackageCard = ({ pack, isCurrent, handleSubscribePackage }) => {
       )}
       <div className={styles["head"]}>
         <div style={{ flexBasis: "100%", textAlign: "center" }}>
-          {pack?.image && <Image src={pack?.image} alt="package" width={70} height={70} />}
+          {pack?.image && (
+            <Image src={pack?.image} alt={`${locale === "en" ? "package" : "باقة"}`} width={70} height={70} />
+          )}
         </div>
         <p>{pack?.name}</p>
         <p>{locale === "en" ? pack?.nameEn : pack?.nameAr}</p>
