@@ -5,6 +5,10 @@ import { pathOr } from "ramda"
 import t from "../../../../translations.json"
 import moment from "moment"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
+import { TextField } from "@mui/material"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment"
 
 const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCatProps }) => {
   const { locale } = useRouter()
@@ -173,14 +177,34 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           </p>
         )}
 
-        <input
-          type="datetime-local"
-          ref={dateTimeInput}
-          min={nowFormatted}
-          defaultValue={safeDefaultValue}
-          onChange={handleChangeAuctionClosingTime}
-          className="rounded"
-        />
+        <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={locale === "ar" ? "ar" : "en"}>
+          <DateTimePicker
+            value={moment(productPayload.AuctionClosingTime || nowFormatted)}
+            minDateTime={moment().add(4, "hours")}
+            inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a"}
+            onChange={(newValue) => {
+              if (!newValue) return
+
+              if (newValue.isBefore(moment().add(4, "hours"))) {
+                setProductPayload({
+                  ...productPayload,
+                  AuctionClosingTime: nowFormatted,
+                  IsAuctionClosingTimeFixed: false,
+                })
+                return
+              }
+
+              setProductPayload({
+                ...productPayload,
+                AuctionClosingTime: newValue.format(),
+                IsAuctionClosingTimeFixed: false,
+              })
+
+              setActiveElementIndex(null)
+            }}
+            renderInput={(params) => <TextField {...params} fullWidth className="rounded" />}
+          />
+        </LocalizationProvider>
       </div>
     </div>
   )

@@ -110,7 +110,7 @@ const AddEmployee = () => {
                 </div>
               </div>
             </div>
-            <div className="form-group">
+            {/* <div className="form-group">
               <label htmlFor="branch">{pathOr("", [locale, "Employee", "branch"], t)}</label>
               <select
                 id="branch"
@@ -127,7 +127,7 @@ const AddEmployee = () => {
                 ))}
               </select>
               <p className="errorMsg">{handleFormErrors(errors, "branchId")}</p>
-            </div>
+            </div> */}
             <div className="form-group">
               <label id="selectedRoles-label">{pathOr("", [locale, "Employee", "role"], t)}</label>
               <FormControl

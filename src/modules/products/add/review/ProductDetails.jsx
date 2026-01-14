@@ -17,6 +17,7 @@ import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEm
 import { Modal } from "react-bootstrap"
 import PointsModal from "./PointsModal"
 import wallet from "../../../../../public/images/wallet.png"
+import "moment/locale/ar"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
   const { locale, pathname } = useRouter()
@@ -703,7 +704,12 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               <Row>
                 <h6 className="f-b m-0">{pathOr("", [locale, "Products", "offer_duration"], t)}</h6>
                 <div className={styles["info_boxo_"]}>
-                  <span>{productFullData && moment(productFullData.AuctionClosingTime).format("LLL")}</span>
+                  <span>
+                    {productFullData &&
+                      moment(productFullData.AuctionClosingTime)
+                        .locale(locale === "ar" ? "ar" : "en")
+                        .format(locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a")}
+                  </span>
                   <span className="font-18 main-color">
                     <Image src={dateImage} alt="calendar" width={20} height={20} />
                   </span>
