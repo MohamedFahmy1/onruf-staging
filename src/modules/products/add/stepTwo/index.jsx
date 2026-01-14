@@ -165,7 +165,9 @@ const AddProductStepTwo = ({
       )
     } else if (
       productPayload.SendOfferForAuction &&
-      (!productPayload.AuctionNegotiatePrice || !productPayload.AuctionNegotiateForWhom)
+      (!productPayload.AuctionNegotiatePrice ||
+        productPayload.AuctionNegotiateForWhom?.length === 0 ||
+        !productPayload.AuctionNegotiateForWhom)
     ) {
       return toast.error(
         locale === "en" ? "Please enter negotiation price and for whom!" : "!من فضلك ادخل سعر التفاوض ولمن",
