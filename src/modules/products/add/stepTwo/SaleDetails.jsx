@@ -28,7 +28,7 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
 
   const toggleSelection = (value) => {
     setProductPayload((prevState) => {
-      let newSelection = [...prevState.AuctionNegotiateForWhom]
+      let newSelection = prevState?.AuctionNegotiateForWhom ? [...prevState?.AuctionNegotiateForWhom] : []
       if (newSelection.includes(value)) {
         newSelection = newSelection.filter((item) => item !== value)
       } else {
