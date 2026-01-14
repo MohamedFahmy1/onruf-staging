@@ -11,7 +11,6 @@ import { toast } from "react-toastify"
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io"
 import { LoadingScreen } from "../../../common/Loading"
 
-
 const Employees = () => {
   const [employees, setEmployees] = useState([])
   const {
@@ -195,7 +194,9 @@ const Employees = () => {
             </thead>
             <tbody>{employees.length > 0 && renderedEmployees()}</tbody>
           </table>
-          {!employees.length > 0 && <p className="text-center f-b fs-5">No Data To Show!</p>}
+          {!employees.length > 0 && (
+            <p className="text-center f-b fs-5">{locale === "en" ? "No Data to Show !" : "لا يوجد بيانات"}</p>
+          )}
         </div>
         <section aria-label="Page navigation example" className="mt-3">
           <ul className="pagination justify-content-center">

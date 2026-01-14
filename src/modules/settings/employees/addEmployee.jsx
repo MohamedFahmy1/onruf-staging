@@ -30,24 +30,30 @@ const AddEmployee = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm()
 
   const handleAddEmployee = async ({ userName, mobileNumber, email, branchId }) => {
+    if (!selectedRoles.length) {
+      setError("roles", {
+        type: "manual",
+        message: locale === "en" ? "Role is a required field" : "الصلاحيات مطلوبة",
+      })
+      return
+    }
+
     try {
-      const result = await axios.post(
-        "/AddEditBusinessAccountEmployee",
-        {
-          userName,
-          mobileNumber,
-          email,
-          branchId,
-          businessAccountEmployeeRoles: selectedRoles.map((role) => ({
-            roleId: role.id,
-          })),
-        },
-        { params: { lang: "en" } },
-      )
+      await axios.post("/AddEditBusinessAccountEmployee", {
+        userName,
+        mobileNumber,
+        email,
+        branchId,
+        businessAccountEmployeeRoles: selectedRoles.map((role) => ({
+          roleId: role.id,
+        })),
+      })
 
       push("/settings/employees")
       toast.success(locale === "en" ? "Employee Added" : "تم اضافة الموظف")
@@ -77,7 +83,9 @@ const AddEmployee = () => {
               <label htmlFor="employeeName">{pathOr("", [locale, "Employee", "employeeName"], t)}</label>
               <input
                 id="employeeName"
-                {...register("userName", { required: "Username is a required field" })}
+                {...register("userName", {
+                  required: locale === "en" ? "Username is a required field" : "اسم المستخدم مطلوب",
+                })}
                 type="text"
                 className="form-control"
                 placeholder={pathOr("", [locale, "Employee", "employeeName"], t)}
@@ -90,7 +98,9 @@ const AddEmployee = () => {
                   <label htmlFor="phone">{pathOr("", [locale, "Users", "phone"], t)}</label>
                   <input
                     id="phone"
-                    {...register("mobileNumber", { required: "Phone number is a required field" })}
+                    {...register("mobileNumber", {
+                      required: locale === "en" ? "Phone number is a required field" : "رقم الهاتف مطلوب",
+                    })}
                     type="tel"
                     className="form-control"
                   />
@@ -102,7 +112,9 @@ const AddEmployee = () => {
                   <label htmlFor="email">{pathOr("", [locale, "Users", "email"], t)}</label>
                   <input
                     id="email"
-                    {...register("email", { required: "Email is a required field" })}
+                    {...register("email", {
+                      required: locale === "en" ? "Email is a required field" : "البريد الالكتروني مطلوب",
+                    })}
                     type="email"
                     className="form-control"
                   />
@@ -152,6 +164,9 @@ const AddEmployee = () => {
                   id="selectedRoles"
                   onChange={({ target: { value } }) => {
                     setSelectedRoles(value)
+                    if (value?.length) {
+                      clearErrors("roles")
+                    }
                   }}
                   input={<OutlinedInput />}
                   renderValue={(selected) => (
@@ -170,6 +185,7 @@ const AddEmployee = () => {
                   ))}
                 </Select>
               </FormControl>
+              <p className="errorMsg">{handleFormErrors(errors, "roles")}</p>
             </div>
             <button className="btn-main mt-3" type="submit">
               {pathOr("", [locale, "Employee", "addEmployee"], t)}{" "}

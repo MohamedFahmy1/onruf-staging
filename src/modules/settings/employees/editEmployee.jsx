@@ -28,6 +28,8 @@ const EditEmployee = () => {
   const {
     register,
     handleSubmit,
+    setError,
+    clearErrors,
     formState: { errors },
   } = useForm()
 
@@ -43,7 +45,23 @@ const EditEmployee = () => {
 
   const handleFormErrors = (name) => <h2 className={styles.formError}>{errors[name] && errors[name].message}</h2>
 
+  const handleRolesChange = (value) => {
+    const nextValue = value || []
+    setSelectedRoles(nextValue)
+    if (nextValue.length) {
+      clearErrors("roles")
+    }
+  }
+
   const handleEditEmployee = async ({ userName, mobileNumber, email, branchId }) => {
+    if (!selectedRoles.length) {
+      setError("roles", {
+        type: "manual",
+        message: locale === "ar" ? "هذا الحقل مطلوب" : "This field is required",
+      })
+      return
+    }
+
     try {
       const result = await axios.post("/AddEditBusinessAccountEmployee", {
         userName,
@@ -94,7 +112,10 @@ const EditEmployee = () => {
               <label htmlFor="employeeName">{pathOr("", [locale, "Employee", "employeeName"], t)}</label>
               <input
                 id="employeeName"
-                {...register("userName", { required: "This field is required", value: userData?.userName })}
+                {...register("userName", {
+                  required: locale === "ar" ? "هذا الحقل مطلوب" : "This field is required",
+                  value: userData?.userName,
+                })}
                 type="text"
                 className="form-control"
                 placeholder={pathOr("", [locale, "Employee", "employeeName"], t)}
@@ -109,7 +130,7 @@ const EditEmployee = () => {
                   <input
                     id="phone"
                     {...register("mobileNumber", {
-                      required: "This field is required",
+                      required: locale === "ar" ? "هذا الحقل مطلوب" : "This field is required",
                       value: userData?.mobileNumber,
                     })}
                     type="tel"
@@ -124,7 +145,10 @@ const EditEmployee = () => {
                   <label htmlFor="email">{pathOr("", [locale, "Users", "email"], t)}</label>
                   <input
                     id="email"
-                    {...register("email", { required: "This field is required", value: userData?.email })}
+                    {...register("email", {
+                      required: locale === "ar" ? "هذا الحقل مطلوب" : "This field is required",
+                      value: userData?.email,
+                    })}
                     type="email"
                     className="form-control"
                     readOnly
@@ -157,7 +181,7 @@ const EditEmployee = () => {
                 <Select
                   isMulti
                   value={selectedRoles}
-                  onChange={setSelectedRoles}
+                  onChange={handleRolesChange}
                   options={roles.map((role) => ({
                     value: role.id,
                     label: role.name,
@@ -181,6 +205,7 @@ const EditEmployee = () => {
                   }}
                 />
               </FormControl>
+              {handleFormErrors("roles")}
             </div>
             <button className="btn-main mt-3" type="submit">
               {pathOr("", [locale, "Employee", "editEmployee"], t)}{" "}
