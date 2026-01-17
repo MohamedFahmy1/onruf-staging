@@ -91,8 +91,8 @@ const Employees = () => {
           <div className="f-b">
             {employee.employeeRoles.map((item, index) => {
               if (index === employee.employeeRoles.length - 1) {
-                return ` ${item.roleName}.`
-              } else return ` ${item.roleName} -`
+                return ` ${locale === "en" ? item.nameEn : item.nameAr}.`
+              } else return ` ${locale === "en" ? item.nameEn : item.nameAr} -`
             })}
           </div>
         </td>

@@ -9,9 +9,9 @@ const AddBranchPage = (props) => {
   const { locale } = useRouter()
   return (
     <main>
-      {/* <Head>
+      <Head>
         <title>{pathOr("Add Branch", [locale, "Branch", "addBranch"], t)}</title>
-      </Head> */}
+      </Head>
       <AddBranchComponent {...props} />
     </main>
   )

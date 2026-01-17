@@ -37,7 +37,13 @@ const EditEmployee = () => {
     if (isSuccess) {
       setSelectedRoles(
         userData.employeeRoles.map((role) => {
-          return { value: role.roleId, label: role.roleName }
+          return {
+            value: role.roleId,
+            label:
+              locale === "ar"
+                ? roles.find((r) => r.id === role.roleId)?.nameAr
+                : roles.find((r) => r.id === role.roleId)?.nameEn,
+          }
         }),
       )
     }
@@ -157,7 +163,7 @@ const EditEmployee = () => {
                 </div>
               </div>
             </div>
-            {/* <div className="form-group">
+            <div className="form-group">
               <label htmlFor="branch">{pathOr("", [locale, "Employee", "branch"], t)}</label>
               <select
                 id="branch"
@@ -174,7 +180,7 @@ const EditEmployee = () => {
                 ))}
               </select>
               {handleFormErrors("branchId")}
-            </div> */}
+            </div>
             <div className="form-group">
               <label>{pathOr("", [locale, "Employee", "role"], t)}</label>
               <FormControl sx={{ width: "100%" }}>
@@ -184,7 +190,7 @@ const EditEmployee = () => {
                   onChange={handleRolesChange}
                   options={roles.map((role) => ({
                     value: role.id,
-                    label: role.name,
+                    label: locale === "en" ? role.nameEn : role.nameAr,
                   }))}
                   classNamePrefix="react-select"
                   placeholder="Select roles"

@@ -119,13 +119,8 @@ const AdDetails = ({
                 type="text"
                 id="subTitleAr"
                 className={`form-control ${styles["form-control"]}`}
-                placeholder={
-                  productPayload.subTitleAr !== null && !pathname.includes("edit")
-                    ? pathOr("", [locale, "Products", "enterProductSecondaryAddressAr"], t)
-                    : "-"
-                }
+                placeholder={pathOr("", [locale, "Products", "enterProductSecondaryAddressAr"], t)}
                 value={!!productPayload.subTitleAr ? productPayload.subTitleAr : ""}
-                disabled={productPayload.subTitleAr === null && pathname.includes("edit")}
                 onChange={(e) =>
                   setProductPayload({
                     ...productPayload,
@@ -179,13 +174,8 @@ const AdDetails = ({
                 type="text"
                 id="subTitleEn"
                 className={`form-control ${styles["form-control"]}`}
-                placeholder={
-                  productPayload.subTitleEn !== null && !pathname.includes("edit")
-                    ? pathOr("", [locale, "Products", "enterProductSecondaryAddressEn"], t)
-                    : "-"
-                }
+                placeholder={pathOr("", [locale, "Products", "enterProductSecondaryAddressEn"], t)}
                 value={!!productPayload.subTitleEn ? productPayload.subTitleEn : ""}
-                disabled={productPayload.subTitleEn === null && pathname.includes("edit")}
                 onChange={(e) =>
                   setProductPayload({
                     ...productPayload,

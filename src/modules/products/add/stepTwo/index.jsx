@@ -297,31 +297,26 @@ const AddProductStepTwo = ({
         <ShippingAndDuration
           productPayload={productPayload}
           setProductPayload={setProductPayload}
-          validateAll={validateAll}
           validateDurationAndShipping={validateDurationAndShipping}
-          handleGoToReviewPage={handleGoToReviewPage}
           setEventKey={setEventKey}
-          selectedCatProps={selectedCatProps}
         />
       </Accordion.Item>
 
-      {!pathname.includes("edit") && (
-        <Accordion.Item className={`${styles["accordion-item"]} accordion-item`} eventKey="5">
-          <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("5")}>
-            <span>6</span>
-            {pathOr("", [locale, "Products", "publishingPackages"], t)}
-          </Accordion.Button>
-          <PublishingPackages
-            productPayload={productPayload}
-            setProductPayload={setProductPayload}
-            setEditModeOn={setEditModeOn}
-            validateAll={validateAll}
-            handleGoToReviewPage={handleGoToReviewPage}
-            regions={regions}
-            catId={catId}
-          />
-        </Accordion.Item>
-      )}
+      <Accordion.Item className={`${styles["accordion-item"]} accordion-item`} eventKey="5">
+        <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("5")}>
+          <span>6</span>
+          {pathOr("", [locale, "Products", "publishingPackages"], t)}
+        </Accordion.Button>
+        <PublishingPackages
+          productPayload={productPayload}
+          setProductPayload={setProductPayload}
+          setEditModeOn={setEditModeOn}
+          validateAll={validateAll}
+          handleGoToReviewPage={handleGoToReviewPage}
+          regions={regions}
+          catId={catId}
+        />
+      </Accordion.Item>
     </Accordion>
   )
 }

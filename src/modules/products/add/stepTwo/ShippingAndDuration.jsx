@@ -8,16 +8,8 @@ import { useFetch } from "../../../../hooks/useFetch"
 import { useState } from "react"
 import { onlyNumbersInInputs } from "../../../../common/functions"
 
-const ShippingAndDuration = ({
-  productPayload,
-  setProductPayload,
-  validateAll,
-  validateDurationAndShipping,
-  setEventKey,
-  handleGoToReviewPage,
-  selectedCatProps,
-}) => {
-  const { locale, pathname } = useRouter()
+const ShippingAndDuration = ({ productPayload, setProductPayload, validateDurationAndShipping, setEventKey }) => {
+  const { locale } = useRouter()
   const { data: shippingOptions } = useFetch("/GetAllShippingOptions")
   const secondaryShippingOptions = [
     {
@@ -156,11 +148,11 @@ const ShippingAndDuration = ({
         className="btn-main mt-3"
         type="button"
         onClick={() => {
-          if (pathname.includes("edit")) {
-            validateAll() === true && handleGoToReviewPage()
-          } else {
-            validateDurationAndShipping() === true && setEventKey("5")
-          }
+          // if (pathname.includes("edit")) {
+          //   validateAll() === true && handleGoToReviewPage()
+          // } else {
+          validateDurationAndShipping() === true && setEventKey("5")
+          // }
         }}
       >
         {pathOr("", [locale, "Products", "next"], t)}

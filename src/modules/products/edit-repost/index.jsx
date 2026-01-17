@@ -7,6 +7,7 @@ import { useFetch } from "../../../hooks/useFetch"
 import ProductDetails from "../add/review/ProductDetails"
 import axios from "axios"
 import Alerto from "../../../common/Alerto"
+import { useSelector } from "react-redux"
 
 const EditProduct = () => {
   const { locale, query, push } = useRouter()
@@ -17,6 +18,7 @@ const EditProduct = () => {
   const { data: shippingOptions } = useFetch(`/GetProductShippingOptions?productId=${query.id}`, true)
   const { data: paymentOptions } = useFetch(`/GetProductPaymentOptions?productId=${query.id}`, true)
   const { data: bankAccounts } = useFetch(`/GetProductBankAccounts?productId=${query.id}`, true)
+  const providerId = useSelector((state) => state.authSlice.providerId)
 
   const fetchSpecificationsList = useCallback(async () => {
     try {
@@ -49,6 +51,7 @@ const EditProduct = () => {
     selectedCatProps?.id && fetchSpecificationsList()
   }, [fetchSpecificationsList, selectedCatProps?.id])
 
+  const [initalProductPayload, setInitalProductPayload] = useState()
   const [productPayload, setProductPayload] = useState({
     nameAr: "",
     nameEn: "",
@@ -90,6 +93,10 @@ const EditProduct = () => {
     SendYourAccountInfoToAuctionWinner: false,
     AlmostSoldOutQuantity: 1,
     DeletedMedias: [],
+    "Box.Width": null,
+    "Box.Height": null,
+    "Box.Length": null,
+    "Box.Weight": null,
   })
 
   const handleBack = () => {
@@ -107,6 +114,7 @@ const EditProduct = () => {
           const currentLocale = localeRef.current
           const { data } = await axios(`/GetProductById?id=${query.id}&lang=${currentLocale}`)
           const productData = data.data
+          setInitalProductPayload(productData)
           setSelectedCatProps({ ...productData.categoryDto })
           setSpecificationsFromApi(productData.listProductSep)
           setProductPayload((prev) => ({
@@ -160,6 +168,10 @@ const EditProduct = () => {
             "ProductPaymentDetailsDto.AdditionalPakatId": productData.categoryDto.additionalPakatId || null,
             "ProductPaymentDetailsDto.PakatId": productData.categoryDto.pakatId || null,
             IsAuctionClosingTimeFixed: productData.isAuctionClosingTimeFixed,
+            "Box.Height": productData?.box?.height,
+            "Box.Width": productData?.box?.width,
+            "Box.Length": productData?.box?.length,
+            "Box.Weight": productData?.box?.weight,
           }))
         }
       } catch (error) {
@@ -245,7 +257,7 @@ const EditProduct = () => {
   }
 
   return (
-    <article className="body-content">
+    <article style={{ padding: "10px 2%" }}>
       <section className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
         <h6 className="f-b m-0">{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h6>
         <button onClick={() => (step === 1 ? push("/products") : setStep(1))} className="btn-main btn-main-o">
@@ -259,6 +271,7 @@ const EditProduct = () => {
             handleBack={handleBack}
             productFullData={productPayload}
             setProductPayload={setProductPayload}
+            initalProductPayload={initalProductPayload}
           />
         )}
         {step === 2 && (

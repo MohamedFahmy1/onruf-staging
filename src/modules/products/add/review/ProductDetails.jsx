@@ -17,9 +17,8 @@ import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEm
 import { Modal } from "react-bootstrap"
 import PointsModal from "./PointsModal"
 import wallet from "../../../../../public/images/wallet.png"
-import "moment/locale/ar"
 
-const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload }) => {
+const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload, initalProductPayload }) => {
   const { locale, pathname } = useRouter()
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
@@ -45,89 +44,180 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     hasRequestedPaymentRef.current = false
   }, [mfInitiatedSessionId])
 
-  const publishFee = !!freePublishPrice ? +selectedCatProps?.productPublishPrice : 0
+  const isEditFlow = pathname.includes("edit")
+  const canUseCoupon = !isEditFlow
 
-  const totalImageFee =
-    productFullData?.listImageFile.length > selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
-      ? selectedCatProps?.extraProductImageFee *
-        (productFullData?.listImageFile.length -
-          selectedCatProps?.freeProductImagesCount -
-          (packageDetails?.countImage || 0))
-      : 0
+  const hasSubtitle = (payload) => {
+    const subTitleAr = typeof payload?.subTitleAr === "string" ? payload.subTitleAr.trim() : ""
+    const subTitleEn = typeof payload?.subTitleEn === "string" ? payload.subTitleEn.trim() : ""
+    return !!(subTitleAr || subTitleEn)
+  }
 
-  const totalVideoFee =
-    productFullData?.videoUrl?.length > selectedCatProps?.freeProductVidoesCount + (packageDetails?.countVideo || 0)
-      ? selectedCatProps?.extraProductVidoeFee *
-        (productFullData?.videoUrl?.length -
-          selectedCatProps?.freeProductVidoesCount -
-          (packageDetails?.countVideo || 0))
-      : 0
+  const getMediaCount = (payload, type) => payload?.listMedia?.filter((item) => item?.type === type)?.length || 0
 
-  const auctionFee =
-    packageDetails?.enableAuction === true
-      ? 0
-      : productFullData?.IsAuctionEnabled
-      ? selectedCatProps?.enableAuctionFee
-      : 0
+  const getValidVideoCount = (payload) =>
+    (payload?.videoUrl || []).filter((url) => String(url || "").trim() !== "").length
 
-  const negotiationFee =
-    packageDetails?.enableNegotiable === true
-      ? 0
-      : productFullData?.IsNegotiationEnabled
-      ? selectedCatProps?.enableNegotiationFee
-      : 0
+  const getCurrentImageCount = (payload) => (payload?.listImageFile?.length || 0) + getMediaCount(payload, 1)
+  const getCurrentVideoCount = (payload) => getValidVideoCount(payload) + getMediaCount(payload, 2)
+  const getInitialImageCount = (payload) => getMediaCount(payload, 1)
+  const getInitialVideoCount = (payload) => getMediaCount(payload, 2)
 
-  const fixedFee =
-    packageDetails?.enableFixedPrice === true
-      ? 0
-      : productFullData?.IsFixedPriceEnabled
-      ? selectedCatProps?.enableFixedPriceSaleFee
-      : 0
+  const feeSummary = useMemo(() => {
+    const fees = {
+      publishFee: 0,
+      subtitleFee: 0,
+      imageFee: 0,
+      videoFee: 0,
+      auctionFee: 0,
+      negotiationFee: 0,
+      fixedFee: 0,
+      pakaFee: 0,
+      auctionClosingTime: 0,
+    }
 
-  const pakaFee = !!(productFullData?.pakatId && productFullData?.isNewPackage) ? packageDetails?.price : 0
+    const freeImageAllowance =
+      (Number(selectedCatProps?.freeProductImagesCount) || 0) + (Number(packageDetails?.countImage) || 0)
+    const freeVideoAllowance =
+      (Number(selectedCatProps?.freeProductVidoesCount) || 0) + (Number(packageDetails?.countVideo) || 0)
+    const extraImageFee = Number(selectedCatProps?.extraProductImageFee) || 0
+    const extraVideoFee = Number(selectedCatProps?.extraProductVidoeFee) || 0
 
-  const auctionClosingTime =
-    packageDetails?.auctionClosingTimeOption === true
-      ? 0
-      : productFullData?.IsAuctionClosingTimeFixed === false
-      ? selectedCatProps?.auctionClosingTimeFee
-      : 0
+    const currentImageCount = getCurrentImageCount(productFullData)
+    const currentVideoCount = getCurrentVideoCount(productFullData)
+    const currentExtraImages = Math.max(0, currentImageCount - freeImageAllowance)
+    const currentExtraVideos = Math.max(0, currentVideoCount - freeVideoAllowance)
 
-  const couponDiscount = couponData ? couponData.discountValue : 0
+    const hasSubtitleNow = hasSubtitle(productFullData)
+    const currentAuctionClosingTimeFixed = productFullData?.IsAuctionClosingTimeFixed
 
-  const subtitleFee =
-    packageDetails?.showSupTitle === true
-      ? 0
-      : !!(productFullData?.subTitleAr?.trim() !== "" || productFullData?.subTitleEn?.trim() !== "")
-      ? selectedCatProps?.subTitleFee
-      : 0
+    console.log("initalProductPayload: ", initalProductPayload)
+    console.log("productFullData: ", productFullData)
+    console.log("selectedCatProps: ", selectedCatProps)
 
-  const totalCost =
-    +publishFee +
-    +subtitleFee +
-    +totalImageFee +
-    +totalVideoFee +
-    +auctionFee +
-    +negotiationFee +
-    +fixedFee +
-    +pakaFee -
-    +couponDiscount +
-    +auctionClosingTime
+    if (isEditFlow) {
+      const initialImageCount = getInitialImageCount(initalProductPayload)
+      const initialVideoCount = getInitialVideoCount(initalProductPayload)
+      const initialExtraImages = Math.max(0, initialImageCount - freeImageAllowance)
+      const initialExtraVideos = Math.max(0, initialVideoCount - freeVideoAllowance)
+      const extraImagesToPay = Math.max(0, currentExtraImages - initialExtraImages)
+      const extraVideosToPay = Math.max(0, currentExtraVideos - initialExtraVideos)
 
-  const aditionalImagesFee =
-    selectedCatProps?.extraProductImageFee *
-    (productFullData.listImageFile.length -
-      selectedCatProps?.freeProductImagesCount -
-      (packageDetails?.countImage || 0))
+      if (!packageDetails?.showSupTitle && !hasSubtitle(initalProductPayload) && hasSubtitleNow) {
+        fees.subtitleFee = Number(selectedCatProps?.subTitleFee) || 0
+      }
+      fees.imageFee = extraImagesToPay * extraImageFee
+      fees.videoFee = extraVideosToPay * extraVideoFee
 
-  const aditionalVideoFee =
-    selectedCatProps?.extraProductVidoeFee *
-    (productFullData.videoUrl.length - selectedCatProps?.freeProductVidoesCount - (packageDetails?.countVideo || 0))
+      if (
+        !packageDetails?.enableFixedPrice &&
+        !initalProductPayload?.isFixedPriceEnabled &&
+        productFullData?.IsFixedPriceEnabled
+      ) {
+        fees.fixedFee = Number(selectedCatProps?.enableFixedPriceSaleFee) || 0
+      }
+      if (
+        !packageDetails?.enableNegotiable &&
+        !initalProductPayload?.isNegotiationEnabled &&
+        productFullData?.IsNegotiationEnabled
+      ) {
+        fees.negotiationFee = Number(selectedCatProps?.enableNegotiationFee) || 0
+      }
+      if (
+        !packageDetails?.enableAuction &&
+        !initalProductPayload?.isAuctionEnabled &&
+        productFullData?.IsAuctionEnabled
+      ) {
+        fees.auctionFee = Number(selectedCatProps?.enableAuctionFee) || 0
+      }
 
-  const taxValue = (totalCost * (15 / 100)).toFixed(2)
+      const initialAuctionClosingTimeFixed = !!initalProductPayload?.isAuctionClosingTimeFixed
 
-  const totalWithTax = +totalCost + +taxValue
-  const totalAmount = totalWithTax <= 0 ? 0 : totalWithTax
+      if (
+        !packageDetails?.auctionClosingTimeOption &&
+        // check if initial auction closing time is fixed or auction wasn't even enabled in that case it's fine that fixed auction closing time is not enabled
+        !!(
+          initialAuctionClosingTimeFixed === true ||
+          (initialAuctionClosingTimeFixed === false &&
+            initalProductPayload.isAuctionEnabled === false &&
+            productFullData?.IsAuctionEnabled === true)
+        ) &&
+        currentAuctionClosingTimeFixed === false
+      ) {
+        fees.auctionClosingTime = Number(selectedCatProps?.auctionClosingTimeFee) || 0
+      }
+
+      if (productFullData?.pakatId && productFullData?.isNewPackage) {
+        fees.pakaFee = Number(packageDetails?.price) || 0
+      }
+    } else {
+      fees.publishFee = freePublishPrice ? Number(selectedCatProps?.productPublishPrice) || 0 : 0
+
+      if (!packageDetails?.showSupTitle && hasSubtitleNow) {
+        fees.subtitleFee = Number(selectedCatProps?.subTitleFee) || 0
+      }
+
+      fees.imageFee = currentExtraImages * extraImageFee
+      fees.videoFee = currentExtraVideos * extraVideoFee
+
+      if (!packageDetails?.enableAuction && productFullData?.IsAuctionEnabled) {
+        fees.auctionFee = Number(selectedCatProps?.enableAuctionFee) || 0
+      }
+      if (!packageDetails?.enableNegotiable && productFullData?.IsNegotiationEnabled) {
+        fees.negotiationFee = Number(selectedCatProps?.enableNegotiationFee) || 0
+      }
+      if (!packageDetails?.enableFixedPrice && productFullData?.IsFixedPriceEnabled) {
+        fees.fixedFee = Number(selectedCatProps?.enableFixedPriceSaleFee) || 0
+      }
+
+      if (!packageDetails?.auctionClosingTimeOption && currentAuctionClosingTimeFixed === false) {
+        fees.auctionClosingTime = Number(selectedCatProps?.auctionClosingTimeFee) || 0
+      }
+
+      if (productFullData?.pakatId && productFullData?.isNewPackage) {
+        fees.pakaFee = Number(packageDetails?.price) || 0
+      }
+    }
+
+    const couponDiscount = canUseCoupon ? Number(couponData?.discountValue) || 0 : 0
+    const totalCost = Object.values(fees).reduce((sum, value) => sum + (Number(value) || 0), 0) - couponDiscount
+    const taxValue = (totalCost * (15 / 100)).toFixed(2)
+    const totalWithTax = +totalCost + +taxValue
+    const totalAmount = totalWithTax <= 0 ? 0 : totalWithTax
+
+    return { fees, couponDiscount, totalCost, taxValue, totalWithTax, totalAmount }
+  }, [
+    canUseCoupon,
+    couponData?.discountValue,
+    freePublishPrice,
+    initalProductPayload,
+    isEditFlow,
+    packageDetails,
+    productFullData,
+    selectedCatProps,
+  ])
+
+  const {
+    fees: {
+      publishFee,
+      subtitleFee,
+      imageFee,
+      videoFee,
+      auctionFee,
+      negotiationFee,
+      fixedFee,
+      pakaFee,
+      auctionClosingTime,
+    },
+    couponDiscount,
+    totalCost,
+    taxValue,
+    totalWithTax,
+    totalAmount,
+  } = feeSummary
+  const currencyLabel = pathOr("", [locale, "Products", "currency"], t)
+  const displayTaxValue = totalCost < 0 ? 0 : taxValue
+  const displayTotal = totalWithTax <= 0 ? 0 : totalWithTax
 
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
@@ -752,280 +842,273 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
         <Col lg={3}>
           <div className="contint_paner p-2">
-            {!pathname.includes("edit") && (
-              <div className={styles["Payment-details"]}>
-                <div className="f-b mb-2">{pathOr("", [locale, "Products", "have_discount_coupon"], t)} </div>
-                <div className={`po_R overflow-hidden mb-3 ${styles["search_P"]}`}>
-                  <input
-                    type="text"
-                    className={`form-control ${styles["form-control"]}`}
-                    placeholder={pathOr("", [locale, "Products", "enter_coupon"], t)}
-                    onChange={(e) => setCouponCode(e.target.value)}
-                    value={couponCode}
-                  />
-                  <button
-                    onClick={applyCoupon}
-                    className={`btn-main ${styles["btn-main"]}`}
-                    style={{ right: locale === "en" ? "0" : undefined, left: locale === "en" ? undefined : 0 }}
-                  >
-                    {pathOr("", [locale, "Products", "activate"], t)}
-                  </button>
-                </div>
-                <h6 component="h1">{pathOr("", [locale, "Products", "PaymentDetails"], t)}</h6>
-                <ul className={styles["list_salary"]}>
-                  {publishFee > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "publishing_price"], t)}</span>{" "}
-                      <span>
-                        {publishFee} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {couponData && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "couponCode"], t)}</span> <span>{couponCode}</span>
-                    </li>
-                  )}
-                  {subtitleFee > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "subtitle_fee"], t)}</span>{" "}
-                      <span>
-                        {selectedCatProps?.subTitleFee} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {!!(
-                    productFullData.listImageFile.length >
-                    selectedCatProps?.freeProductImagesCount + (packageDetails?.countImage || 0)
-                  ) &&
-                    !!(aditionalImagesFee > 0) && (
-                      <li>
-                        <span>{pathOr("", [locale, "Products", "additional_product_images_fee"], t)}</span>{" "}
-                        <span>
-                          {aditionalImagesFee} {pathOr("", [locale, "Products", "currency"], t)}
-                        </span>
-                      </li>
-                    )}
-                  {!!(
-                    productFullData.videoUrl?.length >
-                    selectedCatProps?.freeProductVidoesCount + (packageDetails?.countVideo || 0)
-                  ) &&
-                    !!(aditionalVideoFee > 0) && (
-                      <li>
-                        <span>{pathOr("", [locale, "Products", "additional_product_videos_fee"], t)}</span>{" "}
-                        <span>
-                          {aditionalVideoFee} {pathOr("", [locale, "Products", "currency"], t)}
-                        </span>
-                      </li>
-                    )}
-                  {auctionFee > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "auction_fee"], t)}</span>{" "}
-                      <span>
-                        {selectedCatProps?.enableAuctionFee} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {negotiationFee > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "negotiation_fee"], t)}</span>{" "}
-                      <span>
-                        {selectedCatProps?.enableNegotiationFee} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {fixedFee > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "fixed_price_selling_fee"], t)}</span>{" "}
-                      <span>
-                        {selectedCatProps?.enableFixedPriceSaleFee} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {auctionClosingTime > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "AuctionClosingTimeFee"], t)}</span>{" "}
-                      <span>
-                        {auctionClosingTime} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {!!(productFullData?.pakatId && productFullData?.isNewPackage) && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "package_price"], t)}</span>{" "}
-                      <span>
-                        {packageDetails?.price} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {couponData && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "coupon_discount"], t)}</span>{" "}
-                      <span>
-                        {"-"}
-                        {couponData.discountValue} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
-                  {taxValue > 0 && (
-                    <li>
-                      <span>{pathOr("", [locale, "Products", "tax"], t)}</span>{" "}
-                      <span>
-                        {totalCost < 0 ? 0 : taxValue} {pathOr("", [locale, "Products", "currency"], t)}
-                      </span>
-                    </li>
-                  )}
+            <div className={styles["Payment-details"]}>
+              {canUseCoupon && (
+                <Fragment>
+                  <div className="f-b mb-2">{pathOr("", [locale, "Products", "have_discount_coupon"], t)} </div>
+                  <div className={`po_R overflow-hidden mb-3 ${styles["search_P"]}`}>
+                    <input
+                      type="text"
+                      className={`form-control ${styles["form-control"]}`}
+                      placeholder={pathOr("", [locale, "Products", "enter_coupon"], t)}
+                      onChange={(e) => setCouponCode(e.target.value)}
+                      value={couponCode}
+                    />
+                    <button
+                      onClick={applyCoupon}
+                      className={`btn-main ${styles["btn-main"]}`}
+                      style={{ right: locale === "en" ? "0" : undefined, left: locale === "en" ? undefined : 0 }}
+                    >
+                      {pathOr("", [locale, "Products", "activate"], t)}
+                    </button>
+                  </div>
+                </Fragment>
+              )}
+              <h6 component="h1">{pathOr("", [locale, "Products", "PaymentDetails"], t)}</h6>
+              <ul className={styles["list_salary"]}>
+                {publishFee > 0 && (
                   <li>
-                    <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
+                    <span>{pathOr("", [locale, "Products", "publishing_price"], t)}</span>{" "}
                     <span>
-                      {couponData && (
-                        <span style={{ textDecoration: couponData ? "line-through" : undefined }}>
-                          {totalWithTax + couponDiscount} {pathOr("", [locale, "Products", "currency"], t)}
-                        </span>
-                      )}{" "}
-                      {totalWithTax && <span>{totalWithTax <= 0 ? 0 : totalWithTax}</span>}{" "}
-                      {pathOr("", [locale, "Products", "currency"], t)}
+                      {publishFee} {currencyLabel}
                     </span>
                   </li>
-                </ul>
-                <hr />
-                <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
-
-                {totalAmount === 0 ? (
-                  <div style={{ fontSize: 12, opacity: 0.85 }}>
-                    {locale === "en" ? "No payment is required for this publish." : "لا يلزم الدفع لنشر هذا المنتج."}
-                  </div>
-                ) : (
-                  <div>
-                    {paymentMethod !== "card" && (
-                      <div className="row">
-                        <div className="col-lg-12">
-                          <div className="form-group">
-                            <div className="form-control outer-check-input  d-flex justify-content-between">
-                              <div className="form-check form-switch p-0 m-0 d-flex w-auto">
-                                <input
-                                  className="form-check-input m-0"
-                                  type="checkbox"
-                                  role="switch"
-                                  id="visa"
-                                  checked={paymentMethod === "card"}
-                                  onChange={handleChooseCard}
-                                />
-                                <span className="bord" />
-                              </div>
-                              <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="col-lg-12">
-                          <div className="form-group">
-                            <div className="form-control outer-check-input d-flex justify-content-between">
-                              <div className="form-check form-switch p-0 m-0 w-auto">
-                                <input
-                                  className="form-check-input m-0"
-                                  type="checkbox"
-                                  role="switch"
-                                  id="wallet"
-                                  checked={paymentMethod === "points"}
-                                  onChange={() => {
-                                    if (paymentMethod === "points") toggleOffPaymentOption()
-                                    else handleChoosePoints()
-                                  }}
-                                />
-                                <span className="bord" />
-                              </div>
-                              <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentMethod === "points" && !!pointsData?.pointsValue && (
-                      <div className="form-group mt-2">
-                        <div
-                          style={{
-                            border: "1px solid var(--main)",
-                            borderRadius: "19px",
-                            padding: "20px",
-                          }}
-                          className="d-flex justify-content-center align-items-center gap-2"
-                        >
-                          <Image src={wallet} alt="wallet" width={55} height={55} />
-                          <p style={{ fontSize: "16px", margin: 0 }}>
-                            {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData.pointsValue}{" "}
-                            {pathOr("", [locale, "Products", "currency"], t)}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {paymentMethod === "card" && (
-                      <div>
-                        <MyFatoorahEmbeddedCard
-                          amount={totalAmount}
-                          currencyCode="KWD"
-                          language={locale}
-                          environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
-                          containerId="card"
-                          settings={myFatoorahSettings}
-                          onReady={({ sessionData }) => {
-                            setMfInitiatedSessionId(sessionData?.sessionId || "")
-                          }}
-                          onEmbeddedCallback={(response) => {
-                            const cbSession =
-                              response?.sessionId ||
-                              response?.SessionId ||
-                              response?.data?.sessionId ||
-                              response?.Data?.SessionId ||
-                              response?.Data?.sessionId
-                            if (cbSession) setMfInitiatedSessionId(cbSession)
-                          }}
-                          executePayment={executePayment}
-                          iframeEnabled
-                          hideDefaultIframe
-                          resetKey={mfResetKey}
-                          onIframeUrlChange={(url) => {
-                            setPaymentIframeUrl(url)
-                            setIsPaymentModalOpen(true)
-                          }}
-                          // keep iframe visible; show final status via SignalR
-                          closeIframeOn3DSMessage={false}
-                          on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
-                          signalR={{
-                            hubUrl: signalRHubUrl,
-                            eventName: "PaymentStatusMessage",
-                            // Start SignalR when user clicks Pay Now (embedded callback)
-                            start: "onPay",
-                            skipNegotiation: true,
-                            transport: "WebSockets",
-                          }}
-                          onPaymentStatus={handlePaymentStatus}
-                          onError={(e) => {
-                            console.error(e)
-                            toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
-                            setIsCheckoutModalOpen("failed")
-                            setLoading(false)
-                          }}
-                        />
-
-                        <button
-                          type="button"
-                          className="btn-main w-100 mt-3"
-                          onClick={handleChangePaymentMethod}
-                          style={{ fontSize: "18px", fontWeight: "normal" }}
-                        >
-                          {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 )}
-              </div>
-            )}
+                {canUseCoupon && couponData && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "couponCode"], t)}</span> <span>{couponCode}</span>
+                  </li>
+                )}
+                {subtitleFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "subtitle_fee"], t)}</span>{" "}
+                    <span>
+                      {subtitleFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {imageFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "additional_product_images_fee"], t)}</span>{" "}
+                    <span>
+                      {imageFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {videoFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "additional_product_videos_fee"], t)}</span>{" "}
+                    <span>
+                      {videoFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {auctionFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "auction_fee"], t)}</span>{" "}
+                    <span>
+                      {auctionFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {negotiationFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "negotiation_fee"], t)}</span>{" "}
+                    <span>
+                      {negotiationFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {fixedFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "fixed_price_selling_fee"], t)}</span>{" "}
+                    <span>
+                      {fixedFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {auctionClosingTime > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "AuctionClosingTimeFee"], t)}</span>{" "}
+                    <span>
+                      {auctionClosingTime} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {pakaFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "package_price"], t)}</span>{" "}
+                    <span>
+                      {pakaFee} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {canUseCoupon && couponDiscount > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "coupon_discount"], t)}</span>{" "}
+                    <span>
+                      {"-"}
+                      {couponDiscount} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                {Number(taxValue) > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Products", "tax"], t)}</span>{" "}
+                    <span>
+                      {displayTaxValue} {currencyLabel}
+                    </span>
+                  </li>
+                )}
+                <li>
+                  <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
+                  <span>
+                    {canUseCoupon && couponDiscount > 0 && (
+                      <span style={{ textDecoration: "line-through" }}>
+                        {totalWithTax + couponDiscount} {currencyLabel}
+                      </span>
+                    )}{" "}
+                    <span>{displayTotal}</span> {currencyLabel}
+                  </span>
+                </li>
+              </ul>
+              <hr />
+              <div className="f-b mb-2">{pathOr("", [locale, "Products", "paymentOptions"], t)}</div>
 
-            {(pathname.includes("edit") || totalAmount === 0 || paymentMethod === "points") && (
+              {totalAmount === 0 ? (
+                <div style={{ fontSize: 12, opacity: 0.85 }}>
+                  {locale === "en" ? "No payment is required for this publish." : "لا يلزم الدفع لنشر هذا المنتج."}
+                </div>
+              ) : (
+                <div>
+                  {paymentMethod !== "card" && (
+                    <div className="row">
+                      <div className="col-lg-12">
+                        <div className="form-group">
+                          <div className="form-control outer-check-input  d-flex justify-content-between">
+                            <div className="form-check form-switch p-0 m-0 d-flex w-auto">
+                              <input
+                                className="form-check-input m-0"
+                                type="checkbox"
+                                role="switch"
+                                id="visa"
+                                checked={paymentMethod === "card"}
+                                onChange={handleChooseCard}
+                              />
+                              <span className="bord" />
+                            </div>
+                            <label htmlFor="visa">{pathOr("", [locale, "Products", "Visa_MasterCard"], t)}</label>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="col-lg-12">
+                        <div className="form-group">
+                          <div className="form-control outer-check-input d-flex justify-content-between">
+                            <div className="form-check form-switch p-0 m-0 w-auto">
+                              <input
+                                className="form-check-input m-0"
+                                type="checkbox"
+                                role="switch"
+                                id="wallet"
+                                checked={paymentMethod === "points"}
+                                onChange={() => {
+                                  if (paymentMethod === "points") toggleOffPaymentOption()
+                                  else handleChoosePoints()
+                                }}
+                              />
+                              <span className="bord" />
+                            </div>
+                            <label htmlFor="wallet">{pathOr("", [locale, "Products", "MyPoints"], t)}</label>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === "points" && !!pointsData?.pointsValue && (
+                    <div className="form-group mt-2">
+                      <div
+                        style={{
+                          border: "1px solid var(--main)",
+                          borderRadius: "19px",
+                          padding: "20px",
+                        }}
+                        className="d-flex justify-content-center align-items-center gap-2"
+                      >
+                        <Image src={wallet} alt="wallet" width={55} height={55} />
+                        <p style={{ fontSize: "16px", margin: 0 }}>
+                          {pathOr("", [locale, "Products", "PointsBalance"], t)} {pointsData.pointsValue}{" "}
+                          {currencyLabel}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {paymentMethod === "card" && (
+                    <div>
+                      <MyFatoorahEmbeddedCard
+                        amount={totalAmount}
+                        currencyCode="KWD"
+                        language={locale}
+                        environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
+                        containerId="card"
+                        settings={myFatoorahSettings}
+                        onReady={({ sessionData }) => {
+                          setMfInitiatedSessionId(sessionData?.sessionId || "")
+                        }}
+                        onEmbeddedCallback={(response) => {
+                          const cbSession =
+                            response?.sessionId ||
+                            response?.SessionId ||
+                            response?.data?.sessionId ||
+                            response?.Data?.SessionId ||
+                            response?.Data?.sessionId
+                          if (cbSession) setMfInitiatedSessionId(cbSession)
+                        }}
+                        executePayment={executePayment}
+                        iframeEnabled
+                        hideDefaultIframe
+                        resetKey={mfResetKey}
+                        onIframeUrlChange={(url) => {
+                          setPaymentIframeUrl(url)
+                          setIsPaymentModalOpen(true)
+                        }}
+                        // keep iframe visible; show final status via SignalR
+                        closeIframeOn3DSMessage={false}
+                        on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
+                        signalR={{
+                          hubUrl: signalRHubUrl,
+                          eventName: "PaymentStatusMessage",
+                          // Start SignalR when user clicks Pay Now (embedded callback)
+                          start: "onPay",
+                          skipNegotiation: true,
+                          transport: "WebSockets",
+                        }}
+                        onPaymentStatus={handlePaymentStatus}
+                        onError={(e) => {
+                          console.error(e)
+                          toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
+                          setIsCheckoutModalOpen("failed")
+                          setLoading(false)
+                        }}
+                      />
+
+                      <button
+                        type="button"
+                        className="btn-main w-100 mt-3"
+                        onClick={handleChangePaymentMethod}
+                        style={{ fontSize: "18px", fontWeight: "normal" }}
+                      >
+                        {locale === "en" ? "Change payment method" : "تغيير طريقة الدفع"}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {(totalAmount === 0 || paymentMethod === "points") && (
               <button
                 className={`${styles["btn-main"]} btn-main mt-2 w-100`}
                 disabled={loading || (paymentMethod === "points" && totalAmount > 0 && !pointsData?.pointsNumber)}

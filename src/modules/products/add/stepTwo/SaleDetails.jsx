@@ -87,7 +87,6 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                                   Price: productPayload.IsNegotiationEnabled ? 0 : productPayload.Price,
                                 })
                               }}
-                              disabled={pathname.includes("edit")}
                             />
                             <label htmlFor="IsFixedPriceEnabled">
                               {pathOr("", [locale, "Products", "adFixed"], t)}
@@ -121,7 +120,6 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                                   IsAuctionEnabled: !productPayload.IsAuctionEnabled,
                                 })
                               }
-                              disabled={pathname.includes("edit")}
                             />
                             <label htmlFor="IsAuctionEnabled">{pathOr("", [locale, "Products", "adAuct"], t)}</label>
                             <span className="bord" />
@@ -156,7 +154,6 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                                   Price: !productPayload.IsNegotiationEnabled ? 0 : productPayload.Price,
                                 })
                               }
-                              disabled={pathname.includes("edit")}
                             />
                             <label htmlFor="IsNegotiationEnabled">
                               {pathOr("", [locale, "Products", "negotiation"], t)}
@@ -272,7 +269,7 @@ const SaleDetails = ({ productPayload, setProductPayload, validateSaleDetails, s
                     </div>
                   </div>
                 </div>
-                {productPayload?.IsAuctionEnabled && !pathname.includes("edit") && (
+                {productPayload?.IsAuctionEnabled && (
                   <>
                     <h5 className="f-b" style={{ ...textAlignStyle(locale), display: "block" }}>
                       {pathOr("", [locale, "Products", "offer_duration"], t)}

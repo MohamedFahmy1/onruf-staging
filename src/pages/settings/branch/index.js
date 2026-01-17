@@ -1,4 +1,3 @@
-import React from "react"
 import Branches from "../../../modules/settings/branches"
 import Head from "next/head"
 import { pathOr } from "ramda"
@@ -9,10 +8,10 @@ const BranchPage = () => {
   const { locale } = useRouter()
   return (
     <main>
-      {/* <Head>
+      <Head>
         <title>{pathOr("", [locale, "websiteTitles", "Branches"], t)}</title>
-      </Head> */}
-      {/* <Branches /> */}
+      </Head>
+      <Branches />
     </main>
   )
 }

@@ -6,6 +6,8 @@ import { getTokensFromCookie } from "../appState/personalData/authActions"
 import { Fragment } from "react"
 import { useRouter } from "next/router"
 import { fetchRoles } from "../appState/rolesSlice/rolesSlice"
+import "moment/locale/ar"
+import moment from "moment"
 
 export const AppWrapper = ({ children }) => {
   const { locale, pathname } = useRouter()
@@ -18,6 +20,7 @@ export const AppWrapper = ({ children }) => {
   // set direction for all pages based on locale
   useEffect(() => {
     document.body.dir = locale === "ar" ? "rtl" : "ltr"
+    moment.locale(locale)
   }, [locale])
 
   // get tokens from cookie to store
