@@ -7,6 +7,10 @@ import { MdModeEdit } from "react-icons/md"
 import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
 import Modal from "react-bootstrap/Modal"
 import axios from "axios"
+import { TextField } from "@mui/material"
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
+import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment"
 import { Button } from "react-bootstrap"
 import { FaPlusCircle } from "react-icons/fa"
 import Link from "next/link"
@@ -591,30 +595,30 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
               </div>
               <div className="form-group">
                 <label>{pathOr("", [locale, "Products", "discountEndDate"], t)}</label>
-                <input
-                  type="datetime-local"
-                  className="form-control"
-                  min={moment().add(1, "minute").format("YYYY-MM-DDTHH:mm")}
-                  onChange={(e) => {
-                    const value = e.target.value
-                    if (!value) return setDiscountDate(value)
+                <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={locale === "ar" ? "ar" : "en"}>
+                  <DateTimePicker
+                    value={discountDate ? moment(discountDate) : null}
+                    minDateTime={moment().add(1, "minute")}
+                    inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm A" : "DD/MM/YYYY - hh:mm A"}
+                    onChange={(newValue) => {
+                      if (!newValue) return setDiscountDate("")
 
-                    const selected = moment(value, moment.HTML5_FMT.DATETIME_LOCAL, true)
-                    if (!selected.isValid()) return setDiscountDate(value)
+                      // if (!newValue.isValid()) return setDiscountDate("")
 
-                    if (selected.isSameOrBefore(moment())) {
-                      toast.error(
-                        locale === "en"
-                          ? "Discount end date must be in the future"
-                          : "تاريخ انتهاء الخصم يجب أن يكون في المستقبل",
-                      )
-                      return setDiscountDate("")
-                    }
+                      // if (newValue.isSameOrBefore(moment())) {
+                      //   toast.error(
+                      //     locale === "en"
+                      //       ? "Discount end date must be in the future"
+                      //       : "تاريخ انتهاء الخصم يجب أن يكون في المستقبل",
+                      //   )
+                      //   return setDiscountDate("")
+                      // }
 
-                    setDiscountDate(value)
-                  }}
-                  value={discountDate}
-                />
+                      setDiscountDate(newValue.format(moment.HTML5_FMT.DATETIME_LOCAL))
+                    }}
+                    renderInput={(params) => <TextField {...params} fullWidth placeholder="asdfa" />}
+                  />
+                </LocalizationProvider>
               </div>
             </Modal.Body>
             <Modal.Footer className="modal-footer">

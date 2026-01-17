@@ -181,7 +181,6 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           <DateTimePicker
             value={moment(productPayload.AuctionClosingTime || nowFormatted)}
             minDateTime={moment().add(4, "hours")}
-            toolbarPlaceholder={"dsaf"}
             inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a"}
             onChange={(newValue) => {
               if (!newValue) return
