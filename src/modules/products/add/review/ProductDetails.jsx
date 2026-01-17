@@ -147,7 +147,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         fees.auctionClosingTime = Number(selectedCatProps?.auctionClosingTimeFee) || 0
       }
 
-      if (productFullData?.pakatId && productFullData?.isNewPackage) {
+      if (productFullData?.pakatId !== initalProductPayload?.productPaymentDetailsDto?.pakatId) {
         fees.pakaFee = Number(packageDetails?.price) || 0
       }
     } else {
