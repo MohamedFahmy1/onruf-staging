@@ -92,26 +92,27 @@ const Orders = () => {
     } = await axios(
       `/GetBusinessAccountOrders?pageIndex=1&PageRowsCount=1000${orderStatus ? `&orderStatus=${orderStatus}` : ""}`,
     )
+    const WaitingForReview = data.filter((item) => item.orderStatus == 2)
+    const InProgress = data.filter((item) => item.orderStatus === 3)
+    const DeliveryInProgress = data.filter((item) => item.orderStatus === 5)
+    const Delivered = data.filter((item) => item.orderStatus === 6)
+    const Canceled = data.filter((item) => item.orderStatus === 7)
     if (!orderStatus) {
-      // const WaitingForPayment = data.filter((item) => item.status === "Waiting For Payment")
-      const WaitingForReview = data.filter((item) => item.status === "Waiting For Review")
-      const InProgress = data.filter((item) => item.status === "In Progress")
-      // const ReadyForDelivery = data.filter((item) => item.status === "Ready For Delivery")
-      const DeliveryInProgress = data.filter((item) => item.status === "Delivery In Progress")
-      const Delivered = data.filter((item) => item.status === "Delivered")
-      const Canceled = data.filter((item) => item.status === "Canceled")
       setTotalOrders({
         total: data.length,
-        // WaitingForPayment: WaitingForPayment.length,
         WaitingForReview: WaitingForReview.length,
         InProgress: InProgress.length,
-        // ReadyForDelivery: ReadyForDelivery.length,
         DeliveryInProgress: DeliveryInProgress.length,
         Delivered: Delivered.length,
         Canceled: Canceled.length,
       })
       setOrderStatus("WaitingForReview")
       setFilterdOrders()
+    } else {
+      setTotalOrders((prev) => ({
+        ...prev,
+        [orderStatus]: data.length,
+      }))
     }
     setSelectedRows()
     setOrders(data)
