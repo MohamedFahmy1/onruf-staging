@@ -27,6 +27,7 @@ export function useSignalRPaymentStatus({
   withUrlOptions,
   onMessage,
   logLevel = "Information",
+  debug = false,
 } = {}) {
   const [lastStatus, setLastStatus] = useState(null)
   const [isConnected, setIsConnected] = useState(false)
@@ -36,9 +37,18 @@ export function useSignalRPaymentStatus({
   onMessageRef.current = onMessage
 
   const connectionRef = useRef(null)
+  const eventNames = Array.isArray(eventName) ? eventName : [eventName]
+  const normalizedEventNames = Array.from(
+    new Set(
+      eventNames
+        .map((name) => (typeof name === "string" ? name.trim() : ""))
+        .filter((name) => name.length > 0),
+    ),
+  )
+  const eventKey = normalizedEventNames.join("|")
 
   useEffect(() => {
-    if (!enabled || !hubUrl) return undefined
+    if (!enabled || !hubUrl || !eventKey) return undefined
 
     let didCancel = false
 
@@ -64,43 +74,90 @@ export function useSignalRPaymentStatus({
 
     connectionRef.current = connection
 
+    const log = (...args) => {
+      if (!debug) return
+      console.info("[SignalRPaymentStatus]", ...args)
+    }
+
+    log("connecting", {
+      hubUrl: url,
+      eventNames: normalizedEventNames,
+      skipNegotiation: options.skipNegotiation,
+      transport: options.transport,
+      hasAccessTokenFactory: !!accessTokenFactory,
+    })
+
     connection.onclose((err) => {
       if (didCancel) return
       setIsConnected(false)
+      if (err) log("closed", err)
       if (err) setError(err)
     })
 
-    connection.on(eventName, (message) => {
+    connection.onreconnecting((err) => {
       if (didCancel) return
-      setLastStatus(message)
-      if (typeof onMessageRef.current === "function") onMessageRef.current(message)
+      log("reconnecting", err)
+    })
+
+    connection.onreconnected((connectionId) => {
+      if (didCancel) return
+      log("reconnected", { connectionId })
+    })
+
+    const handlers = new Map()
+    normalizedEventNames.forEach((name) => {
+      const handler = (message) => {
+        if (didCancel) return
+        log("message", { eventName: name, message })
+        setLastStatus(message)
+        if (typeof onMessageRef.current === "function") onMessageRef.current(message, name)
+      }
+      handlers.set(name, handler)
+      connection.on(name, handler)
     })
     ;(async () => {
       try {
         await connection.start()
         if (didCancel) return
         setIsConnected(true)
+        log("connected", { connectionId: connection.connectionId })
       } catch (e) {
         if (didCancel) return
         setError(e)
         setIsConnected(false)
+        log("start error", e)
       }
     })()
 
     return () => {
       didCancel = true
-      try {
-        connection.off(eventName)
-      } catch (_) {
-        // ignore
-      }
+      normalizedEventNames.forEach((name) => {
+        const handler = handlers.get(name)
+        try {
+          if (handler) connection.off(name, handler)
+          else connection.off(name)
+        } catch (_) {
+          // ignore
+        }
+      })
       try {
         connection.stop()
       } catch (_) {
         // ignore
       }
     }
-  }, [hubUrl, enabled, eventName, accessTokenFactory, skipNegotiation, transport, headers, withUrlOptions, logLevel])
+  }, [
+    hubUrl,
+    enabled,
+    eventKey,
+    accessTokenFactory,
+    skipNegotiation,
+    transport,
+    headers,
+    withUrlOptions,
+    logLevel,
+    debug,
+  ])
 
   return { lastStatus, isConnected, error, connection: connectionRef.current }
 }

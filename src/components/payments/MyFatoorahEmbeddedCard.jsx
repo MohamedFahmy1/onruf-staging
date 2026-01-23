@@ -53,6 +53,13 @@ function safeStringify(value) {
   }
 }
 
+function maskId(value) {
+  if (!value) return ""
+  const str = String(value)
+  if (str.length <= 8) return str
+  return `${str.slice(0, 4)}...${str.slice(-4)}`
+}
+
 function extractInitiateSessionData(apiResponse) {
   // Supports both:
   // - MyFatoorah raw response: { Data: { SessionId, CountryCode } }
@@ -214,6 +221,11 @@ export default function MyFatoorahEmbeddedCard({
   const [last3dsUrl, setLast3dsUrl] = useState(null)
   const [hasPayStarted, setHasPayStarted] = useState(false)
   const { locale } = useRouter()
+  const debug = !!signalR?.debug
+  const log = (...args) => {
+    if (!debug) return
+    console.info("[MyFatoorahEmbeddedCard]", ...args)
+  }
 
   const initKeyRef = useRef(null)
   const initiateKeyRef = useRef(null)
@@ -363,11 +375,12 @@ export default function MyFatoorahEmbeddedCard({
     transport: signalR?.transport,
     headers: signalR?.headers,
     withUrlOptions: signalR?.withUrlOptions,
-    onMessage: (message) => {
-      if (typeof signalR?.onMessage === "function") signalR.onMessage(message)
-      if (typeof onPaymentStatus === "function") onPaymentStatus(message)
+    onMessage: (message, eventName) => {
+      if (typeof signalR?.onMessage === "function") signalR.onMessage(message, eventName)
+      if (typeof onPaymentStatus === "function") onPaymentStatus(message, eventName)
     },
     logLevel: signalR?.logLevel || "Information",
+    debug: signalR?.debug,
   })
 
   // Load MF script
@@ -419,9 +432,11 @@ export default function MyFatoorahEmbeddedCard({
           throw new Error("InitiateSession did not return { sessionId, countryCode }")
         }
         setSessionData({ sessionId: data.sessionId, countryCode: data.countryCode })
+        log("session initiated", { sessionId: maskId(data.sessionId), countryCode: data.countryCode })
       } catch (e) {
         if (!alive) return
         if (typeof onErrorRef.current === "function") onErrorRef.current(e)
+        log("session init error", e)
       } finally {
         if (alive) setIsLoadingSession(false)
         initiateInFlightRef.current = false
@@ -467,12 +482,16 @@ export default function MyFatoorahEmbeddedCard({
         if (typeof onEmbeddedCallbackRef.current === "function") onEmbeddedCallbackRef.current(response)
 
         try {
-          if (!response?.isSuccess) return
+          if (!response?.isSuccess) {
+            log("embedded callback not successful", response)
+            return
+          }
           // User pressed Pay Now and MF accepted card input.
           setHasPayStarted(true)
           if (executePayment) {
             const cbSessionId = extractCallbackSessionId(response)
             if (!cbSessionId) throw new Error("MyFatoorah callback did not include a SessionId")
+            log("executePayment requested", { sessionId: maskId(cbSessionId), amount })
 
             // IMPORTANT:
             // Do not `await` here — MF's embedded button can stay stuck in "Payment Loading"
@@ -482,16 +501,21 @@ export default function MyFatoorahEmbeddedCard({
                 const url = extractPaymentUrl(result)
                 if (url) {
                   setIframeUrl(url)
+                  log("payment url resolved", url)
                   if (typeof onIframeUrlChange === "function") onIframeUrlChange(url)
                   if (typeof onPaymentUrlRef.current === "function") onPaymentUrlRef.current(url, result)
+                } else {
+                  log("payment url missing", result)
                 }
               })
               .catch((e) => {
                 if (typeof onErrorRef.current === "function") onErrorRef.current(e)
+                log("executePayment error", e)
               })
           }
         } catch (e) {
           if (typeof onErrorRef.current === "function") onErrorRef.current(e)
+          log("embedded callback error", e)
         }
       },
       containerId,

@@ -30,6 +30,15 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [paymentMethod, setPaymentMethod] = useState(null) // null | "card" | "points"
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [pointsData, setPointsData] = useState({})
+  const debugPayments =
+    process.env.NEXT_PUBLIC_DEBUG_PAYMENTS === "true" || process.env.NODE_ENV !== "production"
+  const logPayment = useCallback(
+    (...args) => {
+      if (!debugPayments) return
+      console.info("[ProductDetails:payment]", ...args)
+    },
+    [debugPayments],
+  )
 
   const [mfInitiatedSessionId, setMfInitiatedSessionId] = useState("")
   const hasSubmittedAfterPaymentRef = useRef(false)
@@ -389,16 +398,23 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   // We pass the callback SessionId override into the form data to ensure it is included.
   const executePayment = useCallback(
     async ({ sessionId }) => {
-      if (hasRequestedPaymentRef.current) return null
+      if (hasRequestedPaymentRef.current) {
+        logPayment("executePayment skipped: already requested")
+        return null
+      }
       hasRequestedPaymentRef.current = true
+      logPayment("executePayment start", { isEditFlow, hasSessionId: !!sessionId, totalAmount })
       try {
-        return await submitProduct({ sessionIdOverride: sessionId, paymentType: "card" })
+        const result = await submitProduct({ sessionIdOverride: sessionId, paymentType: "card" })
+        logPayment("executePayment response", { hasData: !!result?.data })
+        return result
       } catch (e) {
         hasRequestedPaymentRef.current = false
+        logPayment("executePayment error", e)
         throw e
       }
     },
-    [submitProduct],
+    [submitProduct, logPayment, isEditFlow, totalAmount],
   )
 
   const handleAcceptPoints = (pointsValue, pointsNumber) => {
@@ -432,8 +448,44 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setMfResetKey((k) => k + 1)
   }
 
-  const handlePaymentStatus = useCallback(async (status) => {
+  const handlePaymentStatus = useCallback(async (rawStatus) => {
     // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
+    const extractFromObject = (value) => {
+      if (!value || typeof value !== "object") return ""
+      const direct =
+        value.status ||
+        value.Status ||
+        value.message ||
+        value.Message ||
+        value.paymentStatus ||
+        value.PaymentStatus ||
+        value.result ||
+        value.Result ||
+        value.value ||
+        value.Value
+      if (direct !== undefined && direct !== null) return String(direct).trim()
+      const nested = value.data || value.Data
+      if (nested && typeof nested === "object") return extractFromObject(nested)
+      return ""
+    }
+    const normalizeStatus = (value) => {
+      if (value === undefined || value === null) return ""
+      if (typeof value === "string") {
+        const trimmed = value.trim()
+        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+          try {
+            return normalizeStatus(JSON.parse(trimmed))
+          } catch (_) {
+            return trimmed
+          }
+        }
+        return trimmed
+      }
+      if (typeof value === "object") return extractFromObject(value)
+      return String(value).trim()
+    }
+    const status = normalizeStatus(rawStatus)
+    logPayment("payment status received", { rawStatus, status })
     switch (status) {
       case "PaymentSuccessMessage":
         setIsCheckoutModalOpen("success")
@@ -453,16 +505,40 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       case "PaymentPendingMessage":
         return
       default:
-        // Unknown status -> treat as failure for safety
-        setIsCheckoutModalOpen("failed")
-        setLoading(false)
-        setIsPaymentModalOpen(false)
-        setPaymentIframeUrl("")
-        setMfResetKey((k) => k + 1)
-        hasRequestedPaymentRef.current = false
-        return
+        break
     }
-  }, [])
+
+    const statusLower = status.toLowerCase()
+    if (statusLower.includes("success")) {
+      setIsCheckoutModalOpen("success")
+      setLoading(false)
+      setIsPaymentModalOpen(false)
+      setPaymentIframeUrl("")
+      setMfResetKey((k) => k + 1)
+      return
+    }
+    if (statusLower.includes("pending")) {
+      return
+    }
+    if (statusLower.includes("fail") || statusLower.includes("error")) {
+      setIsCheckoutModalOpen("failed")
+      setLoading(false)
+      setIsPaymentModalOpen(false)
+      setPaymentIframeUrl("")
+      setMfResetKey((k) => k + 1)
+      hasRequestedPaymentRef.current = false
+      return
+    }
+
+    // Unknown status -> treat as failure for safety
+    setIsCheckoutModalOpen("failed")
+    setLoading(false)
+    setIsPaymentModalOpen(false)
+    setPaymentIframeUrl("")
+    setMfResetKey((k) => k + 1)
+    hasRequestedPaymentRef.current = false
+    return
+  }, [logPayment])
 
   const signalRHubUrl = useMemo(() => {
     const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
@@ -1073,21 +1149,31 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         onIframeUrlChange={(url) => {
                           setPaymentIframeUrl(url)
                           setIsPaymentModalOpen(true)
+                          logPayment("iframe url received", url)
                         }}
                         // keep iframe visible; show final status via SignalR
                         closeIframeOn3DSMessage={false}
-                        on3DSRedirectUrl={() => setIsCheckoutModalOpen("loading")}
+                        on3DSRedirectUrl={(url, message) => {
+                          logPayment("3ds redirect", { url, message })
+                          setIsCheckoutModalOpen("loading")
+                        }}
                         signalR={{
                           hubUrl: signalRHubUrl,
-                          eventName: "PaymentStatusMessage",
-                          // Start SignalR when user clicks Pay Now (embedded callback)
-                          start: "onPay",
+                          eventName: isEditFlow
+                            ? ["PaymentStatusMessage", "PaymentStatus", "paymentStatusMessage", "paymentStatus"]
+                            : "PaymentStatusMessage",
+                          // Keep edit flow connected before EditProduct fires.
+                          start: isEditFlow ? "onMount" : "onPay",
                           skipNegotiation: true,
                           transport: "WebSockets",
+                          debug: debugPayments,
+                          onMessage: (message, eventName) => logPayment("signalR message", { eventName, message }),
+                          logLevel: debugPayments ? "Debug" : "Information",
                         }}
                         onPaymentStatus={handlePaymentStatus}
                         onError={(e) => {
                           console.error(e)
+                          logPayment("payment error", e)
                           toast.error(locale === "en" ? "Payment error" : "حدث خطأ أثناء الدفع")
                           setIsCheckoutModalOpen("failed")
                           setLoading(false)
