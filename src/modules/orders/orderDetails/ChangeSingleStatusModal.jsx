@@ -62,7 +62,7 @@ const ChangeStatusModal = ({ openModal, setOpenModal, selectedOrder }) => {
               </button>
             </div>
           </Col> */}
-          {selectedOrder?.orderStatus <= 3 && (
+          {selectedOrder?.orderStatus < 3 && (
             <Col md={12}>
               <div className="mb-2 text-center">
                 <button
