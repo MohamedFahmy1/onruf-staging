@@ -262,8 +262,6 @@ export default function MyFatoorahEmbeddedCard({
 
   const resolvedHubUrl = useMemo(() => {
     if (signalR?.hubUrl) return signalR.hubUrl
-    const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
-    if (envHub) return envHub
     const base = process.env.NEXT_PUBLIC_API_URL
     if (!base) return ""
     return `${String(base).replace(/\/+$/, "")}/chatHub`

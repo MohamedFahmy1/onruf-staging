@@ -30,8 +30,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const [paymentMethod, setPaymentMethod] = useState(null) // null | "card" | "points"
   const [isPointsModalOpen, setIsPointsModalOpen] = useState(false)
   const [pointsData, setPointsData] = useState({})
-  const debugPayments =
-    process.env.NEXT_PUBLIC_DEBUG_PAYMENTS === "true" || process.env.NODE_ENV !== "production"
+  const debugPayments = process.env.NODE_ENV !== "production"
   const logPayment = useCallback(
     (...args) => {
       if (!debugPayments) return
@@ -53,7 +52,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     hasRequestedPaymentRef.current = false
   }, [mfInitiatedSessionId])
 
-  const isEditFlow = pathname.includes("edit")
+  const isEditFlow = pathname.includes("edit") || !!(pathname.includes("repost") && !initalProductPayload?.isExpired)
   const canUseCoupon = !isEditFlow
 
   const hasSubtitle = (payload) => {
@@ -448,53 +447,80 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setMfResetKey((k) => k + 1)
   }
 
-  const handlePaymentStatus = useCallback(async (rawStatus) => {
-    // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
-    const extractFromObject = (value) => {
-      if (!value || typeof value !== "object") return ""
-      const direct =
-        value.status ||
-        value.Status ||
-        value.message ||
-        value.Message ||
-        value.paymentStatus ||
-        value.PaymentStatus ||
-        value.result ||
-        value.Result ||
-        value.value ||
-        value.Value
-      if (direct !== undefined && direct !== null) return String(direct).trim()
-      const nested = value.data || value.Data
-      if (nested && typeof nested === "object") return extractFromObject(nested)
-      return ""
-    }
-    const normalizeStatus = (value) => {
-      if (value === undefined || value === null) return ""
-      if (typeof value === "string") {
-        const trimmed = value.trim()
-        if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
-          try {
-            return normalizeStatus(JSON.parse(trimmed))
-          } catch (_) {
-            return trimmed
-          }
-        }
-        return trimmed
+  const handlePaymentStatus = useCallback(
+    async (rawStatus) => {
+      // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
+      const extractFromObject = (value) => {
+        if (!value || typeof value !== "object") return ""
+        const direct =
+          value.status ||
+          value.Status ||
+          value.message ||
+          value.Message ||
+          value.paymentStatus ||
+          value.PaymentStatus ||
+          value.result ||
+          value.Result ||
+          value.value ||
+          value.Value
+        if (direct !== undefined && direct !== null) return String(direct).trim()
+        const nested = value.data || value.Data
+        if (nested && typeof nested === "object") return extractFromObject(nested)
+        return ""
       }
-      if (typeof value === "object") return extractFromObject(value)
-      return String(value).trim()
-    }
-    const status = normalizeStatus(rawStatus)
-    logPayment("payment status received", { rawStatus, status })
-    switch (status) {
-      case "PaymentSuccessMessage":
+      const normalizeStatus = (value) => {
+        if (value === undefined || value === null) return ""
+        if (typeof value === "string") {
+          const trimmed = value.trim()
+          if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+            try {
+              return normalizeStatus(JSON.parse(trimmed))
+            } catch (_) {
+              return trimmed
+            }
+          }
+          return trimmed
+        }
+        if (typeof value === "object") return extractFromObject(value)
+        return String(value).trim()
+      }
+      const status = normalizeStatus(rawStatus)
+      logPayment("payment status received", { rawStatus, status })
+      switch (status) {
+        case "PaymentSuccessMessage":
+          setIsCheckoutModalOpen("success")
+          setLoading(false)
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          setMfResetKey((k) => k + 1)
+          return
+        case "PaymentFailedMessage":
+          setIsCheckoutModalOpen("failed")
+          setLoading(false)
+          setIsPaymentModalOpen(false)
+          setPaymentIframeUrl("")
+          setMfResetKey((k) => k + 1)
+          hasRequestedPaymentRef.current = false
+          return
+        case "PaymentPendingMessage":
+          return
+        default:
+          break
+      }
+
+      const statusLower = status.toLowerCase()
+      if (statusLower.includes("success")) {
         setIsCheckoutModalOpen("success")
         setLoading(false)
         setIsPaymentModalOpen(false)
         setPaymentIframeUrl("")
         setMfResetKey((k) => k + 1)
         return
-      case "PaymentFailedMessage":
+      }
+      if (statusLower.includes("pending")) {
+        return
+      }
+      if (statusLower.includes("fail") || statusLower.includes("error")) {
         setIsCheckoutModalOpen("failed")
         setLoading(false)
         setIsPaymentModalOpen(false)
@@ -502,25 +528,9 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
         setMfResetKey((k) => k + 1)
         hasRequestedPaymentRef.current = false
         return
-      case "PaymentPendingMessage":
-        return
-      default:
-        break
-    }
+      }
 
-    const statusLower = status.toLowerCase()
-    if (statusLower.includes("success")) {
-      setIsCheckoutModalOpen("success")
-      setLoading(false)
-      setIsPaymentModalOpen(false)
-      setPaymentIframeUrl("")
-      setMfResetKey((k) => k + 1)
-      return
-    }
-    if (statusLower.includes("pending")) {
-      return
-    }
-    if (statusLower.includes("fail") || statusLower.includes("error")) {
+      // Unknown status -> treat as failure for safety
       setIsCheckoutModalOpen("failed")
       setLoading(false)
       setIsPaymentModalOpen(false)
@@ -528,22 +538,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       setMfResetKey((k) => k + 1)
       hasRequestedPaymentRef.current = false
       return
-    }
-
-    // Unknown status -> treat as failure for safety
-    setIsCheckoutModalOpen("failed")
-    setLoading(false)
-    setIsPaymentModalOpen(false)
-    setPaymentIframeUrl("")
-    setMfResetKey((k) => k + 1)
-    hasRequestedPaymentRef.current = false
-    return
-  }, [logPayment])
+    },
+    [logPayment],
+  )
 
   const signalRHubUrl = useMemo(() => {
-    const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
-    if (envHub) return envHub
-
     const api = process.env.NEXT_PUBLIC_API_URL || ""
     // Common case: API base includes /api/v1, while hub is hosted at root /chatHub
     const base = String(api)
@@ -551,73 +550,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       .replace(/\/+$/, "")
     return base ? `${base}/chatHub` : "/chatHub"
   }, [])
-
-  const myFatoorahSettings = {
-    card: {
-      style: {
-        hideNetworkIcons: false,
-        cardHeight: "250px",
-        tokenHeight: "230px",
-        input: {
-          color: "#333333",
-          fontSize: "15px",
-          fontFamily: "Arial, sans-serif",
-          inputHeight: "42px",
-          inputMargin: "8px",
-          borderColor: "#d1d5db",
-          backgroundColor: "#ffffff",
-          borderWidth: "1px",
-          borderRadius: "8px",
-          placeHolder: {
-            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
-            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
-            expiryDate: "MM/YY",
-            securityCode: "CVV",
-          },
-        },
-        label: {
-          display: true,
-          color: "#374151",
-          fontSize: "14px",
-          fontWeight: "bold",
-          fontFamily: "Madani-Arabic-Regular, sans-serif",
-          text: {
-            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
-            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
-            expiryDate: locale === "en" ? "Expiry Date" : "تاريخ الانتهاء",
-            securityCode: "CVV",
-          },
-        },
-        error: {
-          borderColor: "#ef4444",
-          borderRadius: "8px",
-        },
-        button: {
-          useCustomButton: false,
-          textContent: locale === "en" ? "Pay Now" : "ادفع الآن",
-          fontSize: "18px",
-          fontFamily: "serif",
-          color: "#ffffff",
-          backgroundColor: "#ee6c4d",
-          height: "52px",
-          borderRadius: "50px",
-          width: "100%",
-          margin: "16px auto 0 auto",
-          cursor: "pointer",
-        },
-        text: {
-          saveCard: "Save card for future payments",
-          addCard: "Use another card",
-          deleteAlert: {
-            title: "Delete Card",
-            message: "Are you sure you want to delete this card?",
-            confirm: "Yes",
-            cancel: "No",
-          },
-        },
-      },
-    },
-  }
 
   return (
     <div style={{ padding: "20px 0 !important" }}>
@@ -1129,7 +1061,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                         language={locale}
                         environment={process.env.NEXT_PUBLIC_MYFATOORAH_ENV || "test"}
                         containerId="card"
-                        settings={myFatoorahSettings}
                         onReady={({ sessionData }) => {
                           setMfInitiatedSessionId(sessionData?.sessionId || "")
                         }}

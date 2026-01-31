@@ -177,9 +177,6 @@ const PackageCheckout = () => {
   }
 
   const signalRHubUrl = useMemo(() => {
-    const envHub = process.env.NEXT_PUBLIC_SIGNALR_HUB_URL
-    if (envHub) return envHub
-
     const api = process.env.NEXT_PUBLIC_API_URL || ""
     const base = String(api)
       .replace(/\/api\/v\d+\/?$/i, "")
