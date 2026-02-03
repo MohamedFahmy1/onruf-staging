@@ -9,7 +9,7 @@ import Image from "next/image"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
 
 const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
-  const { locale, push } = useRouter()
+  const { locale, push, pathname } = useRouter()
 
   const handleNavigate = () => {
     push("/products")
@@ -20,6 +20,8 @@ const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
   }
 
   let content = <></>
+
+  const isEdit = pathname.includes("edit")
 
   switch (isModalOpen) {
     case "loading":
@@ -37,7 +39,9 @@ const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
         <>
           <Image src={success} alt="success" width={150} height={150} />
           <p style={{ fontSize: "26px", marginBlock: "25px" }}>
-            {pathOr("", [locale, "Products", "PaymentSuccess"], t)}
+            {isEdit
+              ? pathOr("", [locale, "Products", "PaymentSuccessEdit"], t)
+              : pathOr("", [locale, "Products", "PaymentSuccess"], t)}
           </p>
           <button
             className="btn-main"
