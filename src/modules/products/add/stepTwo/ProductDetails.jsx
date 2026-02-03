@@ -223,7 +223,10 @@ const ProductDetails = ({
                         id={subSpecification.id}
                         name={spesfication.id}
                         className="mx-2"
-                        checked={productPayload.productSep[index]?.ValueSpeAr === String(subSpecification.id)}
+                        checked={
+                          productPayload.productSep[index]?.ValueSpeAr === String(subSpecification.id) ||
+                          productPayload.productSep[index]?.ValueSpeEn === String(subSpecification.id)
+                        }
                         onChange={(e) => onChangeSpesfication(e, index, spesfication.type)}
                         value={subSpecification.id}
                       />
@@ -247,7 +250,11 @@ const ProductDetails = ({
                         checked={
                           productPayload.productSep[index]?.ValueSpeAr?.split(",").includes(
                             String(subSpecification.id),
-                          ) || false
+                          ) ||
+                          productPayload.productSep[index]?.ValueSpeEn?.split(",").includes(
+                            String(subSpecification.id),
+                          ) ||
+                          false
                         }
                         onChange={(e) => onChangeSpesfication(e, index, spesfication.type)}
                         value={subSpecification.id}
