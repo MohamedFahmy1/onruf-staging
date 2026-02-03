@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo } from "react"
+import { useRef, useState, useMemo, useEffect } from "react"
 import styles from "./stepTwo.module.css"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
@@ -18,12 +18,56 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
   const nowMoment = useMemo(() => moment(), [])
   const nowFormatted = useMemo(() => nowMoment.add(4, "hours").format("YYYY-MM-DD[T]HH:mm"), [nowMoment])
 
-  const safeDefaultValue = useMemo(() => {
-    if (!productPayload.AuctionClosingTime) return nowFormatted
+  const closingPeriods = useMemo(() => {
+    const rawPeriods = selectedCatProps?.auctionClosingPeriods
+    if (!rawPeriods) return []
+    return rawPeriods
+      .split(",")
+      .map((item) => Number(item.trim()))
+      .filter((item) => Number.isFinite(item))
+  }, [selectedCatProps?.auctionClosingPeriods])
 
-    const payloadTime = moment(productPayload.AuctionClosingTime)
-    return payloadTime.isBefore(nowMoment) ? nowFormatted : payloadTime.format("YYYY-MM-DD[T]HH:mm")
-  }, [productPayload.AuctionClosingTime, nowFormatted, nowMoment])
+  useEffect(() => {
+    if (!productPayload?.IsAuctionClosingTimeFixed) {
+      if (activeElementIndex !== null) setActiveElementIndex(null)
+      return
+    }
+
+    if (!productPayload?.AuctionClosingTime || closingPeriods.length === 0) {
+      if (activeElementIndex !== null) setActiveElementIndex(null)
+      return
+    }
+
+    const unitMapping = { 1: "days", 2: "weeks", 3: "months" }
+    const unit = unitMapping[selectedCatProps?.auctionClosingPeriodsUnit]
+    if (!unit) return
+
+    const closingMoment = moment(productPayload.AuctionClosingTime)
+    if (!closingMoment.isValid()) return
+
+    const now = moment()
+    let closestPeriod = null
+    let closestDiff = Infinity
+
+    closingPeriods.forEach((period) => {
+      const expected = now.clone().add(period, unit)
+      const diff = Math.abs(expected.diff(closingMoment))
+      if (diff < closestDiff) {
+        closestDiff = diff
+        closestPeriod = period
+      }
+    })
+
+    if (closestPeriod !== null && closestPeriod !== activeElementIndex) {
+      setActiveElementIndex(closestPeriod)
+    }
+  }, [
+    productPayload?.IsAuctionClosingTimeFixed,
+    productPayload?.AuctionClosingTime,
+    closingPeriods,
+    selectedCatProps?.auctionClosingPeriodsUnit,
+    activeElementIndex,
+  ])
 
   function renderFixedLengthDays(item) {
     switch (item) {
@@ -73,27 +117,6 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
     if (dateTimeInput.current) dateTimeInput.current.value = ""
   }
 
-  const handleChangeAuctionClosingTime = (e) => {
-    const selected = moment(e.target.value)
-
-    if (selected.isBefore(moment().add(4, "hours"))) {
-      e.target.value = nowFormatted
-      setProductPayload({
-        ...productPayload,
-        AuctionClosingTime: nowFormatted,
-        IsAuctionClosingTimeFixed: false,
-      })
-      return
-    }
-
-    setProductPayload({
-      ...productPayload,
-      AuctionClosingTime: e.target.value,
-      IsAuctionClosingTimeFixed: false,
-    })
-    setActiveElementIndex(null)
-  }
-
   return (
     <div className="col-md-12 col-lg-6 d-flex flex-wrap flex-lg-nowrap w-100 gap-5 mb-4">
       <div
@@ -122,7 +145,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
         </div>
 
         <div className="d-flex gap-3 flex-wrap">
-          {selectedCatProps.auctionClosingPeriods.split(",").map((item, index) => {
+          {closingPeriods.map((item, index) => {
             const auctionClosingTime = calculateFutureDate(item, selectedCatProps.auctionClosingPeriodsUnit)
             return (
               <div
