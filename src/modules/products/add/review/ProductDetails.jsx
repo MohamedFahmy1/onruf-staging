@@ -1166,7 +1166,11 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
           </div>
         </Col>
         {isCheckoutModalOpen && (
-          <CheckoutModal isModalOpen={isCheckoutModalOpen} setIsModalOpen={setIsCheckoutModalOpen} />
+          <CheckoutModal
+            isModalOpen={isCheckoutModalOpen}
+            setIsModalOpen={setIsCheckoutModalOpen}
+            totalAmount={totalAmount}
+          />
         )}
 
         {isPointsModalOpen && (

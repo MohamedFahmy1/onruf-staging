@@ -8,7 +8,7 @@ import failed from "../../../../../public/images/failed.png"
 import Image from "next/image"
 import { textAlignStyle } from "../../../../styles/stylesObjects"
 
-const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
+const CheckoutModal = ({ isModalOpen, setIsModalOpen, totalAmount }) => {
   const { locale, push, pathname } = useRouter()
 
   const handleNavigate = () => {
@@ -29,7 +29,9 @@ const CheckoutModal = ({ isModalOpen, setIsModalOpen }) => {
         <div className="mt-5">
           <Image src={loading} alt="loading" width={150} height={150} />
           <p style={{ fontSize: "26px", marginBlock: "40px" }}>
-            {pathOr("", [locale, "Products", "PaymentLoading"], t)}
+            {totalAmount == 0 && isEdit
+              ? pathOr("", [locale, "Products", "EditLoading"], t)
+              : pathOr("", [locale, "Products", "PaymentLoading"], t)}
           </p>
         </div>
       )

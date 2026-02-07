@@ -241,12 +241,12 @@ export const OrderDetails = () => {
             <div className="detalis-customer">
               <div className="d-flex gap-2 mb-2 p-3">
                 <ResponsiveImage imageSrc={clientImage} alt={"client"} />
-                <div>
-                  <div className="mb-2">
+                <div className="d-flex align-items-center">
+                  <div>
                     <h6 className="f-b m-0">{clientName}</h6>
                     <div className="gray-color">{clientEmail}</div>
                   </div>
-                  <ul className="d-flex gap-1 contuct">
+                  {/* <ul className="d-flex gap-1 contuct">
                     <li>
                       <Image src={email} alt="email" width={50} height={50} />
                     </li>
@@ -256,7 +256,7 @@ export const OrderDetails = () => {
                     <li>
                       <Image src={whatsapp} alt="whatsapp" width={50} height={50} />
                     </li>
-                  </ul>
+                  </ul> */}
                 </div>
               </div>
               <hr className="m-0" />
