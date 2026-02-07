@@ -7,10 +7,12 @@ import t from "../../../../translations.json"
 import { useFetch } from "../../../../hooks/useFetch"
 import { useState } from "react"
 import { onlyNumbersInInputs } from "../../../../common/functions"
+import { FaEdit } from "react-icons/fa"
 
 const ShippingAndDuration = ({ productPayload, setProductPayload, validateDurationAndShipping, setEventKey }) => {
   const { locale } = useRouter()
   const { data: shippingOptions } = useFetch("/GetAllShippingOptions")
+
   const secondaryShippingOptions = [
     {
       id: 4,
@@ -124,16 +126,34 @@ const ShippingAndDuration = ({ productPayload, setProductPayload, validateDurati
                 {secondaryShippingOptions.map((item) => (
                   <div className="form-group" key={item.id}>
                     <div className="form-control outer-check-input orange-border">
-                      <div className="form-check form-switch p-0 m-0">
-                        <input
-                          className="form-check-input m-0"
-                          type="checkbox"
-                          role="switch"
-                          id={item.id + " ShippingOptions"}
-                          checked={productPayload.ShippingOptions?.includes(item.id)}
-                          onChange={() => handleShippingOptions(item.id)}
-                        />
-                        <label htmlFor={item.id + " ShippingOptions"}>{item.shippingOptionName}</label>
+                      <div className="form-check form-switch p-0 m-0 d-flex justify-content-between align-items-center">
+                        <div>
+                          <input
+                            className="form-check-input m-0"
+                            type="checkbox"
+                            role="switch"
+                            id={item.id + " ShippingOptions"}
+                            checked={productPayload.ShippingOptions?.includes(item.id)}
+                            onChange={() => handleShippingOptions(item.id)}
+                          />
+                          <label htmlFor={item.id + " ShippingOptions"}>{item.shippingOptionName}</label>
+                        </div>
+                        {item.id === 4 && (
+                          <FaEdit
+                            className="pointer"
+                            color="#ee6c4d"
+                            onClick={() => {
+                              setShowModal(true)
+                              if (!productPayload.ShippingOptions?.includes(4)) {
+                                setProductPayload((prev) => ({
+                                  ...prev,
+                                  ShippingOptions: [...prev.ShippingOptions, 4],
+                                }))
+                              }
+                            }}
+                            size={20}
+                          />
+                        )}
                         <span className="bord" />
                       </div>
                     </div>
