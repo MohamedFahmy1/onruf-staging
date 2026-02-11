@@ -230,14 +230,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
   const getShippingOptions = useCallback(async () => {
     const data = await axios.get(`/GetAllShippingOptions`)
     const shippingNames = (data?.data?.data).filter((item) => productFullData.ShippingOptions.includes(item.id))
-    // if (productFullData.ShippingOptions.includes(4)) {
-    //   shippingNames.push({
-    //     id: 4,
-    //     shippingOptionName: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
-    //     shippingOptionDescription: pathOr("", [locale, "Products", "integratedShippingOptions"], t),
-    //     shippingOptionImage: "",
-    //   })
-    // }
     setShippingOptions(shippingNames)
   }, [productFullData.ShippingOptions, locale])
 
@@ -572,7 +564,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "productDetails"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={handleBack}>
+                <p className="f-b fs-5 main-color" onClick={() => handleBack(2)}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -653,7 +645,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "sellingDetails"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={handleBack}>
+                <p className="f-b fs-5 main-color" onClick={() => handleBack(3)}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -793,7 +785,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "shippingAndDuration"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={handleBack}>
+                <p className="f-b fs-5 main-color" onClick={() => handleBack(4)}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>
@@ -833,7 +825,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
               <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
                 <h6 className="f-b fs-4  m-0">{pathOr("", [locale, "Products", "selected_package"], t)}</h6>
                 <button>
-                  <p className="f-b fs-5 main-color" onClick={handleBack}>
+                  <p className="f-b fs-5 main-color" onClick={() => handleBack(5)}>
                     {pathOr("", [locale, "Products", "editFolder"], t)}
                   </p>
                 </button>
@@ -1131,6 +1123,14 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 disabled={loading || (paymentMethod === "points" && totalAmount > 0 && !pointsData?.pointsNumber)}
                 onClick={async () => {
                   try {
+                    const auctionClosingTimePassed =
+                      productFullData?.IsAuctionEnabled &&
+                      pathname.includes("repost") &&
+                      moment().isAfter(productFullData?.AuctionClosingTime)
+
+                    if (auctionClosingTimePassed)
+                      return toast.error(pathOr("", [locale, "Products", "AuctionClosingTimePassed"], t))
+
                     setIsCheckoutModalOpen("loading")
 
                     if (paymentMethod === "points" && totalAmount > 0) {

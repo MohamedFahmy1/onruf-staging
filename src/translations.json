@@ -347,6 +347,7 @@
       "ViewTheProduct": "عرض المنتج",
       "BackToShopping": "اكمال التسوق",
       "PriceIsNegotiable": "السعر قابل للتفاوض",
+      "AuctionClosingTimePassed": "لقد تم انتهاء وقت اغلاق المزاد الموجود، يرجى تعيين وقت اغلاق مزاد جديد",
       "BackToHomepage": "العودة للصفحة الرئيسية"
     },
     "Users": {
@@ -1143,6 +1144,7 @@
       "ViewTheProduct": "View The Product",
       "BackToShopping": "Back To Shopping",
       "PriceIsNegotiable": "Price is negotiable",
+      "AuctionClosingTimePassed": "Auction closing time has passed, please assign new auction closing time",
       "BackToHomepage": "Back To Homepage"
     },
     "Users": {

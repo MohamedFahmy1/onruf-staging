@@ -11,6 +11,7 @@ const AddProduct = () => {
   const [step, setStep] = useState(1)
   const [selectedCatId, setSelectedCatId] = useState(null)
   const [selectedCatProps, setSelectedCatProps] = useState({})
+  const [eventKey, setEventKey] = useState("0")
   const [editModeOn, setEditModeOn] = useState(false)
   const { locale } = useRouter()
   const [productPayload, setProductPayload] = useState({
@@ -87,7 +88,8 @@ const AddProduct = () => {
   const handleGoToReviewPage = () => {
     setStep(3)
   }
-  const handleGoToSteptwo = () => {
+  const handleGoToSteptwo = (eventKey) => {
+    eventKey && setEventKey(String(eventKey))
     setStep(2)
   }
 
@@ -122,6 +124,8 @@ const AddProduct = () => {
             setProductPayload={setProductPayload}
             editModeOn={editModeOn}
             setEditModeOn={setEditModeOn}
+            eventKey={eventKey}
+            setEventKey={setEventKey}
           />
         )}
         {step === 3 && (

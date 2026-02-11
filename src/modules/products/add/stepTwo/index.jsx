@@ -20,9 +20,10 @@ const AddProductStepTwo = ({
   setProductPayload,
   editModeOn,
   setEditModeOn,
+  eventKey,
+  setEventKey,
 }) => {
   const { locale, pathname } = useRouter()
-  const [eventKey, setEventKey] = useState("0")
   const [regions, setRegions] = useState([])
 
   const toggleAccordionPanel = (eKey) => {

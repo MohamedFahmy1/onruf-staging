@@ -15,6 +15,7 @@ const EditProduct = () => {
   const localeRef = useRef(locale)
   const [selectedCatProps, setSelectedCatProps] = useState()
   const [specificationsFromApi, setSpecificationsFromApi] = useState([])
+  const [eventKey, setEventKey] = useState("0")
   const { data: shippingOptions } = useFetch(`/GetProductShippingOptions?productId=${query.id}`, true)
   const { data: paymentOptions } = useFetch(`/GetProductPaymentOptions?productId=${query.id}`, true)
   const { data: bankAccounts } = useFetch(`/GetProductBankAccounts?productId=${query.id}`, true)
@@ -99,8 +100,13 @@ const EditProduct = () => {
     "Box.Weight": null,
   })
 
-  const handleBack = () => {
-    step > 1 ? setStep((prev) => prev - 1) : setStep((prev) => prev + 1)
+  const handleBack = (eventKey) => {
+    if (step > 1) {
+      setStep((prev) => prev - 1)
+    } else {
+      setStep((prev) => prev + 1)
+      eventKey && setEventKey(String(eventKey))
+    }
   }
 
   useEffect(() => {
@@ -282,6 +288,8 @@ const EditProduct = () => {
             productPayload={productPayload}
             setProductPayload={setProductPayload}
             editModeOn={true}
+            eventKey={eventKey}
+            setEventKey={setEventKey}
           />
         )}
       </section>
