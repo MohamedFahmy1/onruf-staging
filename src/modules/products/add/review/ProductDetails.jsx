@@ -232,7 +232,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     const shippingNames = (data?.data?.data).filter((item) => productFullData.ShippingOptions.includes(item.id))
     setShippingOptions(shippingNames)
   }, [productFullData.ShippingOptions, locale])
-
+  console.log(productFullData["ProductPaymentDetailsDto.PakatId"])
   const getPackage = useCallback(async () => {
     if (productFullData.pakatId || productFullData["ProductPaymentDetailsDto.PakatId"]) {
       const data = await axios.get(

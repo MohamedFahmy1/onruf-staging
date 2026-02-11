@@ -171,8 +171,10 @@ const EditProduct = () => {
             "ProductPaymentDetailsDto.ExtraProductImageFee": productData.categoryDto.extraProductImageFee,
             "ProductPaymentDetailsDto.ExtraProductVidoeFee": productData.categoryDto.extraProductVidoeFee,
             "ProductPaymentDetailsDto.SubTitleFee": productData.categoryDto.subTitleFee,
-            "ProductPaymentDetailsDto.AdditionalPakatId": productData.categoryDto.additionalPakatId || null,
-            "ProductPaymentDetailsDto.PakatId": productData.categoryDto.pakatId || null,
+            "ProductPaymentDetailsDto.AdditionalPakatId":
+              productData.productPaymentDetailsDto.additionalPakatId || null,
+            "ProductPaymentDetailsDto.PakatId": productData.productPaymentDetailsDto.pakatId || null,
+            pakatId: productData.productPaymentDetailsDto.pakatId || null,
             IsAuctionClosingTimeFixed: productData.isAuctionClosingTimeFixed,
             "Box.Height": productData?.box?.height,
             "Box.Width": productData?.box?.width,
