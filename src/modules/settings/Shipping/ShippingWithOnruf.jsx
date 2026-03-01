@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useState } from "react"
 import axios from "axios"
 import { toast } from "react-toastify"
+import { pathOr } from "ramda"
 import Alerto from "../../../common/Alerto"
 import { LoadingScreen } from "../../../common/Loading"
 import { useFetch } from "../../../hooks/useFetch"
+import { useRouter } from "next/router"
+import t from "../../../translations.json"
 
 const getInitialSelectedIds = (items = []) =>
   items.filter((item) => item?.isActive || item?.isSelected || item?.active).map((item) => item.id)
@@ -17,7 +20,7 @@ const areSameIdSets = (first = [], second = []) => {
   return sortedFirst.every((value, index) => value === sortedSecond[index])
 }
 
-const ShippingTypeGroup = ({ title, options, selectedIds, isSubmitting, groupKey, onToggle }) => (
+const ShippingTypeGroup = ({ title, emptyText, savingText, options, selectedIds, isSubmitting, groupKey, onToggle }) => (
   <div
     style={{
       backgroundColor: "#fff",
@@ -29,12 +32,12 @@ const ShippingTypeGroup = ({ title, options, selectedIds, isSubmitting, groupKey
   >
     <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
       <h6 className="f-b m-0">{title}</h6>
-      {isSubmitting && <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>Saving...</span>}
+      {isSubmitting && <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>{savingText}</span>}
     </div>
 
     {options.length === 0 ? (
       <p className="m-0" style={{ color: "#6b7280" }}>
-        No options found.
+        {emptyText}
       </p>
     ) : (
       options.map((option) => {
@@ -71,7 +74,7 @@ const ShippingTypeGroup = ({ title, options, selectedIds, isSubmitting, groupKey
   </div>
 )
 
-const PreferredCompaniesGroup = ({ companies, selectedCodes, isSubmitting, onToggle }) => (
+const PreferredCompaniesGroup = ({ title, emptyText, savingText, companies, selectedCodes, isSubmitting, onToggle }) => (
   <div
     style={{
       backgroundColor: "#fff",
@@ -81,13 +84,13 @@ const PreferredCompaniesGroup = ({ companies, selectedCodes, isSubmitting, onTog
     }}
   >
     <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
-      <h6 className="f-b m-0">Preferred Delivery Companies</h6>
-      {isSubmitting && <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>Saving...</span>}
+      <h6 className="f-b m-0">{title}</h6>
+      {isSubmitting && <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>{savingText}</span>}
     </div>
 
     {!companies || companies?.length === 0 ? (
       <p className="m-0 p-5 text-center fs-4" style={{ color: "#6b7280" }}>
-        No companies found.
+        {emptyText}
       </p>
     ) : (
       <div className="row">
@@ -119,6 +122,8 @@ const PreferredCompaniesGroup = ({ companies, selectedCodes, isSubmitting, onTog
 
 const ShippingWithOnruf = () => {
   const { data: deliveryCompanies, isLoading: deliveryCompaniesLoading } = useFetch("/GetDeliveryCompaniesList")
+  const { locale } = useRouter()
+  const translate = (key) => pathOr("", [locale, "Shipping", key], t)
   const [deliveryTypes, setDeliveryTypes] = useState([])
   const [pickupDropoffTypes, setPickupDropoffTypes] = useState([])
   const [pickupDeliveryOptions, setPickupDeliveryOptions] = useState([])
@@ -172,7 +177,7 @@ const ShippingWithOnruf = () => {
 
   useEffect(() => {
     fetchDeliveryTypes()
-  }, [fetchDeliveryTypes])
+  }, [fetchDeliveryTypes, locale])
 
   useEffect(() => {
     if (!Array.isArray(deliveryCompanies)) return
@@ -243,7 +248,7 @@ const ShippingWithOnruf = () => {
     const hasSelectedSecondaryOption = selectedOptions.some((value) => secondaryOptionIds.includes(value))
 
     if (hasTwoOrThreeSelected && !hasSelectedSecondaryOption) {
-      toast.error("Please select at least one marked shipping option.")
+      toast.error(translate("pickAtLeastOneMarkedOption"))
       return
     }
 
@@ -308,7 +313,9 @@ const ShippingWithOnruf = () => {
     <div className="row">
       <div className="col-lg-6 col-12 mb-4">
         <ShippingTypeGroup
-          title="Delivery Types"
+          title={translate("deliveryTypes")}
+          emptyText={translate("noOptionsFound")}
+          savingText={translate("saving")}
           options={deliveryTypes}
           selectedIds={selectedDeliveryTypeIds}
           isSubmitting={submitting.delivery}
@@ -327,7 +334,9 @@ const ShippingWithOnruf = () => {
 
       <div className="col-lg-6 col-12 mb-4">
         <ShippingTypeGroup
-          title="Pickup & Dropoff Types"
+          title={translate("pickupDropoffTypes")}
+          emptyText={translate("noOptionsFound")}
+          savingText={translate("saving")}
           options={pickupDropoffTypes}
           selectedIds={selectedPickupDropoffTypeIds}
           isSubmitting={submitting.pickupDropoff}
@@ -354,9 +363,9 @@ const ShippingWithOnruf = () => {
           }}
         >
           <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
-            <h6 className="f-b m-0">Shipping Options</h6>
+            <h6 className="f-b m-0">{translate("shippingOptionsTitle")}</h6>
             {submitting.deliveryOptions && (
-              <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>Saving...</span>
+              <span style={{ color: "#6b7280", fontSize: 12, fontWeight: 500 }}>{translate("saving")}</span>
             )}
           </div>
 
@@ -416,7 +425,7 @@ const ShippingWithOnruf = () => {
                 disabled={submitting.deliveryOptions}
                 onClick={handleSaveShippingOptions}
               >
-                Save
+                {translate("save")}
               </button>
             </div>
           )}
@@ -425,6 +434,9 @@ const ShippingWithOnruf = () => {
 
       <div className="col-12 mb-4">
         <PreferredCompaniesGroup
+          title={translate("preferredDeliveryCompanies")}
+          emptyText={translate("noCompaniesFound")}
+          savingText={translate("saving")}
           companies={deliveryCompanies || []}
           selectedCodes={selectedDeliveryCompanyCodes}
           isSubmitting={submitting.preferredCompanies}

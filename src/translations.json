@@ -484,6 +484,17 @@
       "companyInfo": "معلومات الشركه",
       "next": "التالي",
       "conditions": "الحالات"
+      ,"saving": "جاري الحفظ...",
+      "noOptionsFound": "لا توجد خيارات",
+      "preferredDeliveryCompanies": "شركات التوصيل المفضلة",
+      "noCompaniesFound": "لا توجد شركات",
+      "deliveryTypes": "أنواع التوصيل",
+      "pickupDropoffTypes": "أنواع الاستلام والتسليم",
+      "shippingOptionsTitle": "خيارات الشحن",
+      "pickAtLeastOneMarkedOption": "من فضلك اختر خيار شحن مميز واحد على الأقل",
+      "save": "حفظ"
+      ,"shippingWithOnrufTab": "الشحن مع أونرف",
+      "shippingOptionsTab": "خيارات الشحن"
     },
     "Packages": {
       "name": "الاسم",
@@ -1283,7 +1294,18 @@
       "extraAmount": "Extra Amount",
       "companyInfo": "Company Info",
       "next": "Next",
-      "conditions": "Conditions"
+      "conditions": "Conditions",
+      "saving": "Saving...",
+      "noOptionsFound": "No options found.",
+      "preferredDeliveryCompanies": "Preferred Delivery Companies",
+      "noCompaniesFound": "No companies found.",
+      "deliveryTypes": "Delivery Types",
+      "pickupDropoffTypes": "Pickup & Dropoff Types",
+      "shippingOptionsTitle": "Shipping Options",
+      "pickAtLeastOneMarkedOption": "Please select at least one marked shipping option.",
+      "save": "Save",
+      "shippingWithOnrufTab": "Shipping with Onruf",
+      "shippingOptionsTab": "Shipping Options"
     },
     "Packages": {
       "name": "Name",

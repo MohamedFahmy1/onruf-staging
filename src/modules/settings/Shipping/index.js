@@ -86,8 +86,8 @@ const Shipping = () => {
         {/*  Tabs header */}
         <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
           <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)} aria-label="shipping tabs">
-            <Tab label="Shipping with Onruf" style={{ textTransform: "capitalize" }} />
-            <Tab label="Shipping options" style={{ textTransform: "capitalize" }} />
+            <Tab label={pathOr("", [locale, "Shipping", "shippingWithOnrufTab"], t)} style={{ textTransform: "capitalize" }} />
+            <Tab label={pathOr("", [locale, "Shipping", "shippingOptionsTab"], t)} style={{ textTransform: "capitalize" }} />
           </Tabs>
         </Box>
 
