@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import styles from "./stepTwo.module.css"
 import { Accordion } from "react-bootstrap"
 import { useRouter } from "next/router"
@@ -25,6 +25,25 @@ const AddProductStepTwo = ({
 }) => {
   const { locale, pathname } = useRouter()
   const [regions, setRegions] = useState([])
+  const [shippingType, setShippingType] = useState(null)
+
+  const hasSavedBoxDimensions = () =>
+    !!productPayload["Box.Weight"] &&
+    !!productPayload["Box.Width"] &&
+    !!productPayload["Box.Length"] &&
+    !!productPayload["Box.Height"]
+
+  useEffect(() => {
+    if (!shippingType && hasSavedBoxDimensions()) {
+      setShippingType("product")
+    }
+  }, [
+    shippingType,
+    productPayload["Box.Weight"],
+    productPayload["Box.Width"],
+    productPayload["Box.Length"],
+    productPayload["Box.Height"],
+  ])
 
   const toggleAccordionPanel = (eKey) => {
     if (editModeOn) {
@@ -184,16 +203,22 @@ const AddProductStepTwo = ({
   }
 
   const validateDurationAndShipping = () => {
-    // if you choosed shipping options 2 or 3 you must choose highlighted options
-    const hasTwoOrThree = productPayload.ShippingOptions.includes(2) || productPayload.ShippingOptions.includes(3)
-    const hasHighlighted = productPayload.ShippingOptions.some((id) => id > 3)
-    if (productPayload?.ShippingOptions?.length === 0) {
+    if (!shippingType) {
+      return toast.error(pathOr("", [locale, "Products", "selectServiceOrProduct"], t))
+    }
+    if (shippingType === "product" && !hasSavedBoxDimensions()) {
+      return toast.error(pathOr("", [locale, "Products", "enterBoxDimensions"], t))
+    }
+
+    return true
+    /*
       return toast.error(locale == "en" ? "Please select shipping option!" : "من فضلك اختر وسيلة شحن")
     } else if (hasTwoOrThree && !hasHighlighted) {
       return toast.error(
         locale == "en" ? "Please select the highlighted options!" : "من فضلك اختر وسيلة شحن من الوسايل المحدده اعلاه",
       )
     } else return true
+    */
   }
 
   const validateAll = () => {
@@ -298,6 +323,8 @@ const AddProductStepTwo = ({
         <ShippingAndDuration
           productPayload={productPayload}
           setProductPayload={setProductPayload}
+          shippingType={shippingType}
+          setShippingType={setShippingType}
           validateDurationAndShipping={validateDurationAndShipping}
           setEventKey={setEventKey}
         />

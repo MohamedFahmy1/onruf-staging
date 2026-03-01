@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import aramex from "../../../../public/images/aramex.png"
 import Router, { useRouter } from "next/router"
 import { Button } from "@mui/material"
@@ -10,11 +10,16 @@ import { LoadingScreen } from "../../../common/Loading"
 import Image from "next/image"
 import Alerto from "../../../common/Alerto"
 import Link from "next/link"
+import Box from "@mui/material/Box"
+import Tabs from "@mui/material/Tabs"
+import Tab from "@mui/material/Tab"
+import ShippingWithOnruf from "./ShippingWithOnruf"
 
 const Shipping = () => {
-  const { locale, push } = useRouter()
+  const { locale } = useRouter()
   const [shippingOptions, setShippingOptions] = useState()
   const [loading, setLoading] = useState(false)
+  const [tab, setTab] = useState(0)
   const { buisnessId } = useSelector((state) => state.authSlice)
 
   const fetchShippingOptions = async () => {
@@ -25,8 +30,8 @@ const Shipping = () => {
       } = await axios.get("/GetAllShippingOptions", {
         params: { businessAccountId: buisnessId, lang: "ar" },
       })
-      setLoading(false)
       setShippingOptions(shippingOptions)
+      setLoading(false)
     } catch (error) {
       setLoading(false)
       Alerto(error)
@@ -36,20 +41,6 @@ const Shipping = () => {
   useEffect(() => {
     fetchShippingOptions()
   }, [])
-
-  const style = {
-    position: "absolute",
-    top: "50%",
-    left: "50%",
-    transform: "translate(-50%, -50%)",
-    width: "90%",
-    height: 720,
-    bgcolor: "background.paper",
-    boxShadow: 24,
-    p: 4,
-    borderRadius: 2,
-    overflow: "scroll",
-  }
 
   let content
 
@@ -92,18 +83,30 @@ const Shipping = () => {
   return (
     <div className="body-content">
       <div>
-        <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
-          <div className="d-flex align-items-center">
-            <h6 className="f-b m-0">{pathOr("", [locale, "Shipping", "shippingCompanies"], t)}</h6>
-          </div>
-          <Link href="/settings/shipping/add">
-            <Button className="btn-main">{pathOr("", [locale, "Shipping", "addShippingOpt"], t)}</Button>
-          </Link>
-        </div>
+        {/*  Tabs header */}
+        <Box sx={{ borderBottom: 1, borderColor: "divider", mb: 3 }}>
+          <Tabs value={tab} onChange={(_, newValue) => setTab(newValue)} aria-label="shipping tabs">
+            <Tab label="Shipping with Onruf" style={{ textTransform: "capitalize" }} />
+            <Tab label="Shipping options" style={{ textTransform: "capitalize" }} />
+          </Tabs>
+        </Box>
 
-        {content}
+        {tab === 0 && <ShippingWithOnruf />}
 
-        {/* <Modal
+        {tab === 1 && (
+          <>
+            <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
+              <div className="d-flex align-items-center">
+                <h6 className="f-b m-0">{pathOr("", [locale, "Shipping", "shippingCompanies"], t)}</h6>
+              </div>
+              <Link href="/settings/shipping/add">
+                <Button className="btn-main">{pathOr("", [locale, "Shipping", "addShippingOpt"], t)}</Button>
+              </Link>
+            </div>
+
+            {content}
+
+            {/* <Modal
           open={addConditionModal}
           onClose={() => {
             setAddConditionModal(false)
@@ -118,6 +121,8 @@ const Shipping = () => {
             />
           </Box>
         </Modal> */}
+          </>
+        )}
       </div>
     </div>
   )

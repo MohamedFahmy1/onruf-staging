@@ -349,6 +349,10 @@
       "PriceIsNegotiable": "السعر قابل للتفاوض",
       "AuctionClosingTimePassed": "لقد تم انتهاء وقت اغلاق المزاد الموجود، يرجى تعيين وقت اغلاق مزاد جديد",
       "BackToHomepage": "العودة للصفحة الرئيسية"
+      ,"serviceOption": "خدمة",
+      "productOption": "منتج",
+      "selectServiceOrProduct": "من فضلك اختر خدمة أو منتج",
+      "enterBoxDimensions": "من فضلك أدخل جميع أبعاد الصندوق"
     },
     "Users": {
       "users": "العملاء",
@@ -1146,6 +1150,10 @@
       "PriceIsNegotiable": "Price is negotiable",
       "AuctionClosingTimePassed": "Auction closing time has passed, please assign new auction closing time",
       "BackToHomepage": "Back To Homepage"
+      ,"serviceOption": "Service",
+      "productOption": "Product",
+      "selectServiceOrProduct": "Please select service or product!",
+      "enterBoxDimensions": "Please enter all box dimensions!"
     },
     "Users": {
       "users": "Clients",
