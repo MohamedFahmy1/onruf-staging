@@ -22,6 +22,7 @@ import {
 import ResponsiveImage from "../../../common/ResponsiveImage"
 import moment from "moment"
 import { multiFormData } from "../../../common/axiosHeaders"
+import ShippingBillModal from "./ShippingBillModal"
 
 export const OrderDetails = () => {
   const {
@@ -117,6 +118,9 @@ export const OrderDetails = () => {
     orderProductFullInfoDto,
     orderStatus,
     branchId,
+    printAwbUrl,
+    trackingUrl,
+    IsShippmentCreated,
     paymentType,
   } = orderData
   const totalQuantity = orderProductFullInfoDto
@@ -266,7 +270,12 @@ export const OrderDetails = () => {
                   <p>{shippingAddress}</p>
                   <p>{phoneNumber}</p>
                 </div>
-                <button className="btn-main btn-main-o">{pathOr("", [locale, "Orders", "shipping_bill"], t)}</button>
+                <ShippingBillModal
+                  orderId={id}
+                  isSubmitted={IsShippmentCreated}
+                  printAwbUrl={printAwbUrl}
+                  trackingUrl={trackingUrl}
+                />
               </div>
             </div>
           </div>
