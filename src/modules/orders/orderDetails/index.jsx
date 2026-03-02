@@ -120,7 +120,7 @@ export const OrderDetails = () => {
     branchId,
     printAwbUrl,
     trackingUrl,
-    IsShippmentCreated,
+    isShippmentCreated,
     paymentType,
   } = orderData
   const totalQuantity = orderProductFullInfoDto
@@ -272,7 +272,7 @@ export const OrderDetails = () => {
                 </div>
                 <ShippingBillModal
                   orderId={id}
-                  isSubmitted={IsShippmentCreated}
+                  isSubmitted={isShippmentCreated}
                   printAwbUrl={printAwbUrl}
                   trackingUrl={trackingUrl}
                 />

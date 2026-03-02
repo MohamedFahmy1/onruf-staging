@@ -167,6 +167,8 @@ const ShippingBillModal = ({ orderId, isSubmitted, printAwbUrl, trackingUrl }) =
 
   const translate = (key) => pathOr("", [locale, "Orders", key], t)
 
+  console.log(isSubmitted)
+
   const {
     control,
     register,
