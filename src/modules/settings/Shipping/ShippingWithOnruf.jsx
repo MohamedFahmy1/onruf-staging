@@ -20,7 +20,16 @@ const areSameIdSets = (first = [], second = []) => {
   return sortedFirst.every((value, index) => value === sortedSecond[index])
 }
 
-const ShippingTypeGroup = ({ title, emptyText, savingText, options, selectedIds, isSubmitting, groupKey, onToggle }) => (
+const ShippingTypeGroup = ({
+  title,
+  emptyText,
+  savingText,
+  options,
+  selectedIds,
+  isSubmitting,
+  groupKey,
+  onToggle,
+}) => (
   <div
     style={{
       backgroundColor: "#fff",
@@ -74,7 +83,15 @@ const ShippingTypeGroup = ({ title, emptyText, savingText, options, selectedIds,
   </div>
 )
 
-const PreferredCompaniesGroup = ({ title, emptyText, savingText, companies, selectedCodes, isSubmitting, onToggle }) => (
+const PreferredCompaniesGroup = ({
+  title,
+  emptyText,
+  savingText,
+  companies,
+  selectedCodes,
+  isSubmitting,
+  onToggle,
+}) => (
   <div
     style={{
       backgroundColor: "#fff",
@@ -108,7 +125,7 @@ const PreferredCompaniesGroup = ({ title, emptyText, savingText, companies, sele
                     disabled={isSubmitting}
                     onChange={() => onToggle(company.code)}
                   />
-                  <label htmlFor={`delivery-company-${company.code}`}>{company.Name}</label>
+                  <label htmlFor={`delivery-company-${company.code}`}>{company.name}</label>
                   <span className="bord" />
                 </div>
               </div>
@@ -140,7 +157,7 @@ const ShippingWithOnruf = () => {
     deliveryOptions: false,
     preferredCompanies: false,
   })
-
+  console.log(deliveryCompanies.slice(1, 2))
   const fetchDeliveryTypes = useCallback(async () => {
     try {
       setLoading(true)
@@ -280,8 +297,8 @@ const ShippingWithOnruf = () => {
     const payload = (deliveryCompanies || [])
       .filter((company) => nextSelectedCodes.includes(company.code))
       .map((company) => ({
-        name: company.Name,
-        code: company.code,
+        name: company.name ?? company.Name,
+        code: company.code ?? company.Code,
       }))
 
     setSelectedDeliveryCompanyCodes(nextSelectedCodes)
