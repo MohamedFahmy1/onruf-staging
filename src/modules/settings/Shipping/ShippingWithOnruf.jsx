@@ -157,7 +157,7 @@ const ShippingWithOnruf = () => {
     deliveryOptions: false,
     preferredCompanies: false,
   })
-  console.log(deliveryCompanies.slice(1, 2))
+
   const fetchDeliveryTypes = useCallback(async () => {
     try {
       setLoading(true)
