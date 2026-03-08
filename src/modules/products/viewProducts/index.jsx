@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect, useCallback } from "react"
 import Table from "../../../common/table"
 import Pagination from "./../../../common/pagination"
 import { useRouter } from "next/router"
-import { propOr, pathOr, set } from "ramda"
+import { propOr, pathOr } from "ramda"
 import { MdModeEdit } from "react-icons/md"
 import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
 import Modal from "react-bootstrap/Modal"
@@ -21,6 +21,14 @@ import Image from "next/image"
 import Alerto from "../../../common/Alerto"
 import DeleteModal from "./DeleteModal"
 import moment from "moment"
+import noImage from "../../../../public/images/noImae.png"
+
+const getProductImageSrc = (product = {}) =>
+  product?.listMedia?.find((media) => media?.isMainMadia)?.url ||
+  product?.listMedia?.[0]?.url ||
+  product?.image ||
+  product?.productImage ||
+  noImage
 
 const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelectedRows }) => {
   const router = useRouter()
@@ -243,27 +251,31 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       {
         Header: pathOr("", [locale, "Products", "productName"], t),
         accessor: "name",
-        Cell: ({ row: { original } }) => (
-          <div
-            className="d-flex align-items-center pointer"
-            onClick={() => handleNavigateToProductDetails(original.id)}
-          >
-            <div style={{ position: "relative", width: "106px", height: "100px" }}>
-              <Image
-                src={original.image || original.productImage}
-                className="img_table"
-                alt="product"
-                priority
-                layout="fill"
-                objectFit="contain"
-              />
+        Cell: ({ row: { original } }) => {
+          const imageSrc = getProductImageSrc(original)
+
+          return (
+            <div
+              className="d-flex align-items-center pointer"
+              onClick={() => handleNavigateToProductDetails(original.id || original.productId)}
+            >
+              <div style={{ position: "relative", width: "106px", height: "100px" }}>
+                <Image
+                  src={imageSrc}
+                  className="img_table"
+                  alt={original?.name || "product"}
+                  priority
+                  layout="fill"
+                  objectFit="contain"
+                />
+              </div>
+              <div className="mx-4">
+                <h6 className="m-0 f-b"> {propOr("-", ["name"], original)} </h6>
+                <div className="gray-color">{formatDate(propOr("-", ["createdAt"], original))}</div>
+              </div>
             </div>
-            <div className="mx-4">
-              <h6 className="m-0 f-b"> {propOr("-", ["name"], original)} </h6>
-              <div className="gray-color">{formatDate(propOr("-", ["createdAt"], original))}</div>
-            </div>
-          </div>
-        ),
+          )
+        },
       },
       {
         Header: pathOr("", [locale, "Products", "category"], t),
@@ -602,18 +614,6 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                     inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm A" : "DD/MM/YYYY - hh:mm A"}
                     onChange={(newValue) => {
                       if (!newValue) return setDiscountDate("")
-
-                      // if (!newValue.isValid()) return setDiscountDate("")
-
-                      // if (newValue.isSameOrBefore(moment())) {
-                      //   toast.error(
-                      //     locale === "en"
-                      //       ? "Discount end date must be in the future"
-                      //       : "تاريخ انتهاء الخصم يجب أن يكون في المستقبل",
-                      //   )
-                      //   return setDiscountDate("")
-                      // }
-
                       setDiscountDate(newValue.format(moment.HTML5_FMT.DATETIME_LOCAL))
                     }}
                     renderInput={(params) => <TextField {...params} fullWidth placeholder="asdfa" />}
