@@ -491,6 +491,7 @@
       "deliveryTypes": "أنواع التوصيل",
       "pickupDropoffTypes": "أنواع الاستلام والتسليم",
       "shippingOptionsTitle": "خيارات الشحن",
+      "shippingOptionsToast": "اختر خيار الشحن الأنسب لنشاطك من الخيارات التالية.",
       "pickAtLeastOneMarkedOption": "من فضلك اختر خيار شحن مميز واحد على الأقل",
       "save": "حفظ"
       ,"shippingWithOnrufTab": "الشحن مع أونرف",
@@ -1332,6 +1333,7 @@
       "deliveryTypes": "Delivery Types",
       "pickupDropoffTypes": "Pickup & Dropoff Types",
       "shippingOptionsTitle": "Shipping Options",
+      "shippingOptionsToast": "Choose the shipping option that best fits your business from the choices below.",
       "pickAtLeastOneMarkedOption": "Please select at least one marked shipping option.",
       "save": "Save",
       "shippingWithOnrufTab": "Shipping with Onruf",

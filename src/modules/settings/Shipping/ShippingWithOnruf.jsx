@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 import axios from "axios"
 import { toast } from "react-toastify"
 import { pathOr } from "ramda"
@@ -139,7 +139,8 @@ const PreferredCompaniesGroup = ({
 
 const ShippingWithOnruf = () => {
   const { data: deliveryCompanies, isLoading: deliveryCompaniesLoading } = useFetch("/GetDeliveryCompaniesList")
-  const { locale } = useRouter()
+  const router = useRouter()
+  const { locale, query, isReady } = router
   const translate = (key) => pathOr("", [locale, "Shipping", key], t)
   const [deliveryTypes, setDeliveryTypes] = useState([])
   const [pickupDropoffTypes, setPickupDropoffTypes] = useState([])
@@ -157,6 +158,8 @@ const ShippingWithOnruf = () => {
     deliveryOptions: false,
     preferredCompanies: false,
   })
+  const shippingOptionsSectionRef = useRef(null)
+  const hasHandledShippingOptionsQueryRef = useRef(false)
 
   const fetchDeliveryTypes = useCallback(async () => {
     try {
@@ -203,6 +206,99 @@ const ShippingWithOnruf = () => {
       deliveryCompanies.filter((company) => company?.IsPreferred).map((company) => company.code),
     )
   }, [deliveryCompanies])
+
+  const animateShippingOptionsSection = useCallback(() => {
+    const sectionElement = shippingOptionsSectionRef.current
+
+    if (!sectionElement || typeof sectionElement.animate !== "function") return
+
+    sectionElement.animate(
+      [
+        {
+          boxShadow: "0 0 0 0 rgba(249, 115, 22, 0)",
+          borderColor: "#e5e7eb",
+          transform: "translateY(0)",
+        },
+        {
+          boxShadow: "0 0 0 12px rgba(249, 115, 22, 0.16)",
+          borderColor: "#f97316",
+          transform: "translateY(-2px)",
+        },
+        {
+          boxShadow: "0 0 0 0 rgba(249, 115, 22, 0)",
+          borderColor: "#e5e7eb",
+          transform: "translateY(0)",
+        },
+      ],
+      {
+        duration: 1400,
+        iterations: 2,
+        easing: "ease-in-out",
+      },
+    )
+
+    sectionElement.querySelectorAll("[data-shipping-option-item='true']").forEach((element, index) => {
+      element.animate(
+        [
+          {
+            backgroundColor: "#ffffff",
+            boxShadow: "0 0 0 rgba(249, 115, 22, 0)",
+            transform: "translateX(0)",
+          },
+          {
+            backgroundColor: "#fff7ed",
+            boxShadow: "0 10px 24px rgba(249, 115, 22, 0.16)",
+            transform: "translateX(6px)",
+          },
+          {
+            backgroundColor: "#ffffff",
+            boxShadow: "0 0 0 rgba(249, 115, 22, 0)",
+            transform: "translateX(0)",
+          },
+        ],
+        {
+          duration: 900,
+          delay: 180 + index * 120,
+          easing: "ease-in-out",
+        },
+      )
+    })
+  }, [])
+
+  useEffect(() => {
+    if (!isReady || loading || deliveryCompaniesLoading || hasHandledShippingOptionsQueryRef.current) return
+
+    const shippingOptionsQueryValue = Array.isArray(query.shippingOptions)
+      ? query.shippingOptions[0]
+      : query.shippingOptions
+
+    if (`${shippingOptionsQueryValue}`.toLowerCase() !== "true") return
+
+    const sectionElement = shippingOptionsSectionRef.current
+
+    if (!sectionElement) return
+
+    hasHandledShippingOptionsQueryRef.current = true
+
+    window.requestAnimationFrame(() => {
+      sectionElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      })
+    })
+
+    toast.info(translate("shippingOptionsToast"), {
+      toastId: "shipping-options-guidance-toast",
+    })
+
+    const animationTimeout = window.setTimeout(() => {
+      animateShippingOptionsSection()
+    }, 450)
+
+    return () => {
+      window.clearTimeout(animationTimeout)
+    }
+  }, [animateShippingOptionsSection, deliveryCompaniesLoading, isReady, loading, query.shippingOptions])
 
   const handleSelectionChange = async ({ id, currentIds, setSelectedIds, submitKey, endpoint }) => {
     if (submitting[submitKey]) return
@@ -372,11 +468,13 @@ const ShippingWithOnruf = () => {
 
       <div className="col-12 mb-4">
         <div
+          ref={shippingOptionsSectionRef}
           style={{
             backgroundColor: "#fff",
             border: "1px solid #e5e7eb",
             borderRadius: 16,
             padding: 20,
+            scrollMarginTop: 120,
           }}
         >
           <div className="d-flex align-items-center justify-content-between gap-2 mb-3">
@@ -390,7 +488,7 @@ const ShippingWithOnruf = () => {
             <div className="col-lg-6 col-12">
               {pickupDeliveryOptions.map((item) => (
                 <div className="form-group" key={item.id}>
-                  <div className="form-control outer-check-input">
+                  <div className="form-control outer-check-input" data-shipping-option-item="true">
                     <div className="form-check form-switch p-0 m-0">
                       <input
                         className="form-check-input m-0"
@@ -413,7 +511,7 @@ const ShippingWithOnruf = () => {
               <div className="col-lg-6 col-12">
                 {fixedShippingOptions.map((item) => (
                   <div className="form-group" key={item.id}>
-                    <div className="form-control outer-check-input orange-border">
+                    <div className="form-control outer-check-input orange-border" data-shipping-option-item="true">
                       <div className="form-check form-switch p-0 m-0">
                         <input
                           className="form-check-input m-0"

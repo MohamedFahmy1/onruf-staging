@@ -440,6 +440,16 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
     ],
   )
 
+  const handleCheckShippingOptions = async () => {
+    const response = await axios("/GetDeliveryOptions")
+
+    const noSelectedShippingOptions = response.data.data.fixedShippingOptions.every((item) => !item.isSelected)
+    const noSelectedPickup = response.data.data.pickUpDeliveryOptions.every((item) => !item.isSelected)
+    if (noSelectedShippingOptions && noSelectedPickup) {
+      push("/settings/shipping?shippingOptions=true")
+    } else push("/products/add")
+  }
+
   return (
     <section className="body-content p-4">
       <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
@@ -453,11 +463,11 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
             </a>
           </Link>
         </div>
-        <Link href={"/products/add"}>
-          <Button className="btn-main" variant={"contained"}>
-            {locale === "en" ? "Add Product" : "اضافه منتج"} <FaPlusCircle className="me-2" />
-          </Button>
-        </Link>
+        {/* <Link href={"/products/add"}> */}
+        <Button className="btn-main" variant={"contained"} onClick={handleCheckShippingOptions}>
+          {locale === "en" ? "Add Product" : "اضافه منتج"} <FaPlusCircle className="me-2" />
+        </Button>
+        {/* </Link> */}
       </div>
       <div className="filtter_1">
         <button
