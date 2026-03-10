@@ -8,10 +8,13 @@ import ProductDetails from "../add/review/ProductDetails"
 import axios from "axios"
 import Alerto from "../../../common/Alerto"
 import { useSelector } from "react-redux"
+import AddProductStepOne from "../add/stepOne"
 
 const EditProduct = () => {
-  const { locale, query, push } = useRouter()
+  const { query, isReady, locale, push } = useRouter()
+
   const [step, setStep] = useState(1)
+
   const localeRef = useRef(locale)
   const [selectedCatProps, setSelectedCatProps] = useState()
   const [specificationsFromApi, setSpecificationsFromApi] = useState([])
@@ -109,6 +112,33 @@ const EditProduct = () => {
     }
   }
 
+  const handleNextStep = (selectedCat) => {
+    setStep(2)
+    setProductPayload((prev) => ({
+      ...prev,
+      categoryId: selectedCat.id,
+      "ProductPaymentDetailsDto.ProductPublishPrice": selectedCat?.productPublishPrice,
+      "ProductPaymentDetailsDto.EnableFixedPriceSaleFee": selectedCat?.enableFixedPriceSaleFee,
+      "ProductPaymentDetailsDto.EnableAuctionFee": selectedCat?.enableAuctionFee,
+      "ProductPaymentDetailsDto.EnableNegotiationFee": selectedCat?.enableNegotiationFee,
+      "ProductPaymentDetailsDto.FixedPriceSaleFee": selectedCat?.enableFixedPriceSaleFee,
+      "ProductPaymentDetailsDto.AuctionFee": selectedCat?.enableAuctionFee,
+      "ProductPaymentDetailsDto.NegotiationFee": selectedCat?.enableNegotiationFee,
+      "ProductPaymentDetailsDto.ExtraProductImageFee": selectedCat?.extraProductImageFee,
+      "ProductPaymentDetailsDto.ExtraProductVidoeFee": selectedCat?.extraProductVidoeFee,
+      "ProductPaymentDetailsDto.SubTitleFee": selectedCat?.subTitleFee,
+    }))
+    setSelectedCatProps(selectedCat)
+  }
+
+  const isDropShipping = query.isDropShipping === "true"
+
+  useEffect(() => {
+    if (!isReady || !initalProductPayload?.id) return
+    const initalCategoryId = initalProductPayload?.categoryId
+    setStep(isDropShipping && !initalCategoryId ? 0 : 1)
+  }, [isReady, isDropShipping, initalProductPayload?.categoryId])
+
   useEffect(() => {
     localeRef.current = locale
   }, [locale])
@@ -161,25 +191,26 @@ const EditProduct = () => {
             SendYourAccountInfoToAuctionWinner: productData.sendYourAccountInfoToAuctionWinner,
             AlmostSoldOutQuantity: productData.almostSoldOutQuantity,
             productImage: productData.productImage,
-            "ProductPaymentDetailsDto.ProductPublishPrice": productData.categoryDto.productPublishPrice,
-            "ProductPaymentDetailsDto.EnableFixedPriceSaleFee": productData.categoryDto.enableFixedPriceSaleFee,
-            "ProductPaymentDetailsDto.EnableAuctionFee": productData.categoryDto.enableAuctionFee,
-            "ProductPaymentDetailsDto.EnableNegotiationFee": productData.categoryDto.enableNegotiationFee,
-            "ProductPaymentDetailsDto.FixedPriceSaleFee": productData.categoryDto.enableFixedPriceSaleFee,
-            "ProductPaymentDetailsDto.AuctionFee": productData.categoryDto.enableAuctionFee,
-            "ProductPaymentDetailsDto.NegotiationFee": productData.categoryDto.enableNegotiationFee,
-            "ProductPaymentDetailsDto.ExtraProductImageFee": productData.categoryDto.extraProductImageFee,
-            "ProductPaymentDetailsDto.ExtraProductVidoeFee": productData.categoryDto.extraProductVidoeFee,
-            "ProductPaymentDetailsDto.SubTitleFee": productData.categoryDto.subTitleFee,
+            "ProductPaymentDetailsDto.ProductPublishPrice": productData?.categoryDto?.productPublishPrice,
+            "ProductPaymentDetailsDto.EnableFixedPriceSaleFee": productData?.categoryDto?.enableFixedPriceSaleFee,
+            "ProductPaymentDetailsDto.EnableAuctionFee": productData?.categoryDto?.enableAuctionFee,
+            "ProductPaymentDetailsDto.EnableNegotiationFee": productData?.categoryDto?.enableNegotiationFee,
+            "ProductPaymentDetailsDto.FixedPriceSaleFee": productData?.categoryDto?.enableFixedPriceSaleFee,
+            "ProductPaymentDetailsDto.AuctionFee": productData?.categoryDto?.enableAuctionFee,
+            "ProductPaymentDetailsDto.NegotiationFee": productData?.categoryDto?.enableNegotiationFee,
+            "ProductPaymentDetailsDto.ExtraProductImageFee": productData?.categoryDto?.extraProductImageFee,
+            "ProductPaymentDetailsDto.ExtraProductVidoeFee": productData?.categoryDto?.extraProductVidoeFee,
+            "ProductPaymentDetailsDto.SubTitleFee": productData?.categoryDto?.subTitleFee,
             "ProductPaymentDetailsDto.AdditionalPakatId":
-              productData.productPaymentDetailsDto.additionalPakatId || null,
-            "ProductPaymentDetailsDto.PakatId": productData.productPaymentDetailsDto.pakatId || null,
-            pakatId: productData.productPaymentDetailsDto.pakatId || null,
-            IsAuctionClosingTimeFixed: productData.isAuctionClosingTimeFixed,
+              productData?.productPaymentDetailsDto?.additionalPakatId || null,
+            "ProductPaymentDetailsDto.PakatId": productData?.productPaymentDetailsDto?.pakatId || null,
+            pakatId: productData?.productPaymentDetailsDto?.pakatId || null,
+            IsAuctionClosingTimeFixed: productData?.isAuctionClosingTimeFixed,
             "Box.Height": productData?.box?.height,
             "Box.Width": productData?.box?.width,
             "Box.Length": productData?.box?.length,
             "Box.Weight": productData?.box?.weight,
+            shippingType: productData?.box?.height ? "product" : "service",
           }))
         }
       } catch (error) {
@@ -264,15 +295,34 @@ const EditProduct = () => {
     return transformedSpecifications
   }
 
+  const handleCancel = () => {
+    if (isDropShipping && step !== 0) {
+      setStep(0)
+    } else if (isDropShipping && step === 0) {
+      push("/products")
+    } else if (step === 1) {
+      push("/products")
+    } else {
+      setStep(1)
+    }
+  }
+
   return (
     <article style={{ padding: "10px 2%" }}>
       <section className="d-flex align-items-center justify-content-between gap-2 flex-wrap">
         <h6 className="f-b m-0">{pathOr("", [locale, "Products", "review_product_before_adding"], t)}</h6>
-        <button onClick={() => (step === 1 ? push("/products") : setStep(1))} className="btn-main btn-main-o">
+        <button onClick={handleCancel} className="btn-main btn-main-o">
           {pathOr("", [locale, "Products", "cancel"], t)}
         </button>
       </section>
       <section>
+        {step === 0 && (
+          <AddProductStepOne
+            next={(selectedCat) => handleNextStep(selectedCat)}
+            setSelectedCatProps={setSelectedCatProps}
+            setProductPayload={setProductPayload}
+          />
+        )}
         {step === 1 && productPayload.listMedia && paymentOptions && shippingOptions && bankAccounts && (
           <ProductDetails
             selectedCatProps={selectedCatProps}

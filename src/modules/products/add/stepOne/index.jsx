@@ -7,7 +7,8 @@ import { Col, Row } from "react-bootstrap"
 import { pathOr } from "ramda"
 
 const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => {
-  const { locale } = useRouter()
+  const { locale, query } = useRouter()
+  const isDropShipping = query?.isDropShipping === "true"
   // `categoryOptionsByLevel[level]` holds the selectable categories for that level
   const [categoryOptionsByLevel, setCategoryOptionsByLevel] = useState([[]])
   // `selectedCategories[level]` holds the selected category id for that level (or null if not selected yet)
@@ -125,7 +126,7 @@ const AddProductStepOne = ({ next, setSelectedCatProps, setProductPayload }) => 
     const { leafId: selectedCatId, leafCatProps: catProps } = getLeafSelection()
     if (!selectedCatId) return
 
-    next(selectedCatId)
+    next(isDropShipping ? catProps : selectedCatId)
     setProductPayload((prev) => ({
       ...prev,
       categoryId: selectedCatId,

@@ -71,7 +71,7 @@ const ShippingAndDuration = ({
                         {pathOr("", [locale, "Products", "serviceOption"], t)}
                       </label>
                       <input
-                        className="form-check-input m-0"    
+                        className="form-check-input m-0"
                         type="checkbox"
                         role="switch"
                         id="service-shipping-type"
@@ -93,19 +93,20 @@ const ShippingAndDuration = ({
                       <label htmlFor="product-shipping-type">
                         {pathOr("", [locale, "Products", "productOption"], t)}
                       </label>
-                      <input
-                        className="form-check-input m-0"
-                        type="checkbox"
-                        role="switch"
-                        id="product-shipping-type"
-                        checked={shippingType === "product"}
-                        onChange={handleSelectProduct}
-                      />
+                      <div className="d-flex align-items-center gap-2">
+                        <input
+                          className="form-check-input m-0"
+                          type="checkbox"
+                          role="switch"
+                          id="product-shipping-type"
+                          checked={shippingType === "product"}
+                          onChange={handleSelectProduct}
+                        />
+                        {hasSavedBoxDimensions && (
+                          <FaEdit className="pointer" color="#ee6c4d" onClick={handleSelectProduct} size={20} />
+                        )}
+                      </div>
                     </div>
-
-                    {hasSavedBoxDimensions && (
-                      <FaEdit className="pointer" color="#ee6c4d" onClick={handleSelectProduct} size={20} />
-                    )}
 
                     <span className="bord" />
                   </div>

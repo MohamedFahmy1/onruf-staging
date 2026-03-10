@@ -107,7 +107,11 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
     const {
       data: { data: prod },
     } = await axios(`/ListDropShippingProducts`)
-    setDropShipProducts(prod)
+    const updatedProducts = prod.map((product) => ({
+      ...product,
+      isDropShipping: true,
+    }))
+    setDropShipProducts(updatedProducts)
   }, [])
 
   const getProductData = useCallback(async () => {
@@ -374,6 +378,8 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
             original: { id },
           },
         }) => {
+          const isDropShipping = !!original?.isDropShipping
+
           return (
             <div className="d-flex align-items-center gap-2 flex-column">
               {selectedFilter === "didnotSell" ? (
@@ -398,7 +404,10 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                 </div>
               ) : (
                 <div className="form-check form-switch p-0 m-0 d-flex">
-                  <MdModeEdit className="btn_Measures" onClick={() => push(`/products/edit/${productId || id}`)} />
+                  <MdModeEdit
+                    className="btn_Measures"
+                    onClick={() => push(`/products/edit/${productId || id}?isDropShipping=${isDropShipping}`)}
+                  />
                   <DeleteModal
                     id={productId || id}
                     onDeleted={async () => {

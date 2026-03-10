@@ -17,9 +17,10 @@ import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEm
 import { Modal } from "react-bootstrap"
 import PointsModal from "./PointsModal"
 import wallet from "../../../../../public/images/wallet.png"
+import DOMPurify from "dompurify"
 
 const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProductPayload, initalProductPayload }) => {
-  const { locale, pathname } = useRouter()
+  const { locale, pathname, query } = useRouter()
   const [shippingOptions, setShippingOptions] = useState([])
   const [packageDetails, setPackageDetails] = useState()
   const [couponData, setCouponData] = useState()
@@ -52,7 +53,10 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     hasRequestedPaymentRef.current = false
   }, [mfInitiatedSessionId])
 
-  const isEditFlow = pathname.includes("edit") || !!(pathname.includes("repost") && !initalProductPayload?.isExpired)
+  const isEditFlow =
+    query.isDropShipping === "true" ||
+    pathname.includes("edit") ||
+    !!(pathname.includes("repost") && !initalProductPayload?.isExpired)
   const canUseCoupon = !isEditFlow
 
   const hasSubtitle = (payload) => {
@@ -543,6 +547,19 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     return base ? `${base}/chatHub` : "/chatHub"
   }, [])
 
+  const handleShowDescription = () => {
+    if (!productFullData) return
+
+    const description =
+      locale === "en"
+        ? productFullData?.descriptionEn || productFullData?.descriptionAr
+        : productFullData?.descriptionAr || productFullData?.descriptionEn
+
+    const cleanHtml = DOMPurify.sanitize(description)
+
+    return <div className="mt-4" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
+  }
+
   return (
     <div style={{ padding: "20px 0 !important" }}>
       {pathname.includes("add") && (
@@ -634,12 +651,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                 </div>
               </Col>
             </Row>
-            <p className="mt-4">
-              {productFullData &&
-                (locale == "en"
-                  ? productFullData?.descriptionEn || productFullData?.descriptionAr
-                  : productFullData?.descriptionAr || productFullData?.descriptionEn)}
-            </p>
+            {handleShowDescription()}
           </div>
           <div className="contint_paner">
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
@@ -781,45 +793,48 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             </Row>
           </div>
 
-          <div className="contint_paner">
-            <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
-              <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "shippingAndDuration"], t)}</h6>
-              <button>
-                <p className="f-b fs-5 main-color" onClick={() => handleBack(4)}>
-                  {pathOr("", [locale, "Products", "editFolder"], t)}
-                </p>
-              </button>
-            </div>
-            {productFullData.IsAuctionEnabled && (
-              <Row>
-                <h6 className="f-b m-0">{pathOr("", [locale, "Products", "offer_duration"], t)}</h6>
-                <div className={styles["info_boxo_"]}>
-                  <span>
-                    {productFullData &&
-                      moment(productFullData.AuctionClosingTime)
-                        .locale(locale === "ar" ? "ar" : "en")
-                        .format(locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a")}
-                  </span>
-                  <span className="font-18 main-color">
-                    <Image src={dateImage} alt="calendar" width={20} height={20} />
-                  </span>
+          {shippingOptions?.length > 0 ||
+            (productFullData.AuctionClosingTime && (
+              <div className="contint_paner">
+                <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
+                  <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "shippingAndDuration"], t)}</h6>
+                  <button>
+                    <p className="f-b fs-5 main-color" onClick={() => handleBack(4)}>
+                      {pathOr("", [locale, "Products", "editFolder"], t)}
+                    </p>
+                  </button>
                 </div>
-              </Row>
-            )}
-            <Row>
-              <h6 className="f-b m-0">{pathOr("", [locale, "Products", "shippingOptions"], t)}</h6>
-              {shippingOptions?.map((item) => (
-                <Col md={6} key={item.id}>
-                  <div className={styles["info_boxo_"]} key={item.id}>
-                    <span>{productFullData && item.shippingOptionName}</span>
-                    <span className="font-18 main-color">
-                      <FaCheckCircle />
-                    </span>
-                  </div>
-                </Col>
-              ))}
-            </Row>
-          </div>
+                {productFullData.IsAuctionEnabled && (
+                  <Row>
+                    <h6 className="f-b m-0">{pathOr("", [locale, "Products", "offer_duration"], t)}</h6>
+                    <div className={styles["info_boxo_"]}>
+                      <span>
+                        {productFullData &&
+                          moment(productFullData.AuctionClosingTime)
+                            .locale(locale === "ar" ? "ar" : "en")
+                            .format(locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a")}
+                      </span>
+                      <span className="font-18 main-color">
+                        <Image src={dateImage} alt="calendar" width={20} height={20} />
+                      </span>
+                    </div>
+                  </Row>
+                )}
+                <Row>
+                  <h6 className="f-b m-0">{pathOr("", [locale, "Products", "shippingOptions"], t)}</h6>
+                  {shippingOptions?.map((item) => (
+                    <Col md={6} key={item.id}>
+                      <div className={styles["info_boxo_"]} key={item.id}>
+                        <span>{productFullData && item.shippingOptionName}</span>
+                        <span className="font-18 main-color">
+                          <FaCheckCircle />
+                        </span>
+                      </div>
+                    </Col>
+                  ))}
+                </Row>
+              </div>
+            ))}
           {packageDetails && (
             <div className="contint_paner">
               <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">

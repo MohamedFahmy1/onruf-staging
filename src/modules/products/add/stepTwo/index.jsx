@@ -25,7 +25,8 @@ const AddProductStepTwo = ({
 }) => {
   const { locale, pathname } = useRouter()
   const [regions, setRegions] = useState([])
-  const [shippingType, setShippingType] = useState(null)
+  const shippingType = productPayload.shippingType
+  const setShippingType = (value) => setProductPayload({ ...productPayload, shippingType: value })
 
   const hasSavedBoxDimensions = () =>
     !!productPayload["Box.Weight"] &&
