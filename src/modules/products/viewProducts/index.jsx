@@ -134,10 +134,11 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
 
   useEffect(() => {
     if (singleSelectedRow?.id || singleSelectedRow?.productId) {
+      const qty = singleSelectedRow.qty || singleSelectedRow.quantity
       setDiscountDate(singleSelectedRow.disccountEndDate)
       setPriceValue(singleSelectedRow.priceDisc ? singleSelectedRow.priceDisc : singleSelectedRow.priceDiscount)
-      setQuantityValue(singleSelectedRow.qty)
-      setQuantityValueInfinity(singleSelectedRow.qty === null ? true : false)
+      setQuantityValue(qty)
+      setQuantityValueInfinity(qty === null ? true : false)
     }
   }, [singleSelectedRow])
 
@@ -293,22 +294,25 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
       {
         Header: pathOr("", [locale, "Products", "qty"], t),
         accessor: "qty",
-        Cell: ({ row: { values, original } }) => (
-          <div>
-            <h6 className="m-0 f-b">{original?.qty === null ? "-" : original?.qty}</h6>
-            <button
-              className="info_"
-              data-bs-toggle="modal"
-              onClick={() => {
-                setOpenQuantityModal(!openQuantityModal)
-                setSingleSelectedRow(original)
-              }}
-              data-bs-target="#Quantity-adjustment"
-            >
-              {pathOr("", [locale, "Products", "adjustQty"], t)}
-            </button>
-          </div>
-        ),
+        Cell: ({ row: { values, original } }) => {
+          const qty = original?.qty || original?.quantity || "-"
+          return (
+            <div>
+              <h6 className="m-0 f-b">{qty}</h6>
+              <button
+                className="info_"
+                data-bs-toggle="modal"
+                onClick={() => {
+                  setOpenQuantityModal(!openQuantityModal)
+                  setSingleSelectedRow(original)
+                }}
+                data-bs-target="#Quantity-adjustment"
+              >
+                {pathOr("", [locale, "Products", "adjustQty"], t)}
+              </button>
+            </div>
+          )
+        },
       },
       {
         Header: pathOr("", [locale, "Products", "price"], t),
@@ -556,7 +560,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                       type="checkbox"
                       role="switch"
                       id="flexSwitchCheckChecked"
-                      defaultChecked={singleSelectedRow?.qty === null ? true : false}
+                      defaultChecked={singleSelectedRow?.qty >= 1 || singleSelectedRow?.quantity >= 1 ? false : true}
                       onChange={(e) => setQuantityValueInfinity(e.target.checked)}
                     />
                   </div>
