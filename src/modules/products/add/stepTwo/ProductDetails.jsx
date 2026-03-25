@@ -101,27 +101,70 @@ const ProductDetails = ({
   }, [fetchSpecificationsList])
 
   useEffect(() => {
+    const parseBackendMultiValues = (value) => {
+      if (typeof value !== "string") return []
+
+      return value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
+        .map(Number)
+        .filter((item) => !Number.isNaN(item))
+    }
+
+    const getNormalizedMultiValues = (item) => {
+      const valuesFromAr = parseBackendMultiValues(item?.ValueSpeAr)
+      const valuesFromEn = parseBackendMultiValues(item?.ValueSpeEn)
+
+      if (valuesFromAr.length === 0) return valuesFromEn
+      if (valuesFromEn.length === 0) return valuesFromAr
+      if (valuesFromAr.join(",") === valuesFromEn.join(",")) return valuesFromAr
+
+      return valuesFromEn.length > valuesFromAr.length ? valuesFromEn : valuesFromAr
+    }
+
     function transformCommaSepratedMultiValuesFromBackend(data) {
-      let updatedData = data.filter((item) => item.ValueSpeAr.includes(","))
       let result = {}
-      updatedData.forEach((item) => {
-        // Split ValueSpeAr by comma and convert each item to a number
-        let values = item.ValueSpeAr.split(",").map(Number)
-        if (!result[item.SpecificationId]) {
-          // Create a new array if the key doesn't exist
-          result[item.SpecificationId] = values
-        } else {
-          // Concatenate values if the key already exists
-          result[item.SpecificationId] = result[item.SpecificationId].concat(values)
+      let hasInvalidTypeSevenValues = false
+
+      const normalizedProductSep = data.map((item) => {
+        if (item?.Type !== 7) return item
+
+        const values = getNormalizedMultiValues(item)
+        const normalizedValue = values.join(",")
+
+        if (item?.ValueSpeAr !== normalizedValue || item?.ValueSpeEn !== normalizedValue) {
+          hasInvalidTypeSevenValues = true
+        }
+
+        if (values.length > 0) {
+          if (!result[item.SpecificationId]) {
+            result[item.SpecificationId] = values
+          } else {
+            result[item.SpecificationId] = [...new Set(result[item.SpecificationId].concat(values))]
+          }
+        }
+
+        return {
+          ...item,
+          ValueSpeAr: normalizedValue,
+          ValueSpeEn: normalizedValue,
         }
       })
+
+      if (hasInvalidTypeSevenValues) {
+        setProductPayload((prev) => ({
+          ...prev,
+          productSep: normalizedProductSep,
+        }))
+      }
+
       setMultiSelectedSpecifications(result)
     }
     if (!pathname.includes("add")) {
       transformCommaSepratedMultiValuesFromBackend(productPayload.productSep)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname])
+  }, [pathname, productPayload.productSep, setProductPayload])
 
   useEffect(() => {
     // In this case will make new productSep array only when adding new product and user still didn't edit it
@@ -282,7 +325,7 @@ const ProductDetails = ({
                         <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
                           {selected.map((selectedId, index) => {
                             // Find the subSpecification object that matches the selectedId
-                            const selectedSpec = spesfication.subSpecifications.find((sub) => sub.id === selectedId)
+                            const selectedSpec = spesfication.subSpecifications.find((sub) => sub.id == selectedId)
                             return (
                               <Chip key={index} label={locale === "en" ? selectedSpec?.nameEn : selectedSpec?.nameAr} />
                             )
