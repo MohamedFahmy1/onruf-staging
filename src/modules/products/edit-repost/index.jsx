@@ -7,7 +7,6 @@ import { useFetch } from "../../../hooks/useFetch"
 import ProductDetails from "../add/review/ProductDetails"
 import axios from "axios"
 import Alerto from "../../../common/Alerto"
-import { useSelector } from "react-redux"
 import AddProductStepOne from "../add/stepOne"
 
 const EditProduct = () => {
@@ -22,26 +21,12 @@ const EditProduct = () => {
   const { data: shippingOptions } = useFetch(`/GetProductShippingOptions?productId=${query.id}`, true)
   const { data: paymentOptions } = useFetch(`/GetProductPaymentOptions?productId=${query.id}`, true)
   const { data: bankAccounts } = useFetch(`/GetProductBankAccounts?productId=${query.id}`, true)
-  const providerId = useSelector((state) => state.authSlice.providerId)
 
   const fetchSpecificationsList = useCallback(async () => {
     try {
-      const plainAxios = axios.create({
-        baseURL: process.env.NEXT_PUBLIC_API_URL,
-      })
-      delete plainAxios.defaults.headers.common["Business-Account-Id"]
       const {
         data: { data: spefications },
-      } = await plainAxios.get(
-        `/ListAllSpecificationAndSubSpecificationByCatId?id=${selectedCatProps.id}&User-Language=en`,
-        {
-          headers: {
-            "User-Language": "en",
-            "Provider-Id": providerId,
-            "Application-Source": "BusinessAccount",
-          },
-        },
-      )
+      } = await axios.get(`/ListAllSpecificationAndSubSpecificationByCatId?id=${selectedCatProps.id}&User-Language=en`)
       setProductPayload((prev) => ({
         ...prev,
         productSep: transformProductSepData(specificationsFromApi, spefications),
