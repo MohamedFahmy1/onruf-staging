@@ -5,6 +5,7 @@ import { useRouter } from "next/router"
 import { pathOr } from "ramda"
 import t from "../../../../translations.json"
 import { toast } from "react-toastify"
+import moment from "moment"
 import ProductImages from "./ProductImages"
 import ProductDetails from "./ProductDetails"
 import AdDetails from "./AdDetails"
@@ -166,6 +167,11 @@ const AddProductStepTwo = ({
   }
 
   const validateSaleDetails = () => {
+    const hasValidAuctionClosingTime =
+      typeof productPayload.AuctionClosingTime === "string"
+        ? productPayload.AuctionClosingTime.trim() !== "" && moment(productPayload.AuctionClosingTime).isValid()
+        : !!productPayload.AuctionClosingTime && moment(productPayload.AuctionClosingTime).isValid()
+
     if (
       // make sure that at least one sale type is selected unless it is a service and all sale types are disabled
       !!(
@@ -193,10 +199,7 @@ const AddProductStepTwo = ({
       return toast.error(
         locale === "en" ? "Please enter negotiation price and for whom!" : "!من فضلك ادخل سعر التفاوض ولمن",
       )
-    } else if (
-      (productPayload.AuctionClosingTime === "" || !productPayload.AuctionClosingTime) &&
-      productPayload.IsAuctionEnabled
-    ) {
+    } else if (productPayload.IsAuctionEnabled && !hasValidAuctionClosingTime) {
       return toast.error(
         locale === "en" ? "Error Please Choose Auction Closing Time!" : "حدث خطأ برجاء تحديد موعد انتهاء المزاد",
       )

@@ -1,4 +1,4 @@
-import { useRef, useState, useMemo, useEffect } from "react"
+import { useState, useMemo, useEffect } from "react"
 import styles from "./stepTwo.module.css"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
@@ -13,10 +13,9 @@ import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment"
 const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCatProps }) => {
   const { locale } = useRouter()
   const [activeElementIndex, setActiveElementIndex] = useState(null)
-  const dateTimeInput = useRef(null)
 
-  const nowMoment = useMemo(() => moment(), [])
-  const nowFormatted = useMemo(() => nowMoment.add(4, "hours").format("YYYY-MM-DD[T]HH:mm"), [nowMoment])
+  const getMinimumClosingMoment = () => moment().add(4, "hours")
+  const getMinimumClosingTime = () => getMinimumClosingMoment().format("YYYY-MM-DD[T]HH:mm")
 
   const closingPeriods = useMemo(() => {
     const rawPeriods = selectedCatProps?.auctionClosingPeriods
@@ -26,6 +25,13 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
       .map((item) => Number(item.trim()))
       .filter((item) => Number.isFinite(item))
   }, [selectedCatProps?.auctionClosingPeriods])
+
+  const datePickerValue = useMemo(() => {
+    if (!productPayload?.AuctionClosingTime) return null
+
+    const parsedClosingTime = moment(productPayload.AuctionClosingTime)
+    return parsedClosingTime.isValid() ? parsedClosingTime : null
+  }, [productPayload?.AuctionClosingTime])
 
   useEffect(() => {
     if (!productPayload?.IsAuctionClosingTimeFixed) {
@@ -114,7 +120,6 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
       IsAuctionClosingTimeFixed: true,
     })
     setActiveElementIndex(+item)
-    if (dateTimeInput.current) dateTimeInput.current.value = ""
   }
 
   return (
@@ -138,7 +143,6 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
                 AuctionClosingTime: "",
                 IsAuctionClosingTimeFixed: true,
               })
-              if (dateTimeInput.current) dateTimeInput.current.value = ""
             }}
             checked={productPayload.IsAuctionClosingTimeFixed}
           />
@@ -177,13 +181,10 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
             onChange={() => {
               setProductPayload({
                 ...productPayload,
-                AuctionClosingTime: nowFormatted,
+                AuctionClosingTime: getMinimumClosingTime(),
                 IsAuctionClosingTimeFixed: false,
               })
               setActiveElementIndex(null)
-              if (dateTimeInput.current) {
-                dateTimeInput.current.value = nowFormatted
-              }
             }}
             checked={productPayload.IsAuctionClosingTimeFixed === false}
           />
@@ -202,16 +203,26 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
         <LocalizationProvider dateAdapter={AdapterMoment} adapterLocale={locale === "ar" ? "ar" : "en"}>
           <DateTimePicker
-            value={moment(productPayload.AuctionClosingTime || nowFormatted)}
-            minDateTime={moment().add(4, "hours")}
+            value={datePickerValue}
+            minDateTime={getMinimumClosingMoment()}
             inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a"}
             onChange={(newValue) => {
-              if (!newValue) return
+              const parsedClosingTime = moment.isMoment(newValue) ? newValue : moment(newValue)
 
-              if (newValue.isBefore(moment().add(4, "hours"))) {
+              if (!newValue || !parsedClosingTime.isValid()) {
                 setProductPayload({
                   ...productPayload,
-                  AuctionClosingTime: nowFormatted,
+                  AuctionClosingTime: "",
+                  IsAuctionClosingTimeFixed: false,
+                })
+                setActiveElementIndex(null)
+                return
+              }
+
+              if (parsedClosingTime.isBefore(getMinimumClosingMoment())) {
+                setProductPayload({
+                  ...productPayload,
+                  AuctionClosingTime: getMinimumClosingTime(),
                   IsAuctionClosingTimeFixed: false,
                 })
                 return
@@ -219,7 +230,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
               setProductPayload({
                 ...productPayload,
-                AuctionClosingTime: newValue.format(),
+                AuctionClosingTime: parsedClosingTime.format(),
                 IsAuctionClosingTimeFixed: false,
               })
 
