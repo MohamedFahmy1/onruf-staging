@@ -128,7 +128,8 @@ export const OrderDetails = () => {
     .map((item) => item.quantity)
     .reduce((accumulator, currentValue) => accumulator + currentValue, 0)
 
-  const cashFee = paymentTypeId == 1 ? 10 : 0
+  const cashFee = 0
+  // const cashFee = paymentTypeId == 1 ? 10 : 0
 
   return (
     <div style={{ padding: "24px" }}>
@@ -301,12 +302,14 @@ export const OrderDetails = () => {
                     {shippingFee?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
-                <li>
-                  <span>{pathOr("", [locale, "Orders", "CashPaymentFees"], t)}</span>{" "}
-                  <span className="font-18">
-                    {cashFee} {pathOr("", [locale, "Products", "currency"], t)}
-                  </span>
-                </li>
+                {/* {cashFee > 0 && (
+                  <li>
+                    <span>{pathOr("", [locale, "Orders", "CashPaymentFees"], t)}</span>{" "}
+                    <span className="font-18">
+                      {cashFee} {pathOr("", [locale, "Products", "currency"], t)}
+                    </span>
+                  </li>
+                )} */}
               </ul>
               <aside>
                 <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
