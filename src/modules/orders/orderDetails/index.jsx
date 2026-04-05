@@ -275,6 +275,7 @@ export const OrderDetails = () => {
                   isSubmitted={isShippmentCreated}
                   printAwbUrl={printAwbUrl}
                   trackingUrl={trackingUrl}
+                  fetchOrder={() => getOrderData(id)}
                 />
               </div>
             </div>

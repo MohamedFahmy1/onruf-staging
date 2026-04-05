@@ -5,7 +5,20 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   images: {
-    domains: ["onrufwebsite6-001-site1.htempurl.com", "onruf.vercel.app", "malqaa-002-site4.stempurl.com"],
+    domains: [
+      "onrufwebsite6-001-site1.htempurl.com",
+      "onruf.vercel.app",
+      "malqaa-002-site4.stempurl.com",
+      "storage.googleapis.com",
+    ],
+  },
+  experimental: {
+    images: {
+      remotePatterns: [
+        { protocol: "https", hostname: "**" },
+        { protocol: "http", hostname: "**" },
+      ],
+    },
   },
   // distDir: "build",
   i18n: {

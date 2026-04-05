@@ -158,7 +158,7 @@ const DeliveryOptionCard = ({ option, isSelected, onSelect, translate }) => {
   )
 }
 
-const ShippingBillModal = ({ orderId, isSubmitted, printAwbUrl, trackingUrl }) => {
+const ShippingBillModal = ({ orderId, isSubmitted, printAwbUrl, trackingUrl, fetchOrder }) => {
   const { locale } = useRouter()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -279,7 +279,7 @@ const ShippingBillModal = ({ orderId, isSubmitted, printAwbUrl, trackingUrl }) =
         orderId: +orderId,
         deliveryOptionId: selectedDeliveryOptionId,
       })
-
+      fetchOrder()
       toast.success(response?.data?.message || translate("shippingBillCreatedSuccess"))
       handleCloseModal()
     } catch (error) {
