@@ -820,19 +820,6 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     </div>
                   </Row>
                 )}
-                <Row>
-                  <h6 className="f-b m-0">{pathOr("", [locale, "Products", "shippingOptions"], t)}</h6>
-                  {shippingOptions?.map((item) => (
-                    <Col md={6} key={item.id}>
-                      <div className={styles["info_boxo_"]} key={item.id}>
-                        <span>{productFullData && item.shippingOptionName}</span>
-                        <span className="font-18 main-color">
-                          <FaCheckCircle />
-                        </span>
-                      </div>
-                    </Col>
-                  ))}
-                </Row>
               </div>
             ))}
           {packageDetails && (
