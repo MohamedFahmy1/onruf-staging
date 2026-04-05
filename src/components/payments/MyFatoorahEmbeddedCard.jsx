@@ -304,9 +304,9 @@ export default function MyFatoorahEmbeddedCard({
           fontWeight: "bold",
           fontFamily: "Madani-Arabic-Regular, sans-serif",
           text: {
-            holderName: "Card Holder Name",
-            cardNumber: "Card Number",
-            expiryDate: "Expiry Date",
+            holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
+            cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
+            expiryDate: locale === "en" ? "Expiry Date" : "تاريخ الانتهاء",
             securityCode: "CVV",
           },
         },
