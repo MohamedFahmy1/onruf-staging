@@ -122,10 +122,13 @@ export const OrderDetails = () => {
     trackingUrl,
     isShippmentCreated,
     paymentType,
+    paymentTypeId,
   } = orderData
   const totalQuantity = orderProductFullInfoDto
     .map((item) => item.quantity)
     .reduce((accumulator, currentValue) => accumulator + currentValue, 0)
+
+  const cashFee = paymentTypeId == 1 ? 10 : 0
 
   return (
     <div style={{ padding: "24px" }}>
@@ -229,7 +232,7 @@ export const OrderDetails = () => {
               <li>
                 <span className="gray-color">{pathOr("", [locale, "Orders", "order_total"], t)}</span>
                 <div className="f-b">
-                  {totalOrderPrice + shippingFee} {pathOr("", [locale, "Products", "currency"], t)}
+                  {totalOrderPrice + shippingFee + cashFee} {pathOr("", [locale, "Products", "currency"], t)}
                 </div>
               </li>
               <li>
@@ -298,17 +301,18 @@ export const OrderDetails = () => {
                     {shippingFee?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
-                {/* <li>
-                  <span>{pathOr("", [locale, "Orders", "added_tax"], t)}</span>{" "}
+                <li>
+                  <span>{pathOr("", [locale, "Orders", "CashPaymentFees"], t)}</span>{" "}
                   <span className="font-18">
-                    {(totalOrderPrice * (12 / 100))?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
+                    {cashFee} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
-                </li> */}
+                </li>
               </ul>
               <aside>
                 <span>{pathOr("", [locale, "Orders", "total"], t)}</span>{" "}
                 <span className="font-18 f-b">
-                  {(totalOrderPrice + shippingFee)?.toFixed(2)} {pathOr("", [locale, "Products", "currency"], t)}
+                  {(totalOrderPrice + shippingFee + cashFee)?.toFixed(2)}{" "}
+                  {pathOr("", [locale, "Products", "currency"], t)}
                 </span>
               </aside>
             </div>
@@ -394,7 +398,7 @@ export const OrderDetails = () => {
               <div className="info_shan">
                 <span>{pathOr("", [locale, "Orders", "shipping_total"], t)}</span>{" "}
                 <span className="f-b main-color">
-                  {totalOrderPrice} {pathOr("", [locale, "Products", "currency"], t)}
+                  {totalOrderPrice + shippingFee + cashFee} {pathOr("", [locale, "Products", "currency"], t)}
                 </span>
               </div>
             </div>

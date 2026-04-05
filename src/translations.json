@@ -663,6 +663,7 @@
       "shippingBillBackToBoxes": "العودة إلى الصناديق",
       "shippingBillChooseOption": "اختيار",
       "trackingUrl": "تتبع الشحنة",
+      "CashPaymentFees": "رسوم الدفع النقدية",
       "printAwbUrl": "طباعة بوليصة الشحن"
     },
     "Reports": {
@@ -1508,6 +1509,7 @@
       "shippingBillBackToBoxes": "Back to Boxes",
       "shippingBillChooseOption": "Choose",
       "trackingUrl": "Track Shipment",
+      "CashPaymentFees": "Cash Payment Fees",
       "printAwbUrl": "Print Shipping Bill"
     },
     "Reports": {
