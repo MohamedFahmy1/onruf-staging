@@ -89,7 +89,7 @@ const AddProduct = () => {
     setStep(3)
   }
   const handleGoToSteptwo = (eventKey) => {
-    eventKey && setEventKey(String(eventKey))
+    eventKey >= 0 && setEventKey(String(eventKey))
     setStep(2)
   }
 

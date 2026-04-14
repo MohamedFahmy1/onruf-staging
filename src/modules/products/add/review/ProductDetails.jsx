@@ -581,7 +581,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
             <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
               <h6 className="f-b fs-4 m-0">{pathOr("", [locale, "Products", "productDetails"], t)}</h6>
               <button>
-                <p className="f-b fs-5 main-color" onClick={() => handleBack(2)}>
+                <p className="f-b fs-5 main-color" onClick={() => handleBack(0)}>
                   {pathOr("", [locale, "Products", "editFolder"], t)}
                 </p>
               </button>

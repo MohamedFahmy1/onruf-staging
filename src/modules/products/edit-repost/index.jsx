@@ -93,7 +93,7 @@ const EditProduct = () => {
       setStep((prev) => prev - 1)
     } else {
       setStep((prev) => prev + 1)
-      eventKey && setEventKey(String(eventKey))
+      eventKey >= 0 && setEventKey(String(eventKey))
     }
   }
 
