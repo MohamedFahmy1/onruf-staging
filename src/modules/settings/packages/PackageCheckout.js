@@ -236,8 +236,8 @@ const PackageCheckout = () => {
           placeHolder: {
             holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
             cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
-            expiryDate: "MM/YY",
-            securityCode: "CVV",
+            expiryDate: locale === "en" ? "MM/YY" : "شهر/سنة",
+            securityCode: locale === "en" ? "CVV" : "رمز الامان",
           },
         },
         label: {
@@ -250,7 +250,7 @@ const PackageCheckout = () => {
             holderName: locale === "en" ? "Card Holder Name" : "اسم صاحب البطاقة",
             cardNumber: locale === "en" ? "Card Number" : "رقم البطاقة",
             expiryDate: locale === "en" ? "Expiry Date" : "تاريخ الانتهاء",
-            securityCode: "CVV",
+            securityCode: locale === "en" ? "CVV" : "رمز الامان",
           },
         },
         error: {
