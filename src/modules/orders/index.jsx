@@ -248,13 +248,17 @@ const Orders = () => {
       {
         Header: pathOr("", [locale, "Orders", "total"], t),
         accessor: "totalAfterDiscount",
-        Cell: ({ row: { original } }) => (
-          <Link href={`${`orders/${original.orderId}`}`}>
-            <div className="f-b" style={{ cursor: "pointer" }}>
-              {original?.totalOrderAmountAfterDiscount} {pathOr("", [locale, "Products", "currency"], t)}
-            </div>
-          </Link>
-        ),
+        Cell: ({ row: { original } }) => {
+          console.log(original)
+          return (
+            <Link href={`${`orders/${original.orderId}`}`}>
+              <div className="f-b" style={{ cursor: "pointer" }}>
+                {+original?.totalOrderAmountAfterDiscount + +original?.shippingFee}{" "}
+                {pathOr("", [locale, "Products", "currency"], t)}
+              </div>
+            </Link>
+          )
+        },
       },
     ],
     [locale],
