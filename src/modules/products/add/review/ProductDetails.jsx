@@ -362,6 +362,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
           // Card (MyFatoorah embedded)
           const sid = sessionIdOverride || mfInitiatedSessionId
           if (sid) formData.append("ExecutePaymentDto.SessionId", sid)
+          formData.append("ExecutePaymentDto.PaymentMethodId", 3)
         }
       }
 
