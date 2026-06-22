@@ -73,13 +73,13 @@ const PackageCheckout = () => {
 
   const buildPackagePayload = useCallback(
     ({ sessionIdOverride, pointsNumberOverride, paymentType = "card" } = {}) => {
-      const body = { pakatIds: [packageDetails.id] }
-      const executePaymentDto = { totalAmount: totalAmount }
+      const paymentMethodId = paymentType === "points" ? 6 : 3
+      const body = { pakatIds: [packageDetails.id], paymentMethodId }
+      const executePaymentDto = { totalAmount, paymentMethodId }
 
       if (paymentType === "points") {
         const pn = pointsNumberOverride ?? pointsData?.pointsNumber
         if (pn) executePaymentDto.pointsNumber = pn
-        executePaymentDto.paymentMethodId = 6
       } else {
         const sid = sessionIdOverride || mfSessionId
         if (sid) executePaymentDto.sessionId = sid
