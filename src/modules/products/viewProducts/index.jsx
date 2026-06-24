@@ -4,7 +4,7 @@ import Pagination from "./../../../common/pagination"
 import { useRouter } from "next/router"
 import { propOr, pathOr } from "ramda"
 import { MdModeEdit } from "react-icons/md"
-import { formatDate, handleNavigateToProductDetails } from "../../../common/functions"
+import { formatDate, formatDateForApi, handleNavigateToProductDetails } from "../../../common/functions"
 import Modal from "react-bootstrap/Modal"
 import axios from "axios"
 import { TextField } from "@mui/material"
@@ -639,7 +639,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                     inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm A" : "DD/MM/YYYY - hh:mm A"}
                     onChange={(newValue) => {
                       if (!newValue) return setDiscountDate("")
-                      setDiscountDate(newValue.format(moment.HTML5_FMT.DATETIME_LOCAL))
+                      setDiscountDate(formatDateForApi(newValue, moment.HTML5_FMT.DATETIME_LOCAL))
                     }}
                     renderInput={(params) => <TextField {...params} fullWidth placeholder="asdfa" />}
                   />

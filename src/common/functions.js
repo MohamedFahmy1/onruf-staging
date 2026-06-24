@@ -11,6 +11,14 @@ export const formatDate = (date) => {
   return moment(date).format("DD/MM/YYYY")
 }
 
+export const formatDateForApi = (date, format) => {
+  const parsedDate = moment(date)
+
+  if (!parsedDate.isValid()) return ""
+
+  return parsedDate.locale("en").format(format)
+}
+
 export const minDate = () => {
   const dateIntoArray = formatDate(new Date()).split("/")
   return `${dateIntoArray[2]}-${dateIntoArray[1]}-${dateIntoArray[0].trim()}`

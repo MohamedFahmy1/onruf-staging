@@ -9,13 +9,14 @@ import { TextField } from "@mui/material"
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider"
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker"
 import { AdapterMoment } from "@mui/x-date-pickers/AdapterMoment"
+import { formatDateForApi } from "../../../../common/functions"
 
 const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCatProps }) => {
   const { locale } = useRouter()
   const [activeElementIndex, setActiveElementIndex] = useState(null)
 
   const getMinimumClosingMoment = () => moment().add(4, "hours")
-  const getMinimumClosingTime = () => getMinimumClosingMoment().format("YYYY-MM-DD[T]HH:mm")
+  const getMinimumClosingTime = () => formatDateForApi(getMinimumClosingMoment(), "YYYY-MM-DD[T]HH:mm")
 
   const closingPeriods = useMemo(() => {
     const rawPeriods = selectedCatProps?.auctionClosingPeriods
@@ -110,7 +111,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
   const calculateFutureDate = (item, unit) => {
     const unitMapping = { 1: "days", 2: "weeks", 3: "months" }
-    return moment().add(+item, unitMapping[unit]).format("YYYY-MM-DD[T]HH:mm")
+    return formatDateForApi(moment().add(+item, unitMapping[unit]), "YYYY-MM-DD[T]HH:mm")
   }
 
   const handleSelection = (item, auctionClosingTime) => {
@@ -230,7 +231,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
               setProductPayload({
                 ...productPayload,
-                AuctionClosingTime: parsedClosingTime.format(),
+                AuctionClosingTime: formatDateForApi(parsedClosingTime),
                 IsAuctionClosingTimeFixed: false,
               })
 

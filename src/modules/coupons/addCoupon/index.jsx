@@ -11,7 +11,7 @@ import { Accordion } from "react-bootstrap"
 import { IoIosRemoveCircle } from "react-icons/io"
 import { toast } from "react-toastify"
 import { pathOr } from "ramda"
-import { onlyNumbersInInputs } from "../../../common/functions"
+import { formatDateForApi, onlyNumbersInInputs } from "../../../common/functions"
 import t from "../../../translations.json"
 import Image from "next/image"
 import ResponsiveImage from "../../../common/ResponsiveImage"
@@ -50,7 +50,7 @@ const AddCoupon = () => {
   const [eventKey, setEventKey] = useState("0")
 
   const handleDate = (date) => {
-    return new Date(date).toISOString().split("T")[0]
+    return formatDateForApi(date, "YYYY-MM-DD")
   }
 
   const handleChangeDate = (date) => {
