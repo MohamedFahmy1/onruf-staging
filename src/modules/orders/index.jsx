@@ -253,7 +253,7 @@ const Orders = () => {
           return (
             <Link href={`${`orders/${original.orderId}`}`}>
               <div className="f-b" style={{ cursor: "pointer" }}>
-                {+original?.totalOrderAmountAfterDiscount + +original?.shippingFee}{" "}
+                {(+original?.totalOrderAmountAfterDiscount)?.toFixed(2)}{" "}
                 {pathOr("", [locale, "Products", "currency"], t)}
               </div>
             </Link>
