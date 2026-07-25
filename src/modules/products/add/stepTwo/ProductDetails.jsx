@@ -53,16 +53,18 @@ const ProductDetails = ({
     }
   }
 
-  const onChangeSpesfication = ({ target: { value, checked } }, index, type) => {
+  const onChangeSpesfication = ({ target: { value, checked } }, index, type, valueField) => {
     let updatedSpec = { ...productPayload.productSep[index] }
 
     switch (type) {
       case 1: // Dropdown
-      case 2: // Text input
-      case 3: // Textarea
       case 4: // Number input
         updatedSpec.ValueSpeAr = value
         updatedSpec.ValueSpeEn = value
+        break
+      case 2: // Text input
+      case 3: // Textarea
+        updatedSpec[valueField] = value
         break
       case 5: // Radio buttons
         updatedSpec.ValueSpeAr = value
@@ -221,13 +223,53 @@ const ProductDetails = ({
                 </select>
               )}
 
-              {!!(spesfication.type === 2 || spesfication.type === 3 || spesfication.type === 4) && (
+              {!!(spesfication.type === 2 || spesfication.type === 3) && (
+                <div>
+                  <div className="mb-3">
+                    <label
+                      htmlFor={`${index}-en`}
+                      style={{ ...textAlignStyle("en"), display: "block" }}
+                    >
+                      {spesfication.nameEn} (English)
+                    </label>
+                    <input
+                      type="text"
+                      id={`${index}-en`}
+                      dir="ltr"
+                      value={productPayload?.productSep[index]?.ValueSpeEn || ""}
+                      required={spesfication.isRequired}
+                      placeholder={`${spesfication.nameEn} (English)`}
+                      onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeEn")}
+                      className={`${styles["form-control"]} form-control`}
+                    />
+                  </div>
+
+                  <div>
+                    <label
+                      htmlFor={`${index}-ar`}
+                      style={{ ...textAlignStyle("ar"), display: "block" }}
+                    >
+                      {spesfication.nameAr} (العربية)
+                    </label>
+                    <input
+                      type="text"
+                      id={`${index}-ar`}
+                      dir="rtl"
+                      value={productPayload?.productSep[index]?.ValueSpeAr || ""}
+                      required={spesfication.isRequired}
+                      placeholder={`${spesfication.nameAr} (العربية)`}
+                      onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeAr")}
+                      className={`${styles["form-control"]} form-control`}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {spesfication.type === 4 && (
                 <input
-                  type={spesfication.type === 4 ? "number" : "text"}
+                  type="number"
                   id={index}
-                  onKeyDown={(e) => {
-                    spesfication.type === 4 && onlyNumbersInInputs(e)
-                  }}
+                  onKeyDown={onlyNumbersInInputs}
                   value={
                     (locale === "en"
                       ? productPayload?.productSep?.find(({ HeaderSpeEn }) => HeaderSpeEn === spesfication?.nameEn)
