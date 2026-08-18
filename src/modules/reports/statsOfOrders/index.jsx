@@ -1,6 +1,7 @@
 import React from "react"
 import { Col } from "react-bootstrap"
 import chart from "../../../../public/images/screencapture-chartjs.png"
+import Image from "next/image"
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
 import { pathOr } from "ramda"
@@ -15,7 +16,7 @@ const StatsOfOrders = () => {
         <div className="mt-4 mb-4">
           <h2 className="f-b m-0 main-color">5600</h2>
           <h4 className="mb-2">{pathOr("", [locale, "Reports", "order"], t)}</h4>
-          <img src={chart.src} width="100%" height="180px" />
+          <Image src={chart} style={{ width: "100%", height: "180px" }} alt="Order statistics chart" />
         </div>
       </div>
     </Col>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useId, useMemo, useRef, useState } from "react"
 import axios from "axios"
 import { useSignalRPaymentStatus } from "../../hooks/useSignalRPaymentStatus"
 import { useRouter } from "next/router"
@@ -209,9 +209,10 @@ export default function MyFatoorahEmbeddedCard({
   signalR = {},
   onPaymentStatus,
 }) {
+  const generatedContainerId = useId()
   const containerId = useMemo(
-    () => containerIdProp || `mf-card-${Math.random().toString(16).slice(2)}`,
-    [containerIdProp],
+    () => containerIdProp || `mf-card-${generatedContainerId.replace(/:/g, "")}`,
+    [containerIdProp, generatedContainerId],
   )
 
   const [sessionData, setSessionData] = useState(null) // { sessionId, countryCode }

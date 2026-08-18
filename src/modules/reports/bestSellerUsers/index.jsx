@@ -1,6 +1,7 @@
 import React from "react"
 import { Col } from "react-bootstrap"
 import user from "../../../../public/images/user.png"
+import Image from "next/image"
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
 import { pathOr } from "ramda"
@@ -19,7 +20,7 @@ const BestSellerUsers = () => {
         <ul className="all_pro_cus">
           <li className="item">
             <div className="d-flex align-items-center">
-              <img src={user.src} className="img_table img_table2" />
+              <Image src={user} className="img_table img_table2" alt="Client" />
               <div>
                 <h6 className="m-0 f-b">ali Reda</h6>
                 <div className="gray-color">
@@ -34,7 +35,7 @@ const BestSellerUsers = () => {
           </li>
           <li className="item">
             <div className="d-flex align-items-center">
-              <img src={user.src} className="img_table img_table2" />
+              <Image src={user} className="img_table img_table2" alt="Client" />
               <div>
                 <h6 className="m-0 f-b">new hyenday 2021</h6>
                 <div className="gray-color">
@@ -49,7 +50,7 @@ const BestSellerUsers = () => {
           </li>
           <li className="item">
             <div className="d-flex align-items-center">
-              <img src={user.src} className="img_table img_table2" />
+              <Image src={user} className="img_table img_table2" alt="Client" />
               <div>
                 <h6 className="m-0 f-b">new hyenday 2021</h6>
                 <div className="gray-color">

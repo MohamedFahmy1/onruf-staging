@@ -19,7 +19,6 @@ import { pathOr } from "ramda"
 import Alerto from "../../../common/Alerto"
 import Image from "next/image"
 import { textAlignStyle } from "../../../styles/stylesObjects"
-import { DevTool } from "@hookform/devtools"
 import moment from "moment"
 import RequiredSympol from "../../../common/RequiredSympol"
 import { multiFormData } from "../../../common/axiosHeaders"
@@ -40,7 +39,6 @@ const PaymentCards = ({ bankTransfers }) => {
     reset,
     watch,
     setValue,
-    control,
   } = useForm({ mode: "onBlur", defaultValues: { paymentAccountType: 1, saveForLaterUse: true } })
 
   const paymentAccountTypeValue = watch("paymentAccountType")
@@ -653,7 +651,6 @@ const PaymentCards = ({ bankTransfers }) => {
           </Modal.Footer>
         </Modal>
       </form>
-      <DevTool control={control} />
     </Col>
   )
 }
