@@ -1,7 +1,6 @@
 import React from "react"
 import { Col } from "react-bootstrap"
 import img from "../../../../public/images/pro1.png"
-import Image from "next/image"
 
 import { useRouter } from "next/router"
 import t from "../../../translations.json"
@@ -22,7 +21,7 @@ const BestSellerProducts = () => {
         <ul className="all_pro_cus">
           <li className="item">
             <div className="d-flex align-items-center">
-              <Image src={img} className="img_table" alt="Product" />
+              <img src={img.src} className="img_table" />
               <div>
                 <h6 className="m-0 f-b">new hyenday 2021</h6>
                 <div className="gray-color">1/1/2020</div>
@@ -35,7 +34,7 @@ const BestSellerProducts = () => {
           </li>
           <li className="item">
             <div className="d-flex align-items-center">
-              <Image src={img} className="img_table" alt="Product" />
+              <img src={img.src} className="img_table" />
               <div>
                 <h6 className="m-0 f-b">new hyenday 2021</h6>
                 <div className="gray-color">1/1/2020</div>
@@ -48,7 +47,7 @@ const BestSellerProducts = () => {
           </li>
           <li className="item">
             <div className="d-flex align-items-center">
-              <Image src={img} className="img_table" alt="Product" />
+              <img src={img.src} className="img_table" />
               <div>
                 <h6 className="m-0 f-b">new hyenday 2021</h6>
                 <div className="gray-color">1/1/2020</div>

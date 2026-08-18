@@ -22,6 +22,7 @@ import web from "../../../../public/icons/008-maps.svg"
 import Image from "next/image"
 import { PiLinkedinLogoBold, PiTwitterLogoLight, PiYoutubeLogo } from "react-icons/pi"
 import Alerto from "../../../common/Alerto"
+import { DevTool } from "@hookform/devtools"
 import { minDate } from "../../../common/functions"
 import { FaFlag } from "react-icons/fa"
 
@@ -36,6 +37,7 @@ const EditBussinessAccount = () => {
     setValue,
     reset,
     watch,
+    control,
     formState: { isSubmitting },
   } = useForm({ defaultValues: accountData })
   const [registeryFile, setRegisteryFile] = useState()
@@ -735,6 +737,7 @@ const EditBussinessAccount = () => {
                 </Accordion.Body>
               </Accordion.Item>
             </form>
+            {process.env.NODE_ENV === "development" && <DevTool control={control} />}
           </Accordion>
         </div>
       )}

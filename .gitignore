@@ -5,6 +5,9 @@
 /.pnp
 .pnp.js
 
+# middelware
+/src/middleware.js
+
 # testing
 /coverage
 
@@ -30,6 +33,9 @@ yarn-error.log*
 
 # vercel
 .vercel
+package-lock.json
+yarn.lock
 
 # files
 token.js
+config.bat

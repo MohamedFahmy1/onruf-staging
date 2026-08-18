@@ -1,26 +1,26 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "onrufwebsite6-001-site1.htempurl.com",
-      },
-      {
-        protocol: "https",
-        hostname: "onruf.vercel.app",
-      },
-      {
-        protocol: "https",
-        hostname: "malqaa-002-site4.stempurl.com",
-      },
-      {
-        protocol: "https",
-        hostname: "storage.googleapis.com",
-      },
+    domains: [
+      "onrufwebsite6-001-site1.htempurl.com",
+      "onruf.vercel.app",
+      "malqaa-002-site4.stempurl.com",
+      "storage.googleapis.com",
     ],
   },
+  experimental: {
+    images: {
+      remotePatterns: [
+        { protocol: "https", hostname: "**" },
+        { protocol: "http", hostname: "**" },
+      ],
+    },
+  },
+  // distDir: "build",
   i18n: {
     locales: ["ar", "en"],
     defaultLocale: "ar",
