@@ -17,6 +17,8 @@ const Question = ({
   isShared,
   productName,
   clientName,
+  clientFirstName,
+  clientLastName,
   clientImage,
   createdAt,
   productImage,
@@ -74,7 +76,9 @@ const Question = ({
             <div className="d-flex align-items-center gap-2">
               <Image src={clientImage} className="img_user" alt="client" width={70} height={70} />
               <div className="f-b">
-                <h6 className="m-0 f-b">{clientName}</h6>
+                <h6 className="m-0 f-b">
+                  {clientFirstName} {clientLastName}
+                </h6>
                 <div className="gray-color">{question}</div>
               </div>
             </div>
@@ -106,7 +110,7 @@ const Question = ({
           openModal={openReplyModal}
           setOpenModal={setOpenReplyModal}
           handleAnswerQuestion={handleAnswerQuestion}
-          clientName={clientName}
+          clientName={`${clientFirstName} ${clientLastName}`}
           question={question}
           clientImage={clientImage}
         />
