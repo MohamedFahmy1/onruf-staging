@@ -125,18 +125,37 @@ const ProductDetails = ({
       return valuesFromEn.length > valuesFromAr.length ? valuesFromEn : valuesFromAr
     }
 
-    function transformCommaSepratedMultiValuesFromBackend(data) {
+    function normalizeSharedValuesFromBackend(data) {
       let result = {}
-      let hasInvalidTypeSevenValues = false
+      let hasInvalidSharedValues = false
 
       const normalizedProductSep = data.map((item) => {
-        if (item?.Type !== 7) return item
+        const itemType = Number(item?.Type)
+
+        if ([1, 4, 5, 6].includes(itemType)) {
+          const hasArabicValue = String(item?.ValueSpeAr ?? "")
+            .split(",")
+            .some((value) => value.trim() !== "")
+          const sharedValue = String(hasArabicValue ? item.ValueSpeAr : item?.ValueSpeEn ?? "")
+
+          if (item?.ValueSpeAr !== sharedValue || item?.ValueSpeEn !== sharedValue) {
+            hasInvalidSharedValues = true
+          }
+
+          return {
+            ...item,
+            ValueSpeAr: sharedValue,
+            ValueSpeEn: sharedValue,
+          }
+        }
+
+        if (itemType !== 7) return item
 
         const values = getNormalizedMultiValues(item)
         const normalizedValue = values.join(",")
 
         if (item?.ValueSpeAr !== normalizedValue || item?.ValueSpeEn !== normalizedValue) {
-          hasInvalidTypeSevenValues = true
+          hasInvalidSharedValues = true
         }
 
         if (values.length > 0) {
@@ -154,7 +173,7 @@ const ProductDetails = ({
         }
       })
 
-      if (hasInvalidTypeSevenValues) {
+      if (hasInvalidSharedValues) {
         setProductPayload((prev) => ({
           ...prev,
           productSep: normalizedProductSep,
@@ -164,7 +183,7 @@ const ProductDetails = ({
       setMultiSelectedSpecifications(result)
     }
     if (!pathname.includes("add")) {
-      transformCommaSepratedMultiValuesFromBackend(productPayload.productSep)
+      normalizeSharedValuesFromBackend(productPayload.productSep)
     }
   }, [pathname, productPayload.productSep, setProductPayload])
 
@@ -196,7 +215,7 @@ const ProductDetails = ({
             <div className="form-group" key={spesfication?.id}>
               <label htmlFor={index} style={{ ...textAlignStyle(locale), display: "block" }}>
                 {spesfication.name}
-                {spesfication.isRequired && <RequiredSympol />}
+                {spesfication.isRequired && ![2, 3].includes(spesfication.type) && <RequiredSympol />}
               </label>
 
               {spesfication.type === 1 && (
@@ -226,39 +245,32 @@ const ProductDetails = ({
               {!!(spesfication.type === 2 || spesfication.type === 3) && (
                 <div>
                   <div className="mb-3">
-                    <label
-                      htmlFor={`${index}-en`}
-                      style={{ ...textAlignStyle("en"), display: "block" }}
-                    >
-                      {spesfication.nameEn} (English)
+                    <label htmlFor={`${index}-ar`}>
+                      {locale === "en" ? spesfication.nameEn : spesfication.nameAr} (العربية)
+                      {spesfication.isRequired && <RequiredSympol />}
+                    </label>
+                    <input
+                      type="text"
+                      id={`${index}-ar`}
+                      value={productPayload?.productSep[index]?.ValueSpeAr || ""}
+                      required={spesfication.isRequired}
+                      placeholder={`${locale === "en" ? spesfication.nameEn : spesfication.nameAr} (العربية)`}
+                      onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeAr")}
+                      className={`${styles["form-control"]} form-control`}
+                    />
+                  </div>
+
+                  <div>
+                    <label htmlFor={`${index}-en`} style={{ ...textAlignStyle("en"), display: "block" }}>
+                      {locale === "en" ? spesfication.nameEn : spesfication.nameAr} (English)
                     </label>
                     <input
                       type="text"
                       id={`${index}-en`}
                       dir="ltr"
                       value={productPayload?.productSep[index]?.ValueSpeEn || ""}
-                      required={spesfication.isRequired}
-                      placeholder={`${spesfication.nameEn} (English)`}
+                      placeholder={`${locale === "en" ? spesfication.nameEn : spesfication.nameAr} (English)`}
                       onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeEn")}
-                      className={`${styles["form-control"]} form-control`}
-                    />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor={`${index}-ar`}
-                      style={{ ...textAlignStyle("ar"), display: "block" }}
-                    >
-                      {spesfication.nameAr} (العربية)
-                    </label>
-                    <input
-                      type="text"
-                      id={`${index}-ar`}
-                      dir="rtl"
-                      value={productPayload?.productSep[index]?.ValueSpeAr || ""}
-                      required={spesfication.isRequired}
-                      placeholder={`${spesfication.nameAr} (العربية)`}
-                      onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeAr")}
                       className={`${styles["form-control"]} form-control`}
                     />
                   </div>

@@ -113,14 +113,8 @@ const AddProductStepTwo = ({
     for (let i = 0; i < productPayload.productSep.length; i++) {
       const specId = productPayload.productSep[i].SpecificationId
       const spec = specifications?.find((s) => s?.id === specId)
-
       if (spec?.isRequired) {
-        if (
-          productPayload.productSep[i].ValueSpeAr?.trim() === "" ||
-          productPayload.productSep[i].ValueSpeEn?.trim() === "" ||
-          !productPayload.productSep[i].ValueSpeAr ||
-          !productPayload.productSep[i].ValueSpeEn
-        ) {
+        if (productPayload.productSep[i].ValueSpeAr?.trim() === "" || !productPayload.productSep[i].ValueSpeAr) {
           toast.error(locale === "en" ? "Please enter all Product Details!" : "رجاء ادخال جميع بيانات المنتج")
           return false
         }
