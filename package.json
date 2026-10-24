@@ -6,7 +6,9 @@
     "node": "22.x"
   },
   "scripts": {
-    "dev": "next -p 3040",
+    "dev": "node scripts/dev-env.cjs dev",
+    "uat": "node scripts/dev-env.cjs uat",
+    "prod": "node scripts/dev-env.cjs prod",
     "export": "next export",
     "build": "next build",
     "start": "next start",

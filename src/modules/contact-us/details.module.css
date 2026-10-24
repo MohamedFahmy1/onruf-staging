@@ -1,0 +1,621 @@
+@font-face {
+  font-family: "Support Arabic";
+  src: url("/fonts/almarai-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Support Latin";
+  src: url("/fonts/poppins-regular.ttf") format("truetype");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+.page {
+  min-height: calc(100vh - 104px);
+  padding: 22px 34px 64px 48px;
+  background: #f8f8f8;
+  color: #111;
+  font-family: "Support Latin", "Support Arabic", sans-serif;
+  font-weight: 400;
+}
+
+.page[dir="ltr"] {
+  padding-inline: 45px 34px;
+}
+.page h1,
+.page h2,
+.page p {
+  margin: 0;
+}
+.page button,
+.page textarea,
+.page select {
+  font-family: inherit;
+}
+.page button {
+  border: 0;
+  background: transparent;
+}
+.pageTitle {
+  margin: 0 0 19px !important;
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 400;
+}
+.card {
+  border: 1px solid #d5d5d5;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 4px #0000000f;
+}
+.cardHeading {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #4b515b;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+}
+.cardHeading > svg {
+  width: 13px;
+  height: 13px;
+  color: #ff684b;
+  stroke-width: 1.6;
+}
+.cardHeadingRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+.currentStatus {
+  font-size: 10px;
+  color: #9295a7;
+}
+.statusCard {
+  min-height: 208px;
+  padding: 13px 13px 28px;
+}
+.timeline {
+  display: flex;
+  padding: 26px 8px 0;
+  margin: 0;
+  list-style: none;
+  gap: 12px;
+  overflow-x: auto;
+}
+.timelineItem {
+  position: relative;
+  flex: 1 0 113px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+.timelineItem:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: calc(50% + 15px);
+  width: calc(100% - 18px);
+  top: 15px;
+  height: 1px;
+  background: #e9e9ec;
+}
+.timelineIcon {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+.timelineIcon svg {
+  width: 19px;
+  height: 19px;
+  stroke-width: 1.8;
+}
+.green {
+  color: #318c18;
+  background: #d9ead1;
+}
+.created {
+  color: #329813;
+  background: #eff8ea;
+}
+.coral {
+  color: #ff5e49;
+  background: #ffedea;
+}
+.yellow {
+  color: #ffc338;
+  background: #fff5de;
+}
+.purple {
+  color: #4c5d9f;
+  background: #e4e6f0;
+}
+.red {
+  color: #ff3a36;
+  background: #ffe9e5;
+}
+.blue {
+  color: #4881ae;
+  background: #e1eaf0;
+}
+.statusNew {
+  color: #337bc4;
+  background: #e9f2ff;
+}
+.statusOpen {
+  color: #258610;
+  background: #d7e8d0;
+}
+.statusInProgress {
+  color: #138a91;
+  background: #e3f4f4;
+}
+.statusPendingCustomer {
+  color: #b77a0c;
+  background: #fff3d8;
+}
+.statusResolved {
+  color: #238751;
+  background: #e2f4e8;
+}
+.statusClosed {
+  color: #657287;
+  background: #edf0f5;
+}
+.statusReopened {
+  color: #8b56ad;
+  background: #f2e9fb;
+}
+.statusOnHold {
+  color: #c47a25;
+  background: #fff0df;
+}
+.statusDraft {
+  color: #85858f;
+  background: #f1f1f5;
+}
+.priorityLowest {
+  color: #718499;
+  background: #edf2f7;
+}
+.priorityLow {
+  color: #278b9e;
+  background: #e8f5f7;
+}
+.unassigned {
+  color: #8b6b53;
+  background: #f3ece5;
+}
+.neutral {
+  color: #747b8c;
+  background: #edf0f4;
+}
+.timelineText {
+  min-height: 29px;
+  max-width: 116px;
+  font-size: 10px;
+  line-height: 19px;
+}
+.timelineMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 3px;
+  color: #a1a1a1;
+  font-size: 7px;
+  line-height: 12px;
+}
+.timelineMeta time {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.commentsCard {
+  margin-top: 31px;
+  padding: 13px 13px 11px 32px;
+}
+.page[dir="ltr"] .commentsCard {
+  padding-inline: 13px 32px;
+}
+.commentCount {
+  color: #ff6245;
+  font-size: 11px;
+}
+.comment {
+  padding: 11px 0 14px;
+}
+.comment + .comment {
+  border-top: 1px solid #ececee;
+}
+.commentHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 9px;
+}
+.avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #40538e;
+  color: #fff;
+  font-size: 12px;
+  direction: ltr;
+  overflow: hidden;
+}
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.author {
+  font-size: 12px;
+  line-height: 18px;
+}
+.originalLabel {
+  color: #9b9fac;
+  font-size: 9px;
+}
+.requestSubject {
+  font-size: 11px;
+  color: #464b58;
+  margin-bottom: 4px !important;
+}
+.commentBody {
+  color: #53565e;
+  font-size: 10px;
+  line-height: 19px;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+.commentBody a {
+  color: #f36a50;
+  text-decoration: underline;
+}
+.commentBody blockquote {
+  margin: 3px 0;
+  border-inline-start: 2px solid #d7dce4;
+  padding-inline-start: 8px;
+}
+.bodyHeading {
+  display: block;
+  font-size: 12px;
+}
+.commentActions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  margin-top: 0;
+  color: #9299b5;
+  font-size: 10px;
+  line-height: 16px;
+}
+.commentActions button {
+  color: #ff684b;
+  font-size: 10px;
+  padding: 0;
+}
+.commentActions time {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.attachmentLink {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  border: 1px solid #e5e8ef;
+  color: #4b5571;
+  font-size: 10px;
+  overflow-wrap: anywhere;
+}
+.fileSize {
+  color: #9ba0ac;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.composer {
+  max-width: 732px;
+  margin-top: 0;
+}
+.editor {
+  border: 1px solid #cad2e0;
+  border-radius: 4px;
+  min-height: 180px;
+  padding: 8px 10px;
+}
+.editor textarea {
+  display: block;
+  width: 100%;
+  min-height: 132px;
+  max-height: 360px;
+  padding: 0;
+  border: none;
+  outline: none;
+  resize: vertical;
+  background: transparent;
+  color: #50535a;
+  font-size: 12px;
+  line-height: 22px;
+}
+.editor textarea:focus-visible {
+  outline: none;
+}
+.editor:focus-within {
+  border-color: #8696b9;
+}
+.editor textarea::placeholder {
+  color: #666;
+  opacity: 1;
+}
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 5px;
+  min-height: 30px;
+  color: #4a4a4a;
+}
+.formatTools,
+.editorControls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.editorControls {
+  gap: 6px;
+}
+.toolButton {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 18px;
+  height: 19px;
+  padding: 2px;
+  border-radius: 3px;
+  color: inherit;
+  font-size: 12px;
+}
+.toolButton svg {
+  width: 12px;
+  height: 12px;
+  stroke-width: 1.8;
+}
+.toolButton:hover:not(:disabled) {
+  background: #f2f4f8;
+}
+.toolButton:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+.paragraphControl {
+  position: relative;
+  width: 110px;
+  flex: 0 0 110px;
+  height: 30px;
+  border: 1px solid #e7e9ee;
+  border-radius: 14px;
+}
+.paragraphControl select {
+  appearance: none;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  padding-block: 0;
+  padding-inline: 10px 26px;
+  color: #6f7176;
+  font-size: 11px;
+  text-align: start;
+  cursor: pointer;
+}
+.paragraphControl > svg {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  top: 50%;
+  inset-inline-end: 9px;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+.sendButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  border: 1px solid #e7e9ee !important;
+  border-radius: 50%;
+  color: #5e6470;
+  padding: 3px;
+}
+.sendButton svg {
+  width: 14px;
+  height: 14px;
+}
+.sendButton:hover:not(:disabled) {
+  background: #ffede8;
+  color: #ff684b;
+}
+.sendButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.hiddenInput {
+  display: none;
+}
+.selectedFiles {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.selectedFiles li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 8px;
+  border: 1px solid #e1e4eb;
+  border-radius: 4px;
+  font-size: 10px;
+  color: #565c6d;
+  overflow-wrap: anywhere;
+}
+.selectedFiles small {
+  color: #9299a8;
+  direction: ltr;
+}
+.selectedFiles button {
+  padding: 0;
+  display: inline-flex;
+  color: #f36a50;
+}
+.replyingTo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 10px;
+  color: #727b92;
+  margin: 4px 0;
+}
+.replyingTo button {
+  color: #f36a50;
+  padding: 0;
+}
+.sendError {
+  color: #c94532;
+  font-size: 11px;
+  margin-top: 6px !important;
+}
+.sending {
+  color: #7e8595;
+  font-size: 11px;
+}
+.loading,
+.errorState {
+  padding: 32px;
+  border: 1px solid #dedede;
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  color: #687184;
+  font-size: 13px;
+}
+.errorState button,
+.commentsError button {
+  color: #f36950;
+  padding: 6px 10px;
+  text-decoration: underline;
+}
+.commentsError {
+  font-size: 11px;
+  padding: 10px 0;
+  color: #b74735;
+}
+.emptyComments {
+  color: #8e95a7;
+  font-size: 12px;
+  padding: 30px 0;
+}
+.page button:focus-visible,
+.page select:focus-visible,
+.page a:focus-visible {
+  outline: 2px solid #f36950;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1100px) {
+  .page,
+  .page[dir="ltr"] {
+    padding-inline: 24px;
+  }
+  .timeline {
+    gap: 8px;
+  }
+  .timelineItem {
+    flex-basis: 110px;
+  }
+}
+
+@media (max-width: 767px) {
+  .page,
+  .page[dir="ltr"] {
+    padding: 12px 16px 36px;
+    min-height: calc(100vh - 84px);
+  }
+  .pageTitle {
+    font-size: 18px;
+    margin-bottom: 16px !important;
+  }
+  .card {
+    border-radius: 12px;
+  }
+  .statusCard {
+    padding: 12px;
+    min-height: 188px;
+  }
+  .timeline {
+    padding-top: 23px;
+  }
+  .commentsCard,
+  .page[dir="ltr"] .commentsCard {
+    padding: 12px;
+    margin-top: 20px;
+  }
+  .commentBody {
+    font-size: 12px;
+    line-height: 21px;
+  }
+  .commentActions {
+    margin-top: 8px;
+  }
+  .editor textarea {
+    font-size: 11px;
+    min-height: 132px;
+  }
+  .toolbar {
+    flex-wrap: wrap;
+    gap: 6px;
+    justify-content: flex-start;
+  }
+  .formatTools {
+    flex-wrap: wrap;
+  }
+  .editorControls {
+    margin-inline-start: auto;
+  }
+  .toolButton {
+    width: 22px;
+    height: 24px;
+  }
+  .editor {
+    padding: 7px;
+  }
+}
