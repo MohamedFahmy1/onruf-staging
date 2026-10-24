@@ -1,0 +1,275 @@
+.shell {
+  background: #f8f8f8;
+  font-family: "Support Latin", "Support Arabic", sans-serif;
+  word-spacing: normal;
+}
+
+.notificationsShell {
+  min-height: 100vh;
+}
+
+.shell :global(#main) {
+  margin-right: 253px !important;
+  margin-left: 0 !important;
+}
+
+.shell[dir="ltr"] :global(#main) {
+  margin-right: 0 !important;
+  margin-left: 253px !important;
+}
+
+.shell :global(.MuiDrawer-paper) {
+  width: 253px;
+  border: 0;
+  padding-top: 35px;
+  font-family: "Support Latin", "Support Arabic", sans-serif;
+  font-weight: 400;
+}
+
+.shell :global(.MuiDrawer-paper) > div:first-child {
+  margin-bottom: 27px;
+}
+
+.shell :global(.MuiListItemButton-root),
+.shell :global(.MuiTypography-root) {
+  font-family: "Support Latin", "Support Arabic", sans-serif !important;
+  font-weight: 400;
+}
+
+.shell :global(.MuiListItemButton-root) {
+  color: #4b506a;
+  padding: 13px 20px;
+  margin-block: 4px;
+  min-height: 52px;
+  font-size: 18px;
+  line-height: 24px;
+  white-space: nowrap;
+  align-items: center;
+}
+
+.shell :global(.MuiListItemButton-root):hover,
+.shell :global(.MuiListItemButton-root.Mui-selected) {
+  background: #f56849;
+  color: #fff;
+  box-shadow: none;
+}
+
+.shell :global(.MuiList-root) > div:last-child {
+  margin-top: 23px;
+  width: 214px;
+  min-height: 118px;
+  background: #f56849;
+  border-radius: 20px;
+  padding: 15px;
+}
+
+.shell :global(.MuiList-root) > div:last-child :global(.MuiTypography-root) {
+  font-size: 14px;
+}
+
+.shell :global(.MuiList-root) > div:last-child :global(.MuiButton-root) {
+  width: 114px;
+  min-height: 47px;
+  padding: 8px 20px;
+  border-radius: 30px;
+  background: #fff8f5 !important;
+  color: #f56849 !important;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  margin: 17px 0 0;
+}
+
+.shell :global(#header) {
+  padding: 30px 33px 0 45px;
+  gap: 108px;
+  flex-wrap: nowrap;
+  min-height: 88px;
+  font-family: inherit;
+}
+
+.shell[dir="ltr"] :global(#header) {
+  padding-right: 45px;
+  padding-left: 33px;
+}
+
+.shell :global(#header) > div:first-child {
+  min-width: 0;
+}
+
+.shell :global(#header) :global(.search) {
+  height: 58px;
+  border: 0;
+  background: #f0f3f8 !important;
+  font-family: inherit;
+  font-size: 12px;
+  border-radius: 32px;
+}
+
+.shell :global(#header) :global(.top_linko) {
+  gap: 28px;
+  flex-shrink: 0;
+}
+
+.shell :global(#header) :global(.change_acc) {
+  border-color: #e6e8ec;
+  background: #f0f3f8;
+  height: 58px;
+}
+
+.shell :global(#header) :global(.change_acc h6) {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.shell :global(#header) :global(.change_acc button) {
+  font-family: inherit;
+}
+
+.shell :global(#header) :global(.change_acc .close_) {
+  min-width: 53px;
+  width: 53px;
+  margin-inline-start: 16px;
+  border-inline-start: 1px solid #e6e8ec;
+  transform: none;
+  font-size: 20px;
+}
+
+.shell :global(#header) :global(.lang_ .btn) {
+  min-width: 139px;
+  height: 58px;
+  border: 0;
+  background: #f0f3f8;
+  color: #4b506a;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+}
+
+.shell :global(#header) :global(.lang_ .btn)::after {
+  margin-inline-start: 7px;
+}
+
+.mobileMenuButton,
+.backdrop {
+  display: none;
+}
+
+.mobileMenuButton:focus-visible {
+  outline: 2px solid #f56849;
+  outline-offset: 3px;
+}
+
+@media (max-width: 1100px) {
+  .shell :global(#header),
+  .shell[dir="ltr"] :global(#header) {
+    padding-inline: 24px;
+    gap: 20px;
+  }
+
+  .shell :global(#header) :global(.top_linko) {
+    gap: 10px;
+  }
+
+  .shell :global(#header) :global(.lang_ .btn) {
+    min-width: 105px;
+  }
+}
+
+@media (max-width: 767px) {
+  :is(.shell, .notificationsShell) :global(#main) {
+    margin: 0 !important;
+  }
+
+  :is(.shell, .notificationsShell) :global(.MuiDrawer-root) {
+    display: none;
+  }
+
+  .navigationOpen :global(.MuiDrawer-root) {
+    display: block;
+  }
+
+  .mobileMenuButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    top: 20px;
+    inset-inline-start: 16px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #e6e8ec;
+    color: #4b506a;
+    z-index: 1301;
+  }
+
+  .mobileMenuButton svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: #0006;
+    z-index: 1199;
+    border: 0;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) {
+    padding: 20px 16px 0;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) > div:first-child {
+    flex-basis: calc(100% - 48px);
+    margin-inline-start: 48px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.search) {
+    height: 40px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.top_linko) {
+    flex-basis: 100%;
+    justify-content: space-between;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.change_acc) {
+    max-width: calc(100% - 110px);
+    height: 49px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.change_acc h6) {
+    font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.change_acc img) {
+    width: 36px;
+    height: 36px;
+    margin-inline-end: 2px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.change_acc .close_) {
+    min-width: 30px;
+    width: 30px;
+    margin-inline-start: 3px;
+  }
+
+  :is(.shell, .notificationsShell) :global(#header) :global(.lang_ .btn) {
+    min-width: 100px;
+    height: 49px;
+    padding: 10px;
+    font-size: 12px;
+  }
+}

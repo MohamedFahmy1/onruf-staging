@@ -1,6 +1,6 @@
+import Head from "next/head"
 import { pathOr } from "ramda"
 import t from "../../translations.json"
-import Head from "next/head"
 import ContactUS from "../../modules/contact-us"
 import { useRouter } from "next/router"
 

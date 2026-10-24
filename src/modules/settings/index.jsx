@@ -12,7 +12,7 @@ const Settings = () => {
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
   const { locale } = useRouter()
   const { data: bankTransfers } = useFetch("/BankTransfersList")
-  const { data: userWalletState = {} } = useFetch("/GetUserWalletTransactions")
+  // const { data: userWalletState = {} } = useFetch("/GetUserWalletTransactions")
   const { data: accountData = {} } = useFetch(`/GetBusinessAccountById?businessAccountId=${buisnessAccountId}`)
   return (
     <article className="body-content">
@@ -23,7 +23,7 @@ const Settings = () => {
         <ProfileCard {...accountData} />
         <PaymentCards bankTransfers={bankTransfers} />
       </Row>
-      <Options userWalletState={userWalletState} />
+      <Options />
     </article>
   )
 }

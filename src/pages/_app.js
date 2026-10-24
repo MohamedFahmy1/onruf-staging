@@ -26,6 +26,7 @@ import { AppWrapper } from "../appWrapper/index"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
 import FirebaseMessaging from "../common/FirebaseMessaging"
+import SupportShell from "../modules/contact-us/SupportShell"
 
 const clientSideEmotionCache = createEmotionCache()
 
@@ -61,30 +62,32 @@ const MyApp = ({ Component, pageProps, emotionCache = clientSideEmotionCache }) 
           <ThemeProvider theme={{ ...theme, direction: locale === "en" ? "ltr" : "rtl" }}>
             <EmotionCacheProvider theme={{ ...theme, direction: locale === "en" ? "ltr" : "rtl" }}>
               <CssBaseline />
-              <Sidebar />
-              <div
-                id="main"
-                style={{
-                  marginLeft: mLeft,
-                  marginRight: mRight,
-                  textAlign: "start",
-                }}
-              >
-                <FirebaseMessaging />
-                <Navbar />
-                <Component {...pageProps} />
-                <ToastContainer
-                  position="top-center"
-                  autoClose={5000}
-                  hideProgressBar={false}
-                  newestOnTop={false}
-                  closeOnClick
-                  rtl={false}
-                  pauseOnFocusLoss
-                  draggable
-                  pauseOnHover
-                />
-              </div>
+              <SupportShell>
+                <Sidebar />
+                <div
+                  id="main"
+                  style={{
+                    marginLeft: mLeft,
+                    marginRight: mRight,
+                    textAlign: "start",
+                  }}
+                >
+                  <FirebaseMessaging />
+                  <Navbar />
+                  <Component {...pageProps} />
+                  <ToastContainer
+                    position="top-center"
+                    autoClose={5000}
+                    hideProgressBar={false}
+                    newestOnTop={false}
+                    closeOnClick
+                    rtl={false}
+                    pauseOnFocusLoss
+                    draggable
+                    pauseOnHover
+                  />
+                </div>
+              </SupportShell>
             </EmotionCacheProvider>
           </ThemeProvider>
         </AppWrapper>

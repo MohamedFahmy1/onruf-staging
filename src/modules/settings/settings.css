@@ -14,13 +14,30 @@
   height: 20px;
 }
 
+.settings-options > [class*="col-"] {
+  display: flex;
+}
+
 .box-setting_ {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  width: 100%;
   background: #fff;
   padding: 20px;
   border-radius: 20px;
   overflow: hidden;
   margin: 15px 0;
   text-align: center;
+}
+
+.box-setting_ > :first-child {
+  align-self: center;
+  flex-shrink: 0;
+}
+
+.box-setting_ > h6 {
+  flex: 1;
 }
 
 .box-setting_ img {
@@ -33,6 +50,7 @@
 
 .box-setting_ .btn-main {
   display: block;
+  flex-shrink: 0;
   width: 100%;
   margin-top: 15px;
 }

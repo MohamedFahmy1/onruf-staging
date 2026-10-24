@@ -16,7 +16,7 @@ import { toast } from "react-toastify"
 import Alerto from "../../../common/Alerto"
 import { useFetch } from "../../../hooks/useFetch"
 
-const Options = ({ userWalletState }) => {
+const Options = () => {
   const { locale } = useRouter()
   const [manageAccountPop, setManageAccountPop] = useState(false)
   const { data: myPointsData = {} } = useFetch(`/GetUserPointsTransactions`)
@@ -29,21 +29,21 @@ const Options = ({ userWalletState }) => {
 
   return (
     <section>
-      <Row>
+      <Row className="settings-options">
         {isExists("ProviderSettingsMyWallet") && (
           <Col xl={3} lg={4} md={6}>
             <div className="box-setting_">
               <Image src={Wallet} alt="wallet" {...Wallet} height={82} />
               <h6 className="f-b">
-                {pathOr("", [locale, "Settings", "myWallet"], t)}{" "}
-                <span className="d-flex justify-content-center">
+                {pathOr("", [locale, "Settings", "myWallet"], t)}
+                {/* <span className="d-flex justify-content-center">
                   {userWalletState ? userWalletState?.walletBalance : 0}{" "}
                   {pathOr("", [locale, "Products", "currency"], t)}
-                </span>
+                </span> */}
               </h6>
-              <Link href="/settings/wallet">
-                <span className="btn-main">{pathOr("", [locale, "Settings", "topUpCredit"], t)}</span>
-              </Link>
+              <button type="button" className="btn-main" disabled>
+                {pathOr("", [locale, "Settings", "soon"], t)}
+              </button>
             </div>
           </Col>
         )}
