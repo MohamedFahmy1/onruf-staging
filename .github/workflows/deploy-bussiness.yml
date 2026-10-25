@@ -1,0 +1,154 @@
+
+
+name: Deploy Next.js to IIS
+
+on:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nextjs-production
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Deploy to IIS server
+        shell: powershell
+        run: |
+          $ErrorActionPreference = "Stop"
+          $app = "C:\webserver\nextjs-onruf-bussiness"
+          $stage = "C:\webserver\nextjs-nextjs-onruf-bussiness-staging"
+          $backup = "C:\webserver\nextjs-nextjs-onruf-bussiness-backup"
+          $service = "NextJsBussinessApp"
+          $nssm = "C:\tools\nssm\nssm.exe"
+          $standalone = Join-Path $env:GITHUB_WORKSPACE ".next\standalone"
+          $static = Join-Path $env:GITHUB_WORKSPACE ".next\static"
+          $public = Join-Path $env:GITHUB_WORKSPACE "public"
+          if (!(Test-Path "$standalone\server.js")) {
+            throw "Missing .next\standalone\server.js. Check output: standalone."
+          }
+          if (!(Test-Path $static)) {
+            throw "Missing .next\static directory."
+          }
+          if (!(Test-Path $nssm)) {
+            throw "NSSM not found: $nssm"
+          }
+          if (!(Get-Service -Name $service -ErrorAction SilentlyContinue)) {
+            throw "Windows service $service is not installed."
+          }
+          # Prepare the new release without touching the running app.
+          Remove-Item $stage -Recurse -Force -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Path $stage -Force | Out-Null
+          Copy-Item "$standalone\*" $stage -Recurse -Force
+          New-Item -ItemType Directory `
+            -Path "$stage\.next\static" -Force | Out-Null
+          Copy-Item "$static\*" "$stage\.next\static" -Recurse -Force
+          if (Test-Path $public) {
+            Copy-Item $public "$stage\public" -Recurse -Force
+          }
+          if (!(Test-Path "$stage\server.js")) {
+            throw "Staged server.js was not created."
+          }
+          $oldMoved = $false
+          $newMoved = $false
+          try {
+            # Stop the service before switching the application directory.
+            Stop-Service -Name $service -Force
+            (Get-Service -Name $service).WaitForStatus(
+              [System.ServiceProcess.ServiceControllerStatus]::Stopped,
+              [TimeSpan]::FromSeconds(30)
+            )
+            Remove-Item $backup -Recurse -Force -ErrorAction SilentlyContinue
+            if (Test-Path $app) {
+              Move-Item $app $backup
+              $oldMoved = $true
+            }
+            Move-Item $stage $app
+            $newMoved = $true
+            Start-Service -Name $service
+            (Get-Service -Name $service).WaitForStatus(
+              [System.ServiceProcess.ServiceControllerStatus]::Running,
+              [TimeSpan]::FromSeconds(30)
+            )
+            # Verify that Next.js responds locally.
+            $healthy = $false
+            for ($i = 0; $i -lt 12; $i++) {
+              try {
+                $response = Invoke-WebRequest `
+                  -Uri "http://127.0.0.1:3000/" `
+                  -TimeoutSec 5 `
+                  -UseBasicParsing
+                if ([int]$response.StatusCode -lt 500) {
+                  $healthy = $true
+                  break
+                }
+              }
+              catch {
+                $code = 0
+                if ($_.Exception.Response) {
+                  $code = [int]$_.Exception.Response.StatusCode
+                }
+                if ($code -ge 400 -and $code -lt 500) {
+                  $healthy = $true
+                  break
+                }
+                Start-Sleep -Seconds 5
+              }
+            }
+            if (!$healthy) {
+              throw "Health check failed on port 3000."
+            }
+            Write-Host "Next.js deployment passed its local health check."
+          }
+          catch {
+            Write-Error "Deployment failed: $_"
+            try {
+              if ((Get-Service $service).Status -ne "Stopped") {
+                Stop-Service $service -Force
+                (Get-Service $service).WaitForStatus(
+                  [System.ServiceProcess.ServiceControllerStatus]::Stopped,
+                  [TimeSpan]::FromSeconds(30)
+                )
+              }
+              if ($newMoved -and (Test-Path $app)) {
+                Remove-Item $app -Recurse -Force
+              }
+              if ($oldMoved -and (Test-Path $backup)) {
+                Move-Item $backup $app
+              }
+              Start-Service $service
+              Write-Host "Previous deployment restored."
+            }
+            catch {
+              Write-Error "Rollback failed. Check the service and backup: $_"
+            }
+            throw
+          }
+          # Retain the backup until the new release has passed its check.
+          Remove-Item $backup -Recurse -Force -ErrorAction SilentlyContinue
