@@ -199,9 +199,12 @@ const ContactUS = () => {
                 if (name === "categoryId") setValue("subCategoryId", "")
               }}
             >
-              <option value="">{placeholder || text("formSelect")}</option>
+              <option value="" disabled hidden>
+                {placeholder || text("formSelect")}
+              </option>
               {options.map((option) => (
                 <option key={option.id} value={option.id}>
+                  {"\u00A0\u00A0\u00A0"}
                   {getLookupLabel(option, locale)}
                 </option>
               ))}
@@ -396,7 +399,11 @@ const ContactUS = () => {
                     <FiCalendar aria-hidden="true" />
                     <time dateTime={ticket.createdAt || undefined} dir={english ? "ltr" : "rtl"}>
                       {date && !Number.isNaN(date.getTime())
-                        ? date.toLocaleDateString(english ? "en-US" : "ar-EG", { month: "short", day: "2-digit", year: "numeric" })
+                        ? date.toLocaleDateString(english ? "en-US" : "ar-EG", {
+                            month: "short",
+                            day: "2-digit",
+                            year: "numeric",
+                          })
                         : text("formDateUnavailable")}
                     </time>
                   </div>

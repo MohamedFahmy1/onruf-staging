@@ -261,13 +261,12 @@ const ProductDetails = ({
                   </div>
 
                   <div>
-                    <label htmlFor={`${index}-en`} style={{ ...textAlignStyle("en"), display: "block" }}>
+                    <label htmlFor={`${index}-en`} style={{ ...textAlignStyle(locale), display: "block" }}>
                       {locale === "en" ? spesfication.nameEn : spesfication.nameAr} (English)
                     </label>
                     <input
                       type="text"
                       id={`${index}-en`}
-                      dir="ltr"
                       value={productPayload?.productSep[index]?.ValueSpeEn || ""}
                       placeholder={`${locale === "en" ? spesfication.nameEn : spesfication.nameAr} (English)`}
                       onChange={(e) => onChangeSpesfication(e, index, spesfication.type, "ValueSpeEn")}

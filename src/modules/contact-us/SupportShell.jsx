@@ -8,20 +8,18 @@ import styles from "./shell.module.css"
 const SupportShell = ({ children }) => {
   const { pathname, asPath, locale } = useRouter()
   const [navigationOpen, setNavigationOpen] = useState(false)
-  const isSupport = pathname === "/contact-us" || pathname === "/contact-us/[id]"
   const isNotifications = pathname === "/notifications"
 
   useEffect(() => {
     setNavigationOpen(false)
   }, [asPath])
 
-  if (!isSupport && !isNotifications) return children
+  // Support pages use the shared application shell without route-specific overrides.
+  if (!isNotifications) return children
 
   return (
     <div
-      className={`${isSupport ? styles.shell : styles.notificationsShell} ${
-        navigationOpen ? styles.navigationOpen : ""
-      }`}
+      className={`${styles.notificationsShell} ${navigationOpen ? styles.navigationOpen : ""}`}
       dir={locale === "en" ? "ltr" : "rtl"}
     >
       <button
