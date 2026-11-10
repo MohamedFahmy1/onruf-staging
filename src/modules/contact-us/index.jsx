@@ -394,9 +394,9 @@ const ContactUS = () => {
                   </div>
                   <div className={styles.requestDate}>
                     <FiCalendar aria-hidden="true" />
-                    <time dateTime={ticket.createdAt || undefined} dir="ltr">
+                    <time dateTime={ticket.createdAt || undefined} dir={english ? "ltr" : "rtl"}>
                       {date && !Number.isNaN(date.getTime())
-                        ? date.toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" })
+                        ? date.toLocaleDateString(english ? "en-US" : "ar-EG", { month: "short", day: "2-digit", year: "numeric" })
                         : text("formDateUnavailable")}
                     </time>
                   </div>
