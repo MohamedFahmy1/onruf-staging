@@ -1,747 +1,1004 @@
 /* eslint-disable @next/next/no-img-element */
-import React, { useCallback, useEffect, useMemo, useState } from "react"
-import axios from "axios"
+import { useCallback, useEffect, useRef, useState } from "react"
 import { useForm } from "react-hook-form"
-import styles from "../../../modules/products/add/stepTwo/stepTwo.module.css"
 import { Accordion } from "react-bootstrap"
-import { toast } from "react-toastify"
-import { pathOr } from "ramda"
-import t from "../../../translations.json"
 import { useRouter } from "next/router"
 import { useSelector } from "react-redux"
-import registery from "../../../assets/images/registry.svg"
-import office from "../../../assets/images/office-building.svg"
-import Plate from "../../../assets/images/Plate Number.svg"
-import email from "../../../assets/images/email (5).svg"
-import Copyright from "../../../../public/icons/Copyright_expiry.svg"
-import facebook from "../../../../public/icons/facebook.svg"
-import instagram from "../../../../public/icons/instagram.svg"
-import tiktok from "../../../assets/images/tik-tok.svg"
-import snapchat from "../../../assets/images/snapchat.svg"
-import web from "../../../../public/icons/008-maps.svg"
-import Image from "next/image"
-import { PiLinkedinLogoBold, PiTwitterLogoLight, PiYoutubeLogo } from "react-icons/pi"
-import Alerto from "../../../common/Alerto"
-import { DevTool } from "@hookform/devtools"
-import { minDate } from "../../../common/functions"
-import { FaFlag } from "react-icons/fa"
+import { toast } from "react-toastify"
+import {
+  FiCamera,
+  FiCheckCircle,
+  FiChevronUp,
+  FiDownload,
+  FiExternalLink,
+  FiFileText,
+  FiGrid,
+  FiMail,
+  FiPhone,
+  FiShield,
+  FiUser,
+} from "react-icons/fi"
+import translations from "../../../translations.json"
+import { userImg } from "../../../constants"
+import editAccountFacebook from "../../../assets/images/edit-account-facebook.svg"
+import editAccountInstagram from "../../../assets/images/edit-account-instagram.svg"
+import editAccountLinkedin from "../../../assets/images/edit-account-linkedin.svg"
+import editAccountSnapchat from "../../../assets/images/edit-account-snapchat.svg"
+import editAccountTiktok from "../../../assets/images/edit-account-tiktok.svg"
+import editAccountTwitter from "../../../assets/images/edit-account-twitter.svg"
+import editAccountWebsite from "../../../assets/images/edit-account-website.svg"
+import editAccountYoutube from "../../../assets/images/edit-account-youtube.svg"
+import BusinessAddress from "./BusinessAddress"
+import ContactVerification from "./ContactVerification"
+import { getAccount, getCategories, getCountries, saveAccount } from "./api"
+import {
+  accountErrorMessage,
+  contactChanges,
+  phoneTargetType,
+  selectedCategoryLabels,
+  toFormValues,
+} from "./accountUtils.mjs"
+import styles from "./editAccount.module.css"
+
+const PANELS = ["0", "1", "2", "3", "4"]
+const dateOnly = (value) => (value ? String(value).split("T")[0] : "")
+const same = (left, right) => String(left || "").trim() === String(right || "").trim()
+
+const DocumentCards = ({ documents, copy, types, extra = false }) => {
+  const selected = (Array.isArray(documents) ? documents : []).filter((document) =>
+    extra ? !types.includes(Number(document.documentType)) : types.includes(Number(document.documentType)),
+  )
+  if (!selected.length) return <p className={styles.empty}>{copy("noDocuments")}</p>
+  return (
+    <div className={styles.documents}>
+      {selected.map((document, index) => {
+        const url = /^https?:\/\//i.test(document.certificate || "") ? document.certificate : null
+        const type = Number(document.documentType)
+        const label = copy(type >= 1 && type <= 8 ? `document${type}` : "documentUnknown")
+        const isImage = url && /\.(png|jpe?g|gif|webp)(?:[?#]|$)/i.test(url)
+        return (
+          <div className={styles.documentCard} key={document.id ?? `${type}-${index}`}>
+            <div className={styles.documentThumbnail}>
+              {isImage ? <img src={url} alt="" loading="lazy" /> : <FiFileText aria-hidden="true" />}
+            </div>
+            <div className={styles.documentInfo}>
+              <span>{label}</span>
+            </div>
+            {url && (
+              <div className={styles.documentActions}>
+                <a
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${copy("preview")}: ${label}`}
+                  title={copy("preview")}
+                >
+                  <FiExternalLink />
+                </a>
+                <a
+                  href={url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${copy("download")}: ${label}`}
+                  title={copy("download")}
+                >
+                  <FiDownload />
+                </a>
+              </div>
+            )}
+          </div>
+        )
+      })}
+    </div>
+  )
+}
 
 const EditBussinessAccount = () => {
-  const { locale, push } = useRouter()
-  const [eventKey, setEventKey] = useState("0")
-  const [businessAccountImage, setBusinessAccountImage] = useState(null)
-  const [accountData, setAccountData] = useState()
+  const { locale = "ar", push } = useRouter()
+  const businessId = useSelector((state) => state.authSlice.buisnessId)
+  const activeAccount = useRef(businessId)
+  activeAccount.current = businessId
+  const copy = useCallback(
+    (key) => translations[locale]?.BusinessAccountEdit?.[key] || translations.en.BusinessAccountEdit?.[key] || key,
+    [locale],
+  )
+  const [account, setAccount] = useState(null)
+  const [countries, setCountries] = useState([])
+  const [categoryOptions, setCategoryOptions] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState(false)
+  const [lookupError, setLookupError] = useState(false)
+  const [retry, setRetry] = useState(0)
+  const [lookupRetry, setLookupRetry] = useState(0)
+  const [serverError, setServerError] = useState("")
+  const [target, setTarget] = useState(null)
+  const [verifiedContacts, setVerifiedContacts] = useState({})
+  const [openPanels, setOpenPanels] = useState(PANELS)
+  const [selectedImage, setSelectedImage] = useState(null)
+  const [imagePreview, setImagePreview] = useState("")
+  const imageInput = useRef(null)
   const {
     register,
     handleSubmit,
-    setValue,
     reset,
     watch,
-    control,
-    formState: { isSubmitting },
-  } = useForm({ defaultValues: accountData })
-  const [registeryFile, setRegisteryFile] = useState()
-  const [countries, setCountries] = useState([])
-  const [regions, setRegions] = useState([])
-  const [neighbourhoods, setNeighbourhoods] = useState([])
-  const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
+    getValues,
+    setValue,
+    setError,
+    trigger,
+    formState: { errors, isSubmitting },
+  } = useForm()
+  const busy = isSubmitting || Boolean(target)
+  const freelance =
+    account?.registrationDocumentType === "FreelanceCertificate" || Number(account?.registrationDocumentType) === 2
+  const email = watch("businessAccountEmail")
+  const phone = watch("businessAccountPhoneNumber")
+  const phoneCode = watch("phoneCountryCode")
 
-  const countryId = watch("countryId")
-  const countryFlag = useMemo(() => {
-    return countryId && countries?.find((item) => item.id === +countryId)?.countryFlag
-  }, [countries, countryId])
+  useEffect(
+    () => () => {
+      if (imagePreview.startsWith("blob:")) URL.revokeObjectURL(imagePreview)
+    },
+    [imagePreview],
+  )
 
-  const replaceNullValues = (data) => {
-    if (Array.isArray(data)) {
-      return data.map((item) => replaceNullValues(item))
-    } else if (typeof data === "object" && data !== null) {
-      return Object.fromEntries(
-        Object.entries(data).map(([key, value]) => [key, replaceNullValues(value === "null" ? "" : value)]),
-      )
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    setLoadError(false)
+    setAccount(null)
+    setTarget(null)
+    setVerifiedContacts({})
+    setSelectedImage(null)
+    setImagePreview("")
+    setServerError("")
+    if (!businessId)
+      return () => {
+        active = false
+      }
+    getAccount(businessId)
+      .then((data) => {
+        if (!data?.id) throw new Error("Account unavailable")
+        if (!active) return
+        setAccount(data)
+        setImagePreview(/^https?:\/\//i.test(data.businessAccountImage || "") ? data.businessAccountImage : userImg)
+        reset(toFormValues(data))
+      })
+      .catch(() => {
+        if (active) setLoadError(true)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
     }
-    return data
-  }
+  }, [businessId, retry, reset])
 
-  const getAccountData = useCallback(async () => {
-    const {
-      data: { data: accountData },
-    } = await axios.get("/GetBusinessAccountById", {
-      params: { businessAccountId: buisnessAccountId },
+  useEffect(() => {
+    let active = true
+    setLookupError(false)
+    setCategoryOptions([])
+    getCountries(locale)
+      .then((data) => {
+        if (active) setCountries(data)
+      })
+      .catch(() => {
+        if (active) setLookupError(true)
+      })
+    getCategories(locale)
+      .then((data) => {
+        if (active) setCategoryOptions(data)
+      })
+      .catch(() => {
+        if (active) setLookupError(true)
+      })
+    return () => {
+      active = false
+    }
+  }, [locale, lookupRetry])
+
+  const beginVerification = async (kind) => {
+    const names = kind === "email" ? ["businessAccountEmail"] : ["businessAccountPhoneNumber", "phoneCountryCode"]
+    const values = getValues()
+    const changes = contactChanges(values, account)
+    if (!changes[`${kind}Changed`]) {
+      toast.error(copy(kind === "email" ? "emailUnchanged" : "phoneUnchanged"))
+      return
+    }
+    if (!(await trigger(names))) return
+    setServerError("")
+    setTarget({
+      targetType: kind === "email" ? 1 : phoneTargetType(values.phoneCountryCode),
+      email: values.businessAccountEmail?.trim() || "",
+      phoneNumber: values.businessAccountPhoneNumber?.trim() || "",
+      phoneCountryCode: values.phoneCountryCode?.trim() || "",
     })
-    const sanitizedData = replaceNullValues(accountData)
-    setAccountData(sanitizedData)
-    reset(sanitizedData)
-  }, [buisnessAccountId])
-
-  const fetchCountries = useCallback(async () => {
-    try {
-      const { data: countriesData } = await axios(`/ListCountryDDL?lang=${locale}`)
-      const { data: countriesList } = countriesData
-      setCountries(countriesList)
-    } catch (e) {
-      Alerto(e)
-    }
-  }, [locale])
-
-  const fetchRegions = useCallback(
-    async (id) => {
-      try {
-        const { data: data } = await axios(`/ListRegionsByCountryIdDDL?countriesIds=${id}&lang=${locale}&currentPage=1`)
-        const { data: regions } = data
-        setRegions(regions)
-      } catch (e) {
-        Alerto(e)
-      }
-    },
-    [locale],
-  )
-
-  const fetchNeighbourhoods = useCallback(
-    async (id) => {
-      try {
-        const { data: data } = await axios(
-          `/ListNeighborhoodByRegionIdDDL?regionsIds=${id}&lang=${locale}&currentPage=1`,
-        )
-        const { data: neighbourhood } = data
-        setNeighbourhoods(neighbourhood)
-      } catch (e) {
-        Alerto(e)
-      }
-    },
-    [locale],
-  )
-
-  useEffect(() => {
-    if (accountData) {
-      accountData.countryId && fetchRegions(accountData.countryId)
-      accountData.regionId && fetchNeighbourhoods(accountData.regionId)
-    }
-  }, [accountData, accountData?.regionId, accountData?.countryId, fetchRegions, fetchNeighbourhoods])
-
-  useEffect(() => {
-    buisnessAccountId && getAccountData()
-    buisnessAccountId && fetchCountries()
-  }, [buisnessAccountId, getAccountData, fetchCountries])
-
-  useEffect(() => {
-    const countryId = watch("countryId")
-    const regionId = watch("regionId")
-    const neighborhoodId = watch("neighborhoodId")
-    if (regions && neighbourhoods) {
-      reset({
-        ...accountData,
-        countryId: +countryId,
-        regionId: +regionId,
-        neighborhoodId: +neighborhoodId,
-      })
-    }
-  }, [regions, neighbourhoods, watch, accountData, reset])
-
-  const toggleAccordionPanel = (eKey) => {
-    eventKey === eKey ? setEventKey("") : setEventKey(eKey)
   }
-  const handleEditBusinessAccount = async (data) => {
-    const { businessAccountCertificates, ...rest } = data
-    const updatedValues = registeryFile
-      ? { ...rest, businessAccountCertificates: businessAccountCertificates }
-      : { ...rest }
-    const formData = new FormData()
-    for (const key of Object.keys(updatedValues)) {
-      if (updatedValues[key] === null) {
-        continue
-      } else if (key === "businessAccountImage" && businessAccountImage == null) {
-        continue
-      } else if (key === "businessAccountImage") {
-        if (updatedValues[key] && updatedValues[key].length > 0) {
-          formData.append(key, updatedValues[key][0])
-        }
-      } else if (key === "businessAccountCertificates") {
-        if (updatedValues[key] && updatedValues[key].length > 0) {
-          formData.append(key, updatedValues[key][0])
-        }
-      } else {
-        formData.append(key, updatedValues[key])
-      }
+
+  const changeImage = (event) => {
+    const file = event.target.files?.[0]
+    event.target.value = ""
+    if (!file) return
+    if (!file.type.startsWith("image/")) {
+      toast.error(copy("invalidImage"))
+      return
     }
-    formData.append("id", accountData?.id)
-    formData.append("BusinessAccountNameEn", data.businessAccountName)
+    setSelectedImage(file)
+    setImagePreview(URL.createObjectURL(file))
+  }
+
+  const contactSaved = (contact) => {
+    if (String(activeAccount.current) !== String(account.id)) return
+    const patch =
+      Number(contact.targetType) === 1
+        ? { businessAccountEmail: contact.email }
+        : { businessAccountPhoneNumber: contact.phoneNumber, phoneCountryCode: contact.phoneCountryCode }
+    setAccount((current) => ({ ...current, ...patch }))
+    setVerifiedContacts((current) => ({ ...current, ...patch }))
+    Object.entries(patch).forEach(([key, value]) => setValue(key, value, { shouldDirty: false, shouldValidate: true }))
+    setTarget(null)
+    toast.success(copy("contactSaved"))
+  }
+
+  const submit = async (values) => {
+    setServerError("")
+    const { emailChanged, phoneChanged } = contactChanges(values, account)
+    if (emailChanged || phoneChanged) {
+      const message = copy("verifyContactsFirst")
+      setOpenPanels(PANELS)
+      if (emailChanged) setError("businessAccountEmail", { type: "verification", message })
+      if (phoneChanged) setError("businessAccountPhoneNumber", { type: "verification", message })
+      setServerError(message)
+      return
+    }
     try {
-      await axios.post("/AddEditBusinessAccount", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
-      push("..")
-      toast.success(locale === "en" ? "Your account data saved!" : "!تم حفظ البيانات بنجاح")
+      await saveAccount(account, values, { image: selectedImage })
+      if (String(activeAccount.current) !== String(account.id)) return
+      setAccount((current) => ({ ...current, businessAccountImage: imagePreview }))
+      setSelectedImage(null)
+      toast.success(copy("saved"))
     } catch (error) {
-      toast.error(locale === "en" ? "Please Enter All Required Data!" : "من فضلك ادخل جميع البيانات اللازمة")
+      if (String(activeAccount.current) === String(account.id))
+        toast.error(accountErrorMessage(error, copy("saveError")))
     }
   }
 
+  const section = (key, label, children) => (
+    <Accordion.Item eventKey={key} className={styles.card}>
+      <Accordion.Button className={styles.cardHeader}>
+        <span className={styles.sectionNumber}>{Number(key) + 1}</span>
+        {copy(label)}
+        <span className={styles.chevron}>
+          <FiChevronUp aria-hidden="true" />
+        </span>
+      </Accordion.Button>
+      <Accordion.Body
+        className={`${styles.cardBody} ${key === "3" ? styles.addressBody : ""} ${
+          key === "4" ? styles.socialBody : ""
+        }`}
+      >
+        {children}
+      </Accordion.Body>
+    </Accordion.Item>
+  )
+  const categoryText = selectedCategoryLabels(account?.categoryIds, categoryOptions, copy("categoryFallback")).join(
+    locale === "ar" ? "، " : ", ",
+  )
+  const isEmailVerified = verifiedContacts.businessAccountEmail && same(email, verifiedContacts.businessAccountEmail)
+  const isPhoneVerified =
+    verifiedContacts.businessAccountPhoneNumber &&
+    same(phone, verifiedContacts.businessAccountPhoneNumber) &&
+    same(phoneCode, verifiedContacts.phoneCountryCode)
+  const activation = (kind, verified) => (
+    <button
+      className={styles.inputAction}
+      type="button"
+      disabled={busy || Boolean(verified)}
+      onClick={() => beginVerification(kind)}
+    >
+      {verified ? (
+        <>
+          <FiCheckCircle aria-hidden="true" /> {copy("verified")}
+        </>
+      ) : (
+        copy("activate")
+      )}
+    </button>
+  )
   return (
-    <div className="body-content">
-      {accountData && accountData.id && (
-        <div>
-          <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
-            <h6 className="f-b m-0">{pathOr("", [locale, "Settings", "store_settings"], t)}</h6>
-          </div>
-          <Accordion activeKey={eventKey} flush>
-            <form onSubmit={handleSubmit(handleEditBusinessAccount)}>
-              <Accordion.Item className={`${styles["accordion-item"]} accordion-item`} eventKey="0">
-                <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("0")}>
-                  <span>1</span>
-                  {pathOr("", [locale, "EditAccount", "typeOf"], t)}
-                </Accordion.Button>
-                <Accordion.Body>
-                  <div className="contint_paner contint_paner_form">
-                    <div className="form-content">
-                      <div className="form-group">
-                        <label>
-                          {pathOr("", [locale, "Settings", "business_type"], t)}
-                          <span className="text-danger">*</span>
-                        </label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={office} className="img-fluid" alt="" />
-                          </span>
-                          <select
-                            {...register("registrationDocumentType", { value: accountData.registrationDocumentType })}
-                            onChange={(e) => {
-                              setValue("registrationDocumentType", e.target.value)
-                            }}
-                            required
-                            className="form-control form-select"
-                          >
-                            <option hidden disabled value={0}>
-                              {pathOr("", [locale, "Settings", "chooseType"], t)}
-                            </option>
-                            <option value={"CommercialRegister"}>
-                              {pathOr("", [locale, "Settings", "commercial_register"], t)}
-                            </option>
-                            <option value={"FreelanceCertificate"}>
-                              {pathOr("", [locale, "Settings", "freelance_certificate"], t)}
-                            </option>
-                          </select>
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>
-                          {pathOr("", [locale, "Settings", "commercial_register_number"], t)}
-                          <span className="text-danger">*</span>
-                        </label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={Plate} className="img-fluid" alt="Plate" />
-                          </span>
-                          <input
-                            {...register("detailRegistrationNumber", { value: accountData.detailRegistrationNumber })}
-                            onChange={(e) => setValue("detailRegistrationNumber", e.target.value)}
-                            type="text"
-                            required
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label htmlFor="expiry">
-                          {pathOr("", [locale, "Settings", "expiration_date"], t)}
-                          <span className="text-danger">*</span>
-                        </label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={Copyright} className="img-fluid" alt="copyright" />
-                          </span>
-                          <input
-                            {...register("registrationNumberExpiryDate", {
-                              value: accountData.registrationNumberExpiryDate,
-                            })}
-                            onChange={(e) => {
-                              setValue("registrationNumberExpiryDate", e.target.value)
-                            }}
-                            type="date"
-                            id="expiry"
-                            min={minDate()}
-                            className="form-control"
-                            required
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "tax_number"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={registery} alt="registery" />
-                          </span>
-                          <input
-                            {...register("vatNumber", {
-                              value: accountData.vatNumber,
-                            })}
-                            onChange={(e) => setValue("vatNumber", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <div className="form-control input_file">
-                          <span>
-                            {pathOr("", [locale, "Settings", "attach_commercial_register_image"], t)}
-                            <span className="text-danger">*</span>
-                          </span>
-                          <input
-                            multiple
-                            onClick={(e) => {
-                              setRegisteryFile(e.target.files)
-                            }}
-                            type="file"
-                            required
-                            {...register("businessAccountCertificates", {
-                              value: accountData.businessAccountCertificates,
-                            })}
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group text-center">
-                        <button
-                          className="btn-main mt-3 btn-disabled"
-                          type="button"
-                          onClick={() => {
-                            setEventKey("1")
-                          }}
-                        >
-                          {pathOr("", [locale, "EditAccount", "next"], t)}
-                        </button>
-                      </div>
+    <div className={styles.page} dir={locale === "ar" ? "rtl" : "ltr"}>
+      <h1 className={styles.pageTitle}>{copy("pageTitle")}</h1>
+      {loading && (
+        <div className={styles.loading} role="status">
+          {copy("loading")}
+        </div>
+      )}
+      {loadError && (
+        <div className={styles.errorBanner} role="alert">
+          {copy("loadError")}{" "}
+          <button type="button" onClick={() => setRetry((value) => value + 1)}>
+            {copy("retry")}
+          </button>
+        </div>
+      )}
+      {!loading && account && (
+        <>
+          {lookupError && (
+            <div className={styles.errorBanner} role="alert">
+              {copy("loadError")}{" "}
+              <button type="button" onClick={() => setLookupRetry((value) => value + 1)}>
+                {copy("retry")}
+              </button>
+            </div>
+          )}
+          {serverError && (
+            <div className={styles.errorBanner} role="alert">
+              {serverError}
+            </div>
+          )}
+          <form className={styles.form} noValidate onSubmit={handleSubmit(submit, () => setOpenPanels(PANELS))}>
+            <fieldset disabled={busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+              <Accordion alwaysOpen activeKey={openPanels} onSelect={(keys) => setOpenPanels(keys || [])}>
+                {section(
+                  "0",
+                  "accountInfo",
+                  <>
+                    <div className={styles.logo}>
+                      <button
+                        type="button"
+                        className={styles.logoButton}
+                        aria-label={copy("changeImage")}
+                        title={copy("changeImage")}
+                        onClick={() => imageInput.current?.click()}
+                      >
+                        <img
+                          className={styles.logoImage}
+                          src={imagePreview || userImg}
+                          alt={account.businessAccountName || copy("accountInfo")}
+                        />
+                        <span className={styles.logoOverlay}>
+                          <FiCamera aria-hidden="true" />
+                        </span>
+                      </button>
+                      <input
+                        ref={imageInput}
+                        type="file"
+                        accept="image/*"
+                        className="visually-hidden"
+                        aria-label={copy("changeImage")}
+                        onChange={changeImage}
+                      />
                     </div>
-                  </div>
-                </Accordion.Body>
-              </Accordion.Item>
-              {/* Second Step */}
-              <Accordion.Item className={`${styles["accordion-item"]} accordion-item`} eventKey="1">
-                <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("1")}>
-                  <span>2</span>
-                  {pathOr("", [locale, "EditAccount", "storeInfo"], t)}
-                </Accordion.Button>
-                <Accordion.Body>
-                  <div className="contint_paner contint_paner_form">
-                    <div className="form-content">
-                      <div className="form-group">
-                        <div className="upload_Image">
-                          <img
-                            src={
-                              businessAccountImage
-                                ? URL.createObjectURL(businessAccountImage)
-                                : accountData.businessAccountImage
-                            }
-                            alt="logo"
+                    <div className={styles.grid}>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="businessAccountNameAr">
+                            {copy("nameAr")}
+                            <span style={{ color: "red", fontSize: "1.3rem" }}>*</span>
+                          </label>
+                          <input
+                            id="businessAccountNameAr"
+                            type="text"
+                            dir="rtl"
+                            className={styles.input}
+                            aria-invalid={Boolean(errors.businessAccountNameAr)}
+                            {...register("businessAccountNameAr", {
+                              required: copy("required"),
+                              validate: (value) => Boolean(value?.trim()) || copy("required"),
+                            })}
                           />
-                          <div className="btn_" style={{ minWidth: "130px" }}>
-                            {pathOr("", [locale, "Settings", "change_logo"], t)}
+                          {errors.businessAccountNameAr && (
+                            <span className={styles.fieldError} role="alert">
+                              {errors.businessAccountNameAr.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="businessAccountNameEn">
+                            {copy("nameEn")}
+                            <span style={{ color: "red", fontSize: "1.3rem" }}>*</span>
+                          </label>
+                          <input
+                            id="businessAccountNameEn"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            aria-invalid={Boolean(errors.businessAccountNameEn)}
+                            {...register("businessAccountNameEn", {
+                              required: copy("required"),
+                              validate: (value) => Boolean(value?.trim()) || copy("required"),
+                            })}
+                          />
+                          {errors.businessAccountNameEn && (
+                            <span className={styles.fieldError} role="alert">
+                              {errors.businessAccountNameEn.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="businessAccountUserName">
+                            {copy("username")}
+                          </label>
+                          <div className={styles.inputGroup}>
+                            <span className={styles.inputIcon} aria-hidden="true">
+                              <FiUser />
+                            </span>
                             <input
-                              {...register("businessAccountImage", { value: accountData.businessAccountImage })}
-                              onChange={(e) => {
-                                setBusinessAccountImage(e.target.files[0])
-                              }}
-                              type="file"
+                              id="businessAccountUserName"
+                              type="text"
+                              className={styles.input}
+                              value={account.businessAccountUserName || ""}
+                              readOnly
                             />
                           </div>
                         </div>
                       </div>
-                      <div className="form-group">
-                        <label> {pathOr("", [locale, "Settings", "UserName"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={web.src} className="img-fluid" alt="web" width={30} height={30} />
-                          </span>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="businessAccountEmail">
+                            {copy("email")}
+                            <span style={{ color: "red", fontSize: "1.3rem" }}>*</span>
+                          </label>
+                          <div className={styles.inputGroup}>
+                            <span className={styles.inputIcon} aria-hidden="true">
+                              <FiMail />
+                            </span>
+                            <input
+                              id="businessAccountEmail"
+                              type="email"
+                              dir="ltr"
+                              className={styles.input}
+                              aria-invalid={Boolean(errors.businessAccountEmail)}
+                              {...register("businessAccountEmail", {
+                                required: copy("required"),
+                                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: copy("invalidEmail") },
+                              })}
+                            />
+                            {activation("email", isEmailVerified)}
+                          </div>
+                          {errors.businessAccountEmail && (
+                            <span className={styles.fieldError} role="alert">
+                              {errors.businessAccountEmail.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="businessAccountPhoneNumber">
+                            {copy("phone")}
+                            <span style={{ color: "red", fontSize: "1.3rem" }}>*</span>
+                          </label>
+                          <div className={`${styles.inputGroup} ${styles.phoneGroup}`}>
+                            <span className={styles.inputIcon} aria-hidden="true">
+                              <FiPhone />
+                            </span>
+                            <input
+                              className={`${styles.input} ${styles.countryCode}`}
+                              type="tel"
+                              aria-label={copy("countryCode")}
+                              aria-invalid={Boolean(errors.phoneCountryCode)}
+                              {...register("phoneCountryCode", {
+                                required: copy("required"),
+                                pattern: { value: /^\+?\d{1,4}$/, message: copy("invalidPhone") },
+                              })}
+                            />
+                            <input
+                              id="businessAccountPhoneNumber"
+                              className={`${styles.input} ${styles.phoneNumber}`}
+                              type="tel"
+                              aria-invalid={Boolean(errors.businessAccountPhoneNumber)}
+                              {...register("businessAccountPhoneNumber", {
+                                required: copy("required"),
+                                validate: (value) =>
+                                  /^\d{4,15}$/.test(String(value || "").replace(/[\s()-]/g, "")) ||
+                                  copy("invalidPhone"),
+                              })}
+                            />
+                            {activation("phone", isPhoneVerified)}
+                          </div>
+                          {(errors.businessAccountPhoneNumber || errors.phoneCountryCode) && (
+                            <span className={styles.fieldError} role="alert">
+                              {errors.businessAccountPhoneNumber?.message || errors.phoneCountryCode?.message}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="accountCategories">
+                            {copy("categories")}
+                          </label>
+                          <div className={styles.inputGroup}>
+                            <span className={styles.inputIcon} aria-hidden="true">
+                              <FiGrid />
+                            </span>
+                            <input
+                              id="accountCategories"
+                              type="text"
+                              className={styles.input}
+                              value={categoryText}
+                              readOnly
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>,
+                )}
+                {/* Second Step */}
+                {section(
+                  "1",
+                  "verification",
+                  <>
+                    <div className={styles.grid}>
+                      <div className={`${styles.field} ${styles.fullWidth}`}>
+                        <div>
+                          <label className={styles.label} htmlFor="registrationDocumentType">
+                            {copy("documentType")}
+                          </label>
+                          <div className={styles.inputGroup}>
+                            <span className={styles.inputIcon} aria-hidden="true">
+                              <FiShield />
+                            </span>
+                            <input
+                              id="registrationDocumentType"
+                              type="text"
+                              className={styles.input}
+                              value={copy(freelance ? "freelance" : "commercial")}
+                              readOnly
+                            />
+                          </div>
+                        </div>
+                      </div>
+                      {freelance ? (
+                        <>
+                          <div className={`${styles.field} ${styles.fullWidth}`}>
+                            <div>
+                              <label className={styles.label} htmlFor="freelanceCertificateId">
+                                {copy("freelanceCertificateId")}
+                              </label>
+                              <input
+                                id="freelanceCertificateId"
+                                type="text"
+                                className={styles.input}
+                                value={account.freelanceCertificateId || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="freelanceCertificateNationalIdNumber">
+                                {copy("freelanceNationalId")}
+                              </label>
+                              <input
+                                id="freelanceCertificateNationalIdNumber"
+                                type="text"
+                                className={styles.input}
+                                value={account.freelanceCertificateNationalIdNumber || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="freelanceExpiryDate">
+                                {copy("freelanceExpiry")}
+                              </label>
+                              <input
+                                id="freelanceExpiryDate"
+                                type="date"
+                                className={styles.input}
+                                value={dateOnly(account.freelanceExpiryDate)}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className={`${styles.field} ${styles.fullWidth}`}>
+                            <div>
+                              <label className={styles.label} htmlFor="detailRegistrationNumber">
+                                {copy("registrationNumber")}
+                              </label>
+                              <input
+                                id="detailRegistrationNumber"
+                                type="text"
+                                className={styles.input}
+                                value={account.detailRegistrationNumber || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={`${styles.field} ${styles.fullWidth}`}>
+                            <div>
+                              <label className={styles.label} htmlFor="commercialRegistrationName">
+                                {copy("commercialName")}
+                              </label>
+                              <input
+                                id="commercialRegistrationName"
+                                type="text"
+                                className={styles.input}
+                                value={account.commercialRegistrationName || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="unifiedNationalEstablishmentNumber">
+                                {copy("establishmentNumber")}
+                              </label>
+                              <input
+                                id="unifiedNationalEstablishmentNumber"
+                                type="text"
+                                className={styles.input}
+                                value={account.unifiedNationalEstablishmentNumber || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="commercialRegistrationAnnualConfirmationDate">
+                                {copy("annualConfirmation")}
+                              </label>
+                              <input
+                                id="commercialRegistrationAnnualConfirmationDate"
+                                type="date"
+                                className={styles.input}
+                                value={dateOnly(account.commercialRegistrationAnnualConfirmationDate)}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                    {!freelance && (
+                      <>
+                        <h3 className={styles.subheading}>{copy("document2")}</h3>
+                        <DocumentCards documents={account.businessAccountCertificates} types={[2]} copy={copy} />
+                        <h3 className={styles.subheading} style={{ color: "var(--account-coral)" }}>
+                          {copy("representativeInfo")}
+                        </h3>
+                        <div className={styles.grid}>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="representativeFullName">
+                                {copy("representativeName")}
+                              </label>
+                              <input
+                                id="representativeFullName"
+                                type="text"
+                                className={styles.input}
+                                value={account.representativeFullName || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="representativeNationalIdNumber">
+                                {copy("nationalId")}
+                              </label>
+                              <input
+                                id="representativeNationalIdNumber"
+                                type="text"
+                                className={styles.input}
+                                value={account.representativeNationalIdNumber || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={styles.field}>
+                            <div>
+                              <label className={styles.label} htmlFor="representativeNationalIdExpiryDate">
+                                {copy("nationalIdExpiry")}
+                              </label>
+                              <input
+                                id="representativeNationalIdExpiryDate"
+                                type="date"
+                                className={styles.input}
+                                value={dateOnly(account.representativeNationalIdExpiryDate)}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                          <div className={`${styles.field} ${styles.fullWidth}`}>
+                            <div>
+                              <label className={styles.label} htmlFor="representativeRelationshipToBusiness">
+                                {copy("relationship")}
+                              </label>
+                              <input
+                                id="representativeRelationshipToBusiness"
+                                type="text"
+                                className={styles.input}
+                                value={account.representativeRelationshipToBusiness || ""}
+                                readOnly
+                              />
+                            </div>
+                          </div>
+                        </div>
+                        <DocumentCards documents={account.businessAccountCertificates} types={[3, 4]} copy={copy} />
+                      </>
+                    )}
+                    {freelance && (
+                      <DocumentCards documents={account.businessAccountCertificates} types={[5, 6]} copy={copy} />
+                    )}
+                    <h3 className={styles.subheading}>{copy("additionalDocuments")}</h3>
+                    <DocumentCards
+                      documents={account.businessAccountCertificates}
+                      types={freelance ? [5, 6, 7] : [2, 3, 4, 7]}
+                      extra
+                      copy={copy}
+                    />
+                  </>,
+                )}
+                {/* Third/last Step */}
+                {section(
+                  "2",
+                  "vat",
+                  <>
+                    <div className={styles.field}>
+                      <span className={styles.label} id="vat-registered-label">
+                        {copy("vatRegistered")}
+                      </span>
+                      <div
+                        className={styles.radioRow}
+                        role="radiogroup"
+                        aria-labelledby="vat-registered-label"
+                        aria-readonly="true"
+                      >
+                        {[true, false].map((value) => (
+                          <label className={styles.radioChoice} key={String(value)}>
+                            <input
+                              type="radio"
+                              name="readonlyVat"
+                              checked={Boolean(account.isVatRegistered) === value}
+                              disabled
+                              readOnly
+                            />
+                            {copy(value ? "yes" : "no")}
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                    <div className={styles.grid}>
+                      <div className={styles.field}>
+                        <div>
+                          <label className={styles.label} htmlFor="vatNumber">
+                            {copy("vatNumber")}
+                          </label>
                           <input
-                            {...register("businessAccountUserName", { value: accountData.businessAccountUserName })}
+                            id="vatNumber"
                             type="text"
+                            className={styles.input}
+                            value={account.vatNumber || ""}
                             readOnly
-                            className="form-control"
                           />
                         </div>
                       </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "store_name"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={office.src} className="img-fluid" alt="office" />
-                          </span>
-                          <input
-                            {...register("businessAccountNameEn", { value: accountData.businessAccountName })}
-                            onChange={(e) => {
-                              setValue("businessAccountName", e.target.value)
-                              setValue("BusinessAccountNameEn", e.target.value)
-                            }}
-                            type="text"
-                            className="form-control"
-                          />
+                      <div className={styles.field}>
+                        <div>
+                          <span className="d-block f-b mb-2">{copy("document7")}</span>
+                          <DocumentCards documents={account.businessAccountCertificates} types={[7]} copy={copy} />
                         </div>
                       </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "store_name_ar"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={office.src} className="img-fluid" alt="office" />
-                          </span>
-                          <input
-                            {...register("businessAccountNameAr", { value: accountData.businessAccountNameAr })}
-                            onChange={(e) => {
-                              setValue("businessAccountNameAr", e.target.value)
-                            }}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "email"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={email.src} className="img-fluid" alt="email" />
-                          </span>
-                          <input
-                            {...register("businessAccountEmail", { value: accountData.businessAccountEmail })}
-                            onChange={(e) => setValue("businessAccountEmail", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "phone_number"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={Plate.src} className="img-fluid" alt="Plate" />
-                          </span>
-                          <input
-                            {...register("businessAccountPhoneNumber", {
-                              value: accountData.businessAccountPhoneNumber,
-                            })}
-                            onChange={(e) => setValue("businessAccountPhoneNumber", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "main_store_website"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={web.src} className="img-fluid" alt="web" />
-                          </span>
-                          <input
-                            {...register("businessAccountWebsite", { value: accountData.businessAccountWebsite })}
-                            onChange={(e) => setValue("businessAccountWebsite", e.target.value)}
-                            type="text"
-                            className="form-control"
-                            placeholder="ex: www.onruf.com"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "address"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            {Boolean(countryFlag) ? (
-                              <Image src={countryFlag} alt="country flag" width={30} height={20} />
-                            ) : (
-                              <FaFlag size={25} />
-                            )}
-                          </span>
-                          <select
-                            {...register("countryId", { value: +accountData.countryId })}
-                            onChange={(e) => {
-                              const selectedOption = countries.find((item) => item.id === +e.target.value)
-                              if (selectedOption) {
-                                setValue("countryId", +selectedOption.id)
-                                setValue("regionId", 0)
-                                setValue("neighborhoodId", 0)
-                                setNeighbourhoods([])
-                                setRegions([])
-                                fetchRegions(selectedOption.id)
-                              }
-                            }}
-                            className="form-control form-select"
-                          >
-                            {/* <option disabled value={0}>
+                    </div>
+                  </>,
+                )}
+                {section(
+                  "3",
+                  "address",
+                  <>
+                    {/* <option disabled value={0}>
                               {pathOr("", [locale, "Settings", "selectCountry"], t)}
                             </option> */}
-                            {countries.map((item) => (
-                              <option value={item.id} key={item.id}>
-                                {item.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={office} className="img-fluid" alt="office" />
-                          </span>
-                          <select
-                            {...register("regionId", { value: +accountData.regionId })}
-                            onChange={(e) => {
-                              const selectedOption = regions.find((item) => item.id === +e.target.value)
-                              if (selectedOption) {
-                                setValue("regionId", +selectedOption.id)
-                                setValue("neighborhoodId", 0)
-                                setNeighbourhoods([])
-                                fetchNeighbourhoods(+selectedOption.id)
-                              }
-                            }}
-                            className="form-control form-select"
-                          >
-                            <option disabled value={0}>
-                              {pathOr("", [locale, "Settings", "selectRegion"], t)}
-                            </option>
-                            {regions.map((item) => (
-                              <option value={item.id} key={item.id}>
-                                {item.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <Image src={office} className="img-fluid" alt="office" />
-                          </span>
-                          <select
-                            {...register("neighborhoodId", { value: +accountData.neighborhoodId })}
-                            onChange={(e) => {
-                              setValue("neighborhoodId", +e.target.value)
-                            }}
-                            className="form-control form-select"
-                          >
-                            <option disabled value={0}>
-                              {pathOr("", [locale, "Settings", "selectNeighbourhood"], t)}
-                            </option>
-                            {neighbourhoods.map((item) => (
-                              <option value={item.id} key={item.id}>
-                                {item.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "district"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={web.src} className="img-fluid" alt="web" />
+                    <BusinessAddress
+                      register={register}
+                      watch={watch}
+                      setValue={setValue}
+                      countries={countries}
+                      locale={locale}
+                      copy={copy}
+                      disabled={busy}
+                      errors={errors}
+                    />
+                  </>,
+                )}
+                {section(
+                  "4",
+                  "social",
+                  <div className={`${styles.grid} ${styles.socialGrid}`}>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountWebsite">
+                          {copy("website")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountWebsite.src} alt="" />
                           </span>
                           <input
-                            {...register("district", { value: accountData.district })}
-                            onChange={(e) => setValue("district", e.target.value)}
+                            id="businessAccountWebsite"
                             type="text"
-                            className="form-control"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountWebsite")}
                           />
                         </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "street"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={web.src} className="img-fluid" alt="web" />
-                          </span>
-                          <input
-                            {...register("street", { value: accountData.street })}
-                            onChange={(e) => setValue("street", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "zip"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={web.src} className="img-fluid" alt="web" />
-                          </span>
-                          <input
-                            {...register("zipCode", { value: accountData.zipCode })}
-                            onChange={(e) => setValue("zipCode", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "maroof"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={web.src} className="img-fluid" alt="web" />
-                          </span>
-                          <input
-                            {...register("maroof", { value: accountData.maroof })}
-                            onChange={(e) => setValue("maroof", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <div className="form-check form-switch p-0 m-0">
-                          <span className="input-group-text justify-content-between">
-                            <label className="fs-5 f-b">{pathOr("", [locale, "Settings", "25years"], t)}</label>
-                            <input
-                              {...register("trade15Years", { value: accountData.trade15Years })}
-                              className="form-check-input m-2"
-                              onChange={(e) => setValue("trade15Years", e.target.checked)}
-                              type="checkbox"
-                              id="flexSwitchCheckChecked"
-                              role="switch"
-                            />
-                          </span>
-                        </div>
-                      </div>
-                      <div className="form-group text-center">
-                        <button
-                          className="btn-main mt-3 btn-disabled"
-                          type="button"
-                          onClick={() => {
-                            setEventKey("2")
-                          }}
-                        >
-                          {pathOr("", [locale, "EditAccount", "next"], t)}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                </Accordion.Body>
-              </Accordion.Item>
-              {/* Third/last Step */}
-              <Accordion.Item className={`${styles["accordion-item"]} accordion-item`} eventKey="2">
-                <Accordion.Button bsPrefix={styles["header_Accord"]} onClick={() => toggleAccordionPanel("2")}>
-                  <span>3</span>
-                  {pathOr("", [locale, "EditAccount", "socialMedia"], t)}{" "}
-                </Accordion.Button>
-                <Accordion.Body>
-                  <div className="contint_paner contint_paner_form">
-                    <div className="form-content">
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "facebook"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={facebook.src} className="img-fluid" alt="" />
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountFaceBook">
+                          {copy("facebook")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountFacebook.src} alt="" />
                           </span>
                           <input
-                            {...register("businessAccountFaceBook", { value: accountData.businessAccountFaceBook })}
-                            onChange={(e) => setValue("businessAccountFaceBook", e.target.value)}
+                            id="businessAccountFaceBook"
                             type="text"
-                            className="form-control"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountFaceBook")}
                           />
                         </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "instagram"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={instagram.src} className="img-fluid" alt="instagram" />
-                          </span>
-                          <input
-                            {...register("businessAccountInstagram", { value: accountData.businessAccountInstagram })}
-                            onChange={(e) => setValue("businessAccountInstagram", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "tiktok"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={tiktok.src} className="img-fluid" alt="tiktok" />
-                          </span>
-                          <input
-                            {...register("businessAccountTikTok", { value: accountData.businessAccountTikTok })}
-                            onChange={(e) => setValue("businessAccountTikTok", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "twitter"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <PiTwitterLogoLight size={30} />
-                          </span>
-                          <input
-                            {...register("businessAccountTwitter", { value: accountData.businessAccountTwitter })}
-                            onChange={(e) => setValue("businessAccountTwitter", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "linkedin"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <PiLinkedinLogoBold size={30} />
-                          </span>
-                          <input
-                            {...register("businessAccountLinkedIn", { value: accountData.businessAccountLinkedIn })}
-                            onChange={(e) => setValue("businessAccountLinkedIn", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "youtube"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <PiYoutubeLogo size={30} />
-                          </span>
-                          <input
-                            {...register("businessAccountYouTube", { value: accountData.businessAccountYouTube })}
-                            onChange={(e) => setValue("businessAccountYouTube", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group">
-                        <label>{pathOr("", [locale, "Settings", "snapchat"], t)}</label>
-                        <div className="input-group" style={{ flexDirection: locale === "en" ? "row-reverse" : "row" }}>
-                          <span className="input-group-text">
-                            <img src={snapchat.src} className="img-fluid" alt="snapchat" />
-                          </span>
-                          <input
-                            {...register("businessAccountSnapchat", { value: accountData.businessAccountSnapchat })}
-                            onChange={(e) => setValue("businessAccountSnapchat", e.target.value)}
-                            type="text"
-                            className="form-control"
-                          />
-                        </div>
-                      </div>
-                      <div className="form-group text-center">
-                        <button
-                          className="btn-main mt-3"
-                          type="submit"
-                          disabled={isSubmitting}
-                          onClick={handleSubmit(handleEditBusinessAccount)}
-                        >
-                          {!isSubmitting
-                            ? pathOr("", [locale, "EditAccount", "save"], t)
-                            : pathOr("", [locale, "EditAccount", "loading"], t)}
-                        </button>
                       </div>
                     </div>
-                  </div>
-                </Accordion.Body>
-              </Accordion.Item>
-            </form>
-            {process.env.NODE_ENV === "development" && <DevTool control={control} />}
-          </Accordion>
-        </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountSnapchat">
+                          {copy("snapchat")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountSnapchat.src} alt="" />
+                          </span>
+                          <input
+                            id="businessAccountSnapchat"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountSnapchat")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountYouTube">
+                          {copy("youtube")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountYoutube.src} alt="" style={{ width: 28, height: 20 }} />
+                          </span>
+                          <input
+                            id="businessAccountYouTube"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountYouTube")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountTikTok">
+                          {copy("tiktok")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountTiktok.src} alt="" style={{ width: 21, height: 24 }} />
+                          </span>
+                          <input
+                            id="businessAccountTikTok"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountTikTok")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountInstagram">
+                          {copy("instagram")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountInstagram.src} alt="" />
+                          </span>
+                          <input
+                            id="businessAccountInstagram"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountInstagram")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountTwitter">
+                          {copy("twitter")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountTwitter.src} alt="" />
+                          </span>
+                          <input
+                            id="businessAccountTwitter"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountTwitter")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className={styles.field}>
+                      <div>
+                        <label className={styles.label} htmlFor="businessAccountLinkedIn">
+                          {copy("linkedin")}
+                        </label>
+                        <div className={styles.inputGroup}>
+                          <span className={styles.inputIcon} aria-hidden="true">
+                            <img src={editAccountLinkedin.src} alt="" />
+                          </span>
+                          <input
+                            id="businessAccountLinkedIn"
+                            type="text"
+                            dir="ltr"
+                            className={styles.input}
+                            {...register("businessAccountLinkedIn")}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>,
+                )}
+              </Accordion>
+              <div className={styles.actions}>
+                <button className={styles.saveButton} type="submit">
+                  {isSubmitting ? copy("loading") : copy("save")}
+                </button>
+                <button className={styles.cancelButton} type="button" onClick={() => push("/settings")}>
+                  {copy("cancel")}
+                </button>
+              </div>
+            </fieldset>
+          </form>
+          {target && (
+            <ContactVerification
+              key={account.id}
+              target={target}
+              baseline={account}
+              copy={copy}
+              locale={locale}
+              onClose={() => setTarget(null)}
+              onSaved={contactSaved}
+            />
+          )}
+        </>
       )}
     </div>
   )
 }
+
 export default EditBussinessAccount

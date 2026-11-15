@@ -15,8 +15,29 @@
     display: none;
 }
 
+#header .header-search {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    min-width: 0;
+}
+
 #header .search {
-    background: #eef1f5 !important
+    background: #eef1f5 !important;
+    flex: 1;
+    min-width: 0;
+}
+
+#header .search-submit {
+    flex-shrink: 0;
+    height: auto;
+    line-height: normal;
+}
+
+#header .search-submit:focus-visible {
+    outline: 2px solid var(--main);
+    outline-offset: 4px;
+    border-radius: 4px;
 }
 
 

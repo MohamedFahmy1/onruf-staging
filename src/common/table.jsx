@@ -10,18 +10,23 @@ const Table = ({
   data = [],
   pageSize = 10,
   isCheckbox = true,
+  loading,
+  getRowId = (row, index) =>
+    row.orderId || row.id || row.orderMasterId || row.productId || `${row.name || "row"}-${index}`,
+  getRowHref,
   selectedRows = {},
   onSelectedRowsChange = () => null,
 }) => {
   const [isLoading, setIsLoading] = useState(true)
   const loadingTimeoutRef = useRef(null)
-  const { locale, query } = useRouter()
+  const { locale, query, push } = useRouter()
   const page = parseInt(query.page, 10) || 1
 
   const {
     getTableProps,
     getTableBodyProps,
     headerGroups,
+    visibleColumns,
     rows,
     prepareRow,
     state: { selectedRowIds },
@@ -29,8 +34,7 @@ const Table = ({
     {
       columns,
       data,
-      getRowId: (row, index) =>
-        row.orderId || row.id || row.orderMasterId || row.productId || `${row.name || "row"}-${index}`,
+      getRowId,
       initialState: {
         selectedRowIds: selectedRows,
       },
@@ -62,6 +66,8 @@ const Table = ({
       loadingTimeoutRef.current = null
     }
 
+    if (loading !== undefined) return
+
     if (!Array.isArray(data)) {
       setIsLoading(false)
       return
@@ -84,7 +90,7 @@ const Table = ({
         loadingTimeoutRef.current = null
       }
     }
-  }, [data])
+  }, [data, loading])
 
   return (
     <table className="table table_dash" {...getTableProps()}>
@@ -101,17 +107,35 @@ const Table = ({
       </thead>
 
       <tbody {...getTableBodyProps()}>
-        {isLoading ? (
+        {(loading === undefined ? isLoading : loading) ? (
           <tr>
-            <td className="text-center" rowSpan={3} colSpan={8}>
+            <td className="text-center" rowSpan={3} colSpan={visibleColumns.length}>
               <b>{locale === "en" ? "Loading..." : "جاري التحميل..."}</b>
             </td>
           </tr>
         ) : rows?.length ? (
           rows?.slice((page - 1) * pageSize, page * pageSize).map((row) => {
             prepareRow(row)
+            const href = getRowHref?.(row.original)
             return (
-              <tr {...row.getRowProps()} key={row.id}>
+              <tr
+                {...row.getRowProps()}
+                key={row.id}
+                className={href ? "pointer" : undefined}
+                onClick={
+                  href
+                    ? (event) => {
+                        if (
+                          event.defaultPrevented ||
+                          event.target.closest("a, button, input, select, textarea, label")
+                        ) {
+                          return
+                        }
+                        push(href)
+                      }
+                    : undefined
+                }
+              >
                 {row?.cells?.map((cell) => (
                   <td {...cell.getCellProps()} key={cell.column.id}>
                     {cell.render("Cell")}
@@ -122,7 +146,7 @@ const Table = ({
           })
         ) : (
           <tr>
-            <td className="text-center" rowSpan={3} colSpan={8}>
+            <td className="text-center" rowSpan={3} colSpan={visibleColumns.length}>
               <b>{pathOr("", [locale, "Products", "NoDataFound"], t)}</b>
             </td>
           </tr>

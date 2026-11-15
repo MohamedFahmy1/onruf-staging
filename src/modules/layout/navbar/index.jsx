@@ -17,7 +17,9 @@ import Cookies from "js-cookie"
 
 const Navbar = () => {
   const [toggleLangMenu, setToggleLangMenu] = useState(false)
-  const { locale, asPath, push } = useRouter()
+  const { locale, asPath, pathname, query, push } = useRouter()
+  const submittedNumber = pathname === "/search" && typeof query.number === "string" ? query.number.trim() : ""
+  const [searchNumber, setSearchNumber] = useState(submittedNumber)
   const [toggleBusinessAccountList, setToggleBusinessAccountList] = useState()
   const [businessAccountList, setBusinessAccountList] = useState([])
   const [userImage, setUserImage] = useState()
@@ -25,6 +27,17 @@ const Navbar = () => {
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
   // const deviceId = useSelector((state) => state.idSlice.id)
   const dropdownRef = useRef(null)
+
+  const handleSearch = (event) => {
+    event.preventDefault()
+    const number = searchNumber.trim()
+    setSearchNumber(number)
+    push({ pathname: "/search", query: number ? { number, page: 1 } : {} })
+  }
+
+  useEffect(() => {
+    setSearchNumber(submittedNumber)
+  }, [submittedNumber, pathname, buisnessAccountId, locale])
 
   const getAllBuisnessAccounts = async (id) => {
     try {
@@ -87,17 +100,23 @@ const Navbar = () => {
     <header id="header">
       <div className="d-flex align-items-center flex-grow-1">
         <button className="open_nav">{logoSvg()}</button>
-        <div className="po_R flex-grow-1">
+        <form role="search" className="header-search flex-grow-1" onSubmit={handleSearch}>
           <input
-            type="search"
+            type="text"
+            role="searchbox"
+            name="number"
+            inputMode="numeric"
             className="form-control search"
-            style={{ paddingLeft: "40px" }}
             placeholder={pathOr("", [locale, "navbar", "search"], t)}
+            aria-label={pathOr("", [locale, "navbar", "search"], t)}
+            value={searchNumber}
+            onChange={(event) => setSearchNumber(event.target.value)}
           />
-          <span className="icon_fa">
-            <GoSearch />
-          </span>
-        </div>
+          <button type="submit" className="btn-main search-submit">
+            <GoSearch aria-hidden="true" />
+            {pathOr("", [locale, "search", "submit"], t)}
+          </button>
+        </form>
       </div>
       <div className="top_linko">
         <div className="change_acc">
