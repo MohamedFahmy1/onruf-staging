@@ -1,3 +1,17 @@
+.product-list-table .table_dash th:nth-child(3),
+.product-list-table .table_dash td:nth-child(3) {
+  width: 40%;
+  max-width: none;
+}
+
+.product-list-table .table_dash th:nth-child(4),
+.product-list-table .table_dash td:nth-child(4),
+.product-list-table .table_dash th:nth-child(7),
+.product-list-table .table_dash td:nth-child(7) {
+  width: 10%;
+  overflow-wrap: anywhere;
+}
+
 .list_folder .item,
 .list_folder .item > div {
   display: flex;

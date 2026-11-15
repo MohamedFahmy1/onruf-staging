@@ -6,17 +6,14 @@ import t from "../../translations.json"
 import styles from "./shell.module.css"
 
 const SupportShell = ({ children }) => {
-  const { pathname, asPath, locale } = useRouter()
+  const { asPath, locale } = useRouter()
   const [navigationOpen, setNavigationOpen] = useState(false)
-  const isNotifications = pathname === "/notifications"
 
   useEffect(() => {
     setNavigationOpen(false)
   }, [asPath])
 
   // Support pages use the shared application shell without route-specific overrides.
-  if (!isNotifications) return children
-
   return (
     <div
       className={`${styles.notificationsShell} ${navigationOpen ? styles.navigationOpen : ""}`}

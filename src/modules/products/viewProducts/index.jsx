@@ -264,7 +264,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
               className="d-flex align-items-center pointer"
               onClick={() => handleNavigateToProductDetails(original.id || original.productId)}
             >
-              <div style={{ position: "relative", width: "106px", height: "100px" }}>
+              <div style={{ position: "relative", width: "106px", height: "100px", flexShrink: 0 }}>
                 <Image
                   src={imageSrc}
                   className="img_table"
@@ -274,7 +274,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                   objectFit="contain"
                 />
               </div>
-              <div className="mx-4">
+              <div className="mx-4" style={{ minWidth: 0, overflowWrap: "anywhere" }}>
                 <h6 className="m-0 f-b"> {propOr("-", ["name"], original)} </h6>
                 {original.auctionClosingTime && (
                   <div className="gray-color">{formatDate(propOr("-", ["auctionClosingTime"], original))}</div>
@@ -535,7 +535,7 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
         )}
       </div>
       <div className="contint_paner">
-        <div className="outer_table">
+        <div className="outer_table product-list-table">
           <Table
             columns={columns}
             data={filterProducts}
