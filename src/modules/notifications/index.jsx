@@ -199,7 +199,7 @@ const Notifications = () => {
                   )}
                   <h2 className={styles.title}>{item.title}</h2>
                 </div>
-                <p className={styles.body}>{item.body}</p>
+                {item.body !== item.title && <p className={styles.body}>{item.body}</p>}
               </>
             )
             return (

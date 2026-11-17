@@ -48,9 +48,11 @@ const Notifications = () => {
                   <span>{item.title} </span>
                   <span>{moment(item.createdAt).fromNow()}</span>
                 </section>
-                <section className="po_R" style={{ unicodeBidi: "plaintext" }}>
-                  {item.body}
-                </section>
+                {item.body !== item.title && (
+                  <section className="po_R" style={{ unicodeBidi: "plaintext" }}>
+                    {item.body}
+                  </section>
+                )}
               </li>
             )
           })}
