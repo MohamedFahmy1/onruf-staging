@@ -79,7 +79,7 @@ const ConfirmDeliveryModal = ({ isModalOpen, setIsModalOpen, orderId, handleClos
           <h5 className="fw-bold mt-4">{pathOr("", [locale, "Orders", "ConfirmDelivery1"], t)}</h5>
           <p>{pathOr("", [locale, "Orders", "ConfirmDelivery2"], t)}</p>
           <Container className="mt-4">
-            <Row className="justify-content-center">
+            <Row className="justify-content-center" dir="ltr">
               {codes.map((digit, i) => (
                 <Col key={i} xs="3" className="d-flex justify-content-center">
                   <Form.Control
