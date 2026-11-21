@@ -293,7 +293,7 @@ export const OrderDetails = () => {
                 <li>
                   <span>{pathOr("", [locale, "Orders", "subtotal"], t)}</span>{" "}
                   <span className="font-18">
-                    {totalOrderPrice?.toFixed(2) - shippingFee} {pathOr("", [locale, "Products", "currency"], t)}
+                    {(totalOrderPrice - shippingFee)?.toFixed(2) || 0} {pathOr("", [locale, "Products", "currency"], t)}
                   </span>
                 </li>
                 <li>
