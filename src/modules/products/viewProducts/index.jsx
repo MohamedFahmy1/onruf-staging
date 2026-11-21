@@ -641,7 +641,24 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                       if (!newValue) return setDiscountDate("")
                       setDiscountDate(formatDateForApi(newValue, moment.HTML5_FMT.DATETIME_LOCAL))
                     }}
-                    renderInput={(params) => <TextField {...params} fullWidth placeholder="asdfa" />}
+                    renderInput={(params) => (
+                      <TextField
+                        {...params}
+                        fullWidth
+                        dir={locale === "ar" ? "rtl" : "ltr"}
+                        inputProps={{
+                          ...params.inputProps,
+                          placeholder:
+                            locale === "ar" ? "سنة/شهر/يوم - ساعة:دقيقة ص/م" : params.inputProps?.placeholder,
+                        }}
+                        sx={{
+                          "& .MuiInputBase-input": {
+                            direction: locale === "ar" ? "rtl" : "ltr",
+                            textAlign: locale === "ar" ? "right" : "left",
+                          },
+                        }}
+                      />
+                    )}
                   />
                 </LocalizationProvider>
               </div>
