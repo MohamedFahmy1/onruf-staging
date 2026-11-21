@@ -3,7 +3,7 @@ import { Modal } from "react-bootstrap"
 import { toast } from "react-toastify"
 import { FaExclamationCircle, FaSms, FaTimes, FaWhatsapp } from "react-icons/fa"
 import { generateOtp, saveAccount, verifyOtp } from "./api"
-import { accountErrorMessage, isPhoneChannelAvailable, phoneTargetType } from "./accountUtils.mjs"
+import { accountErrorMessage, OTP_TYPES, phoneTargetType } from "./accountUtils.mjs"
 import styles from "./editAccount.module.css"
 
 const numbersOnly = (value) =>
@@ -12,12 +12,30 @@ const numbersOnly = (value) =>
     .replace(/[۰-۹]/g, (digit) => String(digit.charCodeAt(0) - 1776))
     .replace(/\D/g, "")
 
-const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved }) => {
-  const isEmail = Number(target.targetType) === 1
-  const defaultType = isEmail ? 1 : phoneTargetType(target.phoneCountryCode)
+const ContactVerification = ({
+  target,
+  baseline,
+  copy,
+  locale,
+  onClose,
+  onSaved,
+  channelTypes = OTP_TYPES,
+  generateCode = generateOtp,
+  verifyCode = verifyOtp,
+  onVerified,
+  digitCount = 4,
+  resendDelay = 10,
+  className = "",
+  targetLabel,
+  changeContactHref,
+  showChannelLabel = false,
+}) => {
+  const isEmail = channelTypes.email != null && target.targetType === channelTypes.email
+  const isSaudiPhone = phoneTargetType(target.phoneCountryCode) === OTP_TYPES.sms
+  const defaultType = isEmail ? channelTypes.email : isSaudiPhone ? channelTypes.sms : channelTypes.whatsapp
   const [selectedType, setSelectedType] = useState(defaultType)
   const [phase, setPhase] = useState(isEmail ? "otp" : "channel")
-  const [digits, setDigits] = useState(["", "", "", ""])
+  const [digits, setDigits] = useState(() => Array(digitCount).fill(""))
   const [busy, setBusy] = useState(false)
   const [verified, setVerified] = useState(false)
   const [error, setError] = useState("")
@@ -59,13 +77,13 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
     setError("")
     setStatus("")
     try {
-      await generateOtp(contact, baseline.businessAccountUserName)
+      await generateCode(contact, baseline.businessAccountUserName)
       if (!alive.current) return
       const sentAt = Date.now()
       setExpiresAt(sentAt + 5 * 60 * 1000)
-      setResendAt(sentAt + 10 * 1000)
+      setResendAt(sentAt + resendDelay * 1000)
       setNow(sentAt)
-      setDigits(["", "", "", ""])
+      setDigits(Array(digitCount).fill(""))
       setVerified(false)
       setPhase("otp")
       setStatus(copy("otpSent"))
@@ -91,7 +109,7 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
       setError(copy("expired"))
       return
     }
-    if (!verified && !/^\d{4}$/.test(digits.join(""))) {
+    if (!verified && (digits.length !== digitCount || digits.some((digit) => !/^\d$/.test(digit)))) {
       setError(copy("invalidOtp"))
       return
     }
@@ -102,12 +120,13 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
     let hasVerified = verified
     try {
       if (!hasVerified) {
-        await verifyOtp(contact, digits.join(""))
+        await verifyCode(contact, digits.join(""))
         if (!alive.current) return
         hasVerified = true
         setVerified(true)
       }
-      await saveAccount(baseline, {}, { contact })
+      if (onVerified) await onVerified(contact, { expiresAt })
+      else await saveAccount(baseline, {}, { contact })
       if (alive.current) onSaved(contact)
     } catch (failure) {
       if (alive.current) {
@@ -122,18 +141,18 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
   }
 
   const enterDigits = (value, index) => {
-    const numeric = numbersOnly(value).slice(0, 4)
-    const start = numeric.length === 4 ? 0 : index
+    const numeric = numbersOnly(value).slice(0, digitCount)
+    const start = numeric.length === digitCount ? 0 : index
     setDigits((previous) => {
       const next = [...previous]
       next[start] = ""
       numeric.split("").forEach((digit, offset) => {
-        if (start + offset < 4) next[start + offset] = digit
+        if (start + offset < digitCount) next[start + offset] = digit
       })
       return next
     })
     setError("")
-    if (numeric.length) inputs.current[Math.min(start + numeric.length, 3)]?.focus()
+    if (numeric.length) inputs.current[Math.min(start + numeric.length, digitCount - 1)]?.focus()
   }
 
   const moveFocus = (event, index) => {
@@ -144,7 +163,7 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
     } else if (event.key === "ArrowLeft" && index > 0) {
       event.preventDefault()
       inputs.current[index - 1]?.focus()
-    } else if (event.key === "ArrowRight" && index < 3) {
+    } else if (event.key === "ArrowRight" && index < digitCount - 1) {
       event.preventDefault()
       inputs.current[index + 1]?.focus()
     }
@@ -154,6 +173,16 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
     if (!operation.current) onClose()
   }
 
+  const verifyButton = (
+    <button
+      type="submit"
+      className={styles.sendOtpButton}
+      disabled={busy || (!verified && (!hasSent || expired || digits.some((digit) => !digit)))}
+    >
+      {copy(verified ? "trySaveAgain" : "verify")}
+    </button>
+  )
+
   return (
     <Modal
       show
@@ -161,7 +190,7 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
       onHide={close}
       keyboard={!busy}
       backdrop={busy ? "static" : true}
-      className={styles.verificationOverlay}
+      className={`${styles.verificationOverlay} ${className}`}
       backdropClassName={styles.verificationBackdrop}
       dialogClassName={phase === "channel" ? styles.channelModal : styles.otpModal}
       contentClassName={styles.modal}
@@ -188,7 +217,9 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
           {phase === "otp" && (
             <>
               {" "}
-              <bdi dir="ltr">{isEmail ? target.email : `${target.phoneCountryCode} ${target.phoneNumber}`}</bdi>
+              <bdi dir="ltr">
+                {targetLabel ?? (isEmail ? target.email : `${target.phoneCountryCode} ${target.phoneNumber}`)}
+              </bdi>
             </>
           )}
         </p>
@@ -199,12 +230,13 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
               sendCode()
             }}
           >
+            {showChannelLabel && <p data-channel-label>{copy("channelLabel")}</p>}
             <div className={styles.channelGrid} role="group" aria-label={copy("channelLabel")}>
               {[
-                { type: 3, key: "whatsapp", Icon: FaWhatsapp },
-                { type: 2, key: "sms", Icon: FaSms },
+                { type: channelTypes.whatsapp, key: "whatsapp", Icon: FaWhatsapp },
+                { type: channelTypes.sms, key: "sms", Icon: FaSms },
               ].map(({ type, key, Icon }) => {
-                const unavailable = type === 2 && !isPhoneChannelAvailable(target.phoneCountryCode, type)
+                const unavailable = key === "sms" && !isSaudiPhone
                 return (
                   <label
                     key={type}
@@ -214,7 +246,7 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
                   >
                     <span
                       className={styles.channelIcon}
-                      style={{ backgroundColor: type === 3 ? "#30c95a" : "#00a6e5" }}
+                      style={{ backgroundColor: key === "whatsapp" ? "#30c95a" : "#00a6e5" }}
                     >
                       <Icon aria-hidden="true" />
                     </span>
@@ -306,13 +338,23 @@ const ContactVerification = ({ target, baseline, copy, locale, onClose, onSaved 
                 {status}
               </p>
             )}
-            <button
-              type="submit"
-              className={styles.sendOtpButton}
-              disabled={busy || (!verified && (!hasSent || expired || digits.some((digit) => !digit)))}
-            >
-              {copy(verified ? "trySaveAgain" : "verify")}
-            </button>
+            {changeContactHref ? (
+              <div data-otp-actions>
+                <a
+                  href={changeContactHref}
+                  aria-disabled={busy}
+                  tabIndex={busy ? -1 : 0}
+                  onClick={(event) => {
+                    if (busy) event.preventDefault()
+                  }}
+                >
+                  {copy("changeNumber")}
+                </a>
+                {verifyButton}
+              </div>
+            ) : (
+              verifyButton
+            )}
           </form>
         )}
       </div>

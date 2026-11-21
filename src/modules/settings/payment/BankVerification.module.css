@@ -1,0 +1,266 @@
+.overlay {
+  z-index: 1400;
+}
+
+.backdrop {
+  z-index: 1390;
+}
+
+.overlay [data-channel-label] {
+  margin: 32px 0 10px;
+  color: #15151a;
+  font-size: 12px;
+}
+
+.overlay :global(.modal-dialog),
+.successDialog {
+  width: calc(100% - 32px);
+  max-width: 670px;
+  margin-inline: auto;
+}
+
+.overlay :global(.modal-dialog) :global(.modal-content):not(.successContent),
+.successContent {
+  position: relative;
+  min-height: 438px;
+  padding: 24px 80px 62px;
+  border: 0;
+  border-radius: 20px;
+  background: #fff;
+  color: #15151a;
+  font-family: "Bank Account Latin", "Bank Account Arabic", sans-serif;
+  font-size: 13px;
+}
+
+.overlay :global(.modal-content):has([role="group"][dir="ltr"]) {
+  min-height: 380px;
+  padding: 44px 56px 32px;
+}
+
+.overlay :global(.modal-content) h2 {
+  margin: 0;
+  color: #15151a;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+.overlay [id="account-verification-description"] {
+  max-width: 470px;
+  margin: 0 auto 24px;
+  color: #5f6c88;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 21px;
+  text-align: center;
+}
+
+.overlay [id="account-verification-description"] bdi {
+  display: block;
+}
+
+.overlay :global(.modal-content) button[aria-label],
+.close {
+  position: absolute;
+  inset-inline: auto;
+  top: 18px;
+  right: auto;
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid currentcolor;
+  border-radius: 50%;
+  background: transparent;
+  color: #1d2028;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.overlay [role="group"][dir="ltr"] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 24px auto 18px;
+}
+
+.overlay [role="group"][dir="ltr"] input[type="text"] {
+  flex: 0 0 48px;
+  width: 48px;
+  min-width: 0;
+  height: 48px;
+  padding: 0;
+  border: 1px solid #cdd2da;
+  border-radius: 6px;
+  outline: none;
+  background: #fff;
+  color: #20242e;
+  font-family: "Bank Account Latin", sans-serif;
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 48px;
+  text-align: center;
+  caret-color: #20242e;
+}
+
+.overlay [role="group"][dir="ltr"] input[type="text"]:disabled {
+  background: #f7f8fa;
+  color: #737987;
+}
+
+.overlay [role="group"][dir="ltr"] + div {
+  flex-direction: column;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 0;
+  color: #5f6c88;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.overlay [role="group"][dir="ltr"] + div button {
+  color: #ee6c4d;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.overlay [role="group"][dir="ltr"] + div button:disabled {
+  color: #8b92a0;
+}
+
+.overlay p[aria-live="off"] {
+  margin: 8px 0 0;
+  color: #5f6c88;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+}
+
+.overlay [role="alert"],
+.overlay [role="status"] {
+  margin-top: 12px;
+  font-size: 12px;
+  line-height: 20px;
+}
+
+.overlay [role="status"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.overlay [data-otp-actions] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 24px;
+  direction: ltr;
+}
+
+.overlay [data-otp-actions] a {
+  color: #5f6c88;
+  font-size: 12px;
+  line-height: 20px;
+  text-decoration: underline;
+}
+
+.overlay [data-otp-actions] a[aria-disabled="true"] {
+  opacity: 0.55;
+}
+
+.overlay [data-otp-actions] button[type="submit"] {
+  width: auto;
+  min-width: 88px;
+  min-height: 36px;
+  margin: 0;
+  padding: 6px 24px;
+  border: 1px solid #ee6c4d;
+  border-radius: 40px;
+  background: #ee6c4d;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 22px;
+  box-shadow: 0 3px 4px rgb(238 108 77 / 20%);
+}
+
+.successContent {
+  min-height: 328px;
+  padding: 48px 48px 40px;
+  text-align: center;
+}
+
+.successIcon {
+  display: block;
+  width: 120px;
+  height: 120px;
+  margin: 0 auto 24px;
+  color: #31a36b;
+  stroke-width: 0;
+}
+
+.successTitle {
+  margin: 0 0 12px;
+  color: #15151a;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 28px;
+}
+
+.successBody {
+  max-width: 470px;
+  margin: 0 auto;
+  color: #5f6c88;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.overlay button:focus-visible,
+.overlay a:focus-visible,
+.overlay input:focus-visible,
+.close:focus-visible {
+  outline: 2px solid #7b8494;
+  outline-offset: 3px;
+}
+
+@media (max-width: 575px) {
+  .overlay :global(.modal-dialog) :global(.modal-content) {
+    min-height: 0;
+    padding: 54px 22px 34px;
+  }
+
+  .overlay :global(.modal-content):has([role="group"][dir="ltr"]) {
+    min-height: 380px;
+    padding: 54px 22px 32px;
+  }
+
+  .overlay :global(.modal-content) h2 {
+    font-size: 18px;
+    line-height: 28px;
+  }
+
+  .overlay [role="group"][dir="ltr"] {
+    gap: 10px;
+  }
+
+  .overlay [data-otp-actions] {
+    gap: 18px;
+  }
+
+  .successContent {
+    padding: 54px 24px 34px;
+  }
+}

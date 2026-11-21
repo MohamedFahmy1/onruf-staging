@@ -13,7 +13,8 @@ import {
   isSaudiCountryCode,
   mapSplAddress,
   normalizeSplAddress,
-  otpQueryParams,
+  OTP_TYPES,
+  otpRequestBody,
   phoneTargetType,
   selectedCategoryLabels,
   toFormValues,
@@ -109,7 +110,11 @@ test("Saudi location is derived from the selected country code instead of the sa
 test("main save appends a selected account image while contact-only save ignores it", () => {
   const image = new Blob(["image"], { type: "image/png" })
   const form = buildAccountFormData(baseline, {}, { image })
-  const contactForm = buildAccountFormData(baseline, {}, { contact: { targetType: 1, email: "verified@example.com" } })
+  const contactForm = buildAccountFormData(
+    baseline,
+    {},
+    { contact: { targetType: OTP_TYPES.email, email: "verified@example.com" } },
+  )
   assert.ok(form.get("BusinessAccountImage") instanceof Blob)
   assert.equal(contactForm.has("BusinessAccountImage"), false)
 })
@@ -121,13 +126,13 @@ test("contact-only save cannot persist unrelated edits or another unverified con
     shortAddress: "DMAC3768",
   }
   const emailForm = buildAccountFormData(baseline, pending, {
-    contact: { targetType: 1, email: "verified@example.com" },
+    contact: { targetType: OTP_TYPES.email, email: "verified@example.com" },
   })
   assert.equal(emailForm.get("BusinessAccountEmail"), "verified@example.com")
   assert.equal(emailForm.get("BusinessAccountPhoneNumber"), baseline.businessAccountPhoneNumber)
   assert.equal(emailForm.get("BusinessAccountNameEn"), baseline.businessAccountNameEn)
   assert.equal(emailForm.has("ShortAddress"), false)
-  for (const targetType of [2, 3]) {
+  for (const targetType of [OTP_TYPES.sms, OTP_TYPES.whatsapp]) {
     const phoneForm = buildAccountFormData(
       baseline,
       { businessAccountEmail: "unverified@example.com" },
@@ -177,7 +182,7 @@ test("address edits update the short address while preserving the saved establis
   assert.equal(saved.shortAddress, "MAJA7522")
 
   const contactForm = buildAccountFormData(saved, changes, {
-    contact: { targetType: 1, email: "verified@example.com" },
+    contact: { targetType: OTP_TYPES.email, email: "verified@example.com" },
   })
   assert.equal(contactForm.get("ShortAddress"), "MAJA7522")
   assert.equal(contactForm.get("UnifiedNationalEstablishmentNumber"), "7001234567")
@@ -220,7 +225,7 @@ test("form normalization does not modify the server baseline or readonly values"
 })
 
 test("SPL fixture supports address wrappers and maps CityId to neighborhoodId", () => {
-  const requirements = readFileSync(new URL("../../../../public/edit-account/req.md", import.meta.url), "utf8")
+  const requirements = readFileSync(new URL("../../../../documents/edit-account.md", import.meta.url), "utf8")
   const address = [...requirements.matchAll(/```json\r?\n([\s\S]*?)\r?\n```/g)]
     .map((match) => JSON.parse(match[1]))
     .find((value) => value.ShortAddress === "DMAC3768")
@@ -354,13 +359,13 @@ test("API errors are rejected even when HTTP is 200; documented string successes
 })
 
 test("WhatsApp supports all phone codes while SMS remains Saudi-only and defaults stay consistent", () => {
-  assert.equal(isPhoneChannelAvailable("+966", 3), true)
-  assert.equal(isPhoneChannelAvailable("00966", 3), true)
-  assert.equal(isPhoneChannelAvailable("+20", 3), true)
-  assert.equal(isPhoneChannelAvailable("+966", 2), true)
-  assert.equal(isPhoneChannelAvailable("00966", 2), true)
-  assert.equal(isPhoneChannelAvailable("+20", 2), false)
-  assert.equal(isPhoneChannelAvailable("+966", 1), false)
+  assert.equal(isPhoneChannelAvailable("+966", OTP_TYPES.whatsapp), true)
+  assert.equal(isPhoneChannelAvailable("00966", OTP_TYPES.whatsapp), true)
+  assert.equal(isPhoneChannelAvailable("+20", OTP_TYPES.whatsapp), true)
+  assert.equal(isPhoneChannelAvailable("+966", OTP_TYPES.sms), true)
+  assert.equal(isPhoneChannelAvailable("00966", OTP_TYPES.sms), true)
+  assert.equal(isPhoneChannelAvailable("+20", OTP_TYPES.sms), false)
+  assert.equal(isPhoneChannelAvailable("+966", OTP_TYPES.email), false)
   assert.equal(isPhoneChannelAvailable("+966", 99), false)
 })
 
@@ -375,60 +380,97 @@ test("Saudi location detection accepts country codes containing 966", () => {
   }
 })
 
-test("email OTP generation query parameters omit phone fields even when another contact is supplied", () => {
+test("email OTP JSON bodies include captured contacts and use nullable fields when a contact is absent", () => {
   assert.deepEqual(
-    otpQueryParams({
-      targetType: 1,
+    otpRequestBody({
+      targetType: OTP_TYPES.email,
       email: " user@example.com ",
       phoneCountryCode: "+966",
       phoneNumber: "566666666",
     }),
-    { targetType: 1, email: "user@example.com" },
+    {
+      targetType: "BusinessUserEmailRegistration",
+      email: "user@example.com",
+      phoneNumber: "566666666",
+      phoneCountryCode: "+966",
+    },
   )
-  assert.deepEqual(otpQueryParams({ targetType: 1, email: "user@example.com" }), {
-    targetType: 1,
+  assert.deepEqual(otpRequestBody({ targetType: OTP_TYPES.email, email: "user@example.com" }), {
+    targetType: "BusinessUserEmailRegistration",
     email: "user@example.com",
+    phoneNumber: null,
+    phoneCountryCode: null,
   })
-  assert.throws(() => otpQueryParams({ targetType: 1, email: "" }), /valid email/)
+  for (const email of ["", "invalid", "invalid@example"]) {
+    assert.throws(() => otpRequestBody({ targetType: OTP_TYPES.email, email }), /valid email/)
+  }
 })
 
-test("mobile OTP generation query parameters keep phone and country code separate and omit email", () => {
+test("mobile OTP JSON bodies include captured email and keep phone and country code separate", () => {
   assert.deepEqual(
-    otpQueryParams({
-      targetType: 3,
-      email: "user@example.com",
-      phoneCountryCode: "+966",
-      phoneNumber: "566666666",
+    otpRequestBody({
+      targetType: OTP_TYPES.whatsapp,
+      email: " user@example.com ",
+      phoneCountryCode: " +966 ",
+      phoneNumber: " 566666666 ",
     }),
-    { targetType: 3, phoneNumber: "566666666", phoneCountryCode: "+966" },
+    {
+      targetType: "BusinessUserWhatsAppRegistration",
+      email: "user@example.com",
+      phoneNumber: "566666666",
+      phoneCountryCode: "+966",
+    },
   )
   for (const [targetType, phoneCountryCode] of [
-    [2, "+966"],
-    [3, "+20"],
+    [OTP_TYPES.sms, "+966"],
+    [OTP_TYPES.whatsapp, "+20"],
   ]) {
     assert.deepEqual(
-      otpQueryParams({ targetType, phoneCountryCode: ` ${phoneCountryCode} `, phoneNumber: " 1012345678 " }),
-      { targetType, phoneNumber: "1012345678", phoneCountryCode },
+      otpRequestBody({ targetType, phoneCountryCode: ` ${phoneCountryCode} `, phoneNumber: " 1012345678 " }),
+      { targetType, email: null, phoneNumber: "1012345678", phoneCountryCode },
     )
   }
   assert.throws(
     () =>
-      otpQueryParams({
-        targetType: 3,
+      otpRequestBody({
+        targetType: OTP_TYPES.whatsapp,
         email: "user@example.com",
         phoneCountryCode: "+20",
         phoneNumber: "",
       }),
     /valid phone/,
   )
-  assert.throws(() => otpQueryParams({ targetType: 2, phoneNumber: "566666666" }), /country code/)
-  assert.throws(() => otpQueryParams({ targetType: 99 }), /verification channel/)
+  assert.throws(() => otpRequestBody({ targetType: OTP_TYPES.sms, phoneNumber: "566666666" }), /unavailable/)
+  assert.throws(
+    () => otpRequestBody({ targetType: OTP_TYPES.sms, phoneCountryCode: "+20", phoneNumber: "1012345678" }),
+    /unavailable/,
+  )
+})
+
+test("account OTP requests reject individual, bank-account, and unknown types", () => {
+  for (const targetType of [
+    1,
+    2,
+    3,
+    7,
+    8,
+    99,
+    "IndividualUserRegistration",
+    "IndividualForgetPassword",
+    "IndividualUpdateMoileNumber",
+    "BusinessBankAccountChangeSms",
+    "BusinessBankAccountChangeWhatsApp",
+    undefined,
+  ]) {
+    assert.throws(() => otpRequestBody({ targetType }), /verification channel/)
+    assert.throws(() => buildAccountFormData(baseline, {}, { contact: { targetType } }), /verification channel/)
+  }
 })
 
 test("default phone channel and full-number validation preserve country codes", () => {
-  assert.equal(phoneTargetType("+966"), 2)
-  assert.equal(phoneTargetType("00966"), 2)
-  assert.equal(phoneTargetType("+20"), 3)
+  assert.equal(phoneTargetType("+966"), "BusinessUserSmsRegistration")
+  assert.equal(phoneTargetType("00966"), "BusinessUserSmsRegistration")
+  assert.equal(phoneTargetType("+20"), "BusinessUserWhatsAppRegistration")
   assert.equal(fullPhoneNumber("+966", "566 666 666"), "+966566666666")
   assert.equal(fullPhoneNumber("+20", "1012345678"), "+201012345678")
   assert.equal(fullPhoneNumber("+20", "+20 1012345678"), "+201012345678")

@@ -1,86 +1,101 @@
 import { Modal } from "react-bootstrap"
-import t from "../../../translations.json"
-import { pathOr } from "ramda"
 import { useRouter } from "next/router"
 import { useState } from "react"
-import axios from "axios"
-import { PiWarningCircle } from "react-icons/pi"
+import { FiAlertTriangle, FiX } from "react-icons/fi"
 import { RiDeleteBin5Line } from "react-icons/ri"
 import { toast } from "react-toastify"
-import { textAlignStyle } from "../../../styles/stylesObjects"
+import t from "../../../translations.json"
+import { assertCanRemoveBankAccount, removeBankAccount } from "./bankAccounts.mjs"
+import styles from "./BankAccounts.module.css"
 
-const DeleteModal = ({ id, setBankTransferData, fetchBankTransfer }) => {
+const DeleteModal = ({ account, disabled, refreshAccounts, onBusyChange, iconClassName }) => {
   const { locale } = useRouter()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const copy = t[locale === "en" ? "en" : "ar"].BankAccounts
+  const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
 
-  const closeModal = () => {
-    setIsModalOpen(false)
+  const openDelete = () => {
+    try {
+      assertCanRemoveBankAccount(account)
+      setOpen(true)
+    } catch (error) {
+      toast.error(error.code === "BANK_DEFAULT_PROTECTED" ? copy.defaultProtected : copy.contractError)
+    }
   }
 
-  const handleDeleteBankTransfer = async (bankId) => {
+  const remove = async () => {
+    if (disabled) return
+    setLoading(true)
+    onBusyChange(true)
+    let saved = false
     try {
-      setLoading(true)
-      await axios.delete(`/RemoveBankTransfer`, { params: { id: bankId } })
-      setBankTransferData((prev) => prev.filter((b) => b.id !== bankId))
-      toast.success(locale === "en" ? "Payment method has been deleted successfully!" : "تم مسح وسيلة الدفع بنجاح")
-      fetchBankTransfer()
-      closeModal()
-      setLoading(false)
+      assertCanRemoveBankAccount(account)
+      await removeBankAccount(account.id)
+      saved = true
+      setOpen(false)
+      await refreshAccounts()
+      toast.success(copy.deleteSuccess)
     } catch (error) {
-      setLoading(false)
+      const body = error?.response?.data
       toast.error(
-        locale === "en"
-          ? "Can't delete method as it's part of a product payment option!"
-          : "تعذر المسح لانه مرتبط كوسيلة دفع لمنتج",
+        saved
+          ? copy.savedRefreshFailed
+          : error.code === "BANK_DEFAULT_PROTECTED"
+          ? copy.defaultProtected
+          : body?.message || body?.Message || copy.deleteError,
       )
+    } finally {
+      setLoading(false)
+      onBusyChange(false)
     }
   }
 
   return (
     <>
-      <button className="btn_edit" aria-label="delete account" onClick={() => setIsModalOpen(true)}>
-        <RiDeleteBin5Line />
+      <button
+        type="button"
+        className={iconClassName}
+        disabled={disabled}
+        onClick={openDelete}
+        aria-label={`${copy.deleteAccount}: ${account.bankName}`}
+      >
+        <RiDeleteBin5Line aria-hidden="true" />
       </button>
       <Modal
-        show={isModalOpen}
-        onHide={closeModal}
+        show={open}
+        onHide={() => !loading && setOpen(false)}
         centered
-        className="unique-send-offer-modal deleteModal"
-        size="lg"
-        style={{ ...textAlignStyle(locale) }}
+        keyboard={!loading}
+        backdrop={loading ? "static" : true}
+        dialogClassName={styles.confirmDialog}
+        className={styles.modalLayer}
+        backdropClassName={styles.backdropLayer}
+        contentClassName={styles.confirmContent}
+        style={{ direction: locale === "en" ? "ltr" : "rtl" }}
+        aria-labelledby={`delete-bank-${account.id}`}
       >
-        <Modal.Header className="justify-content-end">
-          <button
-            type="button"
-            className="btn-close"
-            aria-label="close modal"
-            onClick={() => setIsModalOpen(false)}
-          ></button>
-        </Modal.Header>
-        <Modal.Body className="py-0">
-          <div className="d-flex flex-column justify-content-center text-center">
-            <PiWarningCircle size={160} color="var(--main)" style={{ marginInline: "auto" }} />
-            <p style={{ fontSize: "26px", marginTop: "40px" }}>
-              {pathOr("", [locale, "Settings", "DeletePaymentOption"], t)}
-            </p>
-          </div>
-        </Modal.Body>
-        <Modal.Footer className="modal-footer bg-white">
-          <button
-            type="button"
-            className="btn-main fs-6"
-            style={{ width: "326px" }}
-            aria-label="delete payment option"
-            onClick={() => handleDeleteBankTransfer(id)}
-            disabled={loading}
-          >
-            {pathOr("", [locale, "Products", "Yes"], t)}
+        <button
+          type="button"
+          className={styles.close}
+          onClick={() => setOpen(false)}
+          disabled={loading}
+          aria-label={copy.close}
+        >
+          <FiX />
+        </button>
+        <FiAlertTriangle className={styles.warning} aria-hidden="true" />
+        <h2 id={`delete-bank-${account.id}`} className={styles.confirmTitle}>
+          {copy.deleteQuestion}
+        </h2>
+        <p className={styles.confirmBody}>{account.bankName}</p>
+        <div className={styles.confirmActions}>
+          <button type="button" className={styles.confirmButton} onClick={remove} disabled={disabled}>
+            {loading ? copy.saving : copy.confirm}
           </button>
-          <button type="button" className="btn-main-B w-100 mt-4 mb-4 fs-6" aria-label="cancel" onClick={closeModal}>
-            {pathOr("", [locale, "Products", "cancel"], t)}
+          <button type="button" className={styles.cancelButton} onClick={() => setOpen(false)} disabled={loading}>
+            {copy.cancel}
           </button>
-        </Modal.Footer>
+        </div>
       </Modal>
     </>
   )

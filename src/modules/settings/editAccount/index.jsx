@@ -34,6 +34,7 @@ import { getAccount, getCategories, getCountries, saveAccount } from "./api"
 import {
   accountErrorMessage,
   contactChanges,
+  OTP_TYPES,
   phoneTargetType,
   selectedCategoryLabels,
   toFormValues,
@@ -210,7 +211,7 @@ const EditBussinessAccount = () => {
     if (!(await trigger(names))) return
     setServerError("")
     setTarget({
-      targetType: kind === "email" ? 1 : phoneTargetType(values.phoneCountryCode),
+      targetType: kind === "email" ? OTP_TYPES.email : phoneTargetType(values.phoneCountryCode),
       email: values.businessAccountEmail?.trim() || "",
       phoneNumber: values.businessAccountPhoneNumber?.trim() || "",
       phoneCountryCode: values.phoneCountryCode?.trim() || "",
@@ -232,7 +233,7 @@ const EditBussinessAccount = () => {
   const contactSaved = (contact) => {
     if (String(activeAccount.current) !== String(account.id)) return
     const patch =
-      Number(contact.targetType) === 1
+      contact.targetType === OTP_TYPES.email
         ? { businessAccountEmail: contact.email }
         : { businessAccountPhoneNumber: contact.phoneNumber, phoneCountryCode: contact.phoneCountryCode }
     setAccount((current) => ({ ...current, ...patch }))

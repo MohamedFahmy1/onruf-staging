@@ -1,12 +1,10 @@
 import axios from "axios"
-import { multiFormData } from "../../../common/axiosHeaders"
+import { multiFormData } from "../../../common/axiosHeaders.js"
 import {
   buildAccountFormData,
   confirmOtpVerification,
-  fullPhoneNumber,
-  isPhoneChannelAvailable,
   normalizeSplAddress,
-  otpQueryParams,
+  otpRequestBody,
   unwrapResponse,
 } from "./accountUtils.mjs"
 
@@ -44,42 +42,22 @@ export const saveAccount = async (baseline, values, options) =>
     await axios.post("/AddEditBusinessAccount", buildAccountFormData(baseline, values, options), multiFormData),
   )
 
-const validateTarget = (target) => {
-  const type = Number(target?.targetType)
-  if (type === 1) {
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target.email || "")) throw new Error("Enter a valid email address")
-  } else if ([2, 3].includes(type)) {
-    if (!isPhoneChannelAvailable(target.phoneCountryCode, type))
-      throw new Error("This channel is unavailable for this phone number")
-    fullPhoneNumber(target.phoneCountryCode, target.phoneNumber)
-  } else {
-    throw new Error("Choose a verification channel")
-  }
-  return type
-}
-
 export const generateOtp = async (target, userName) => {
-  validateTarget(target)
-  const contactParams = otpQueryParams(target)
+  if (!userName?.trim()) throw new Error("A business username is required")
   return unwrapResponse(
-    await axios.post("/ValidateBusinessUserAndGenerateOtp", null, {
-      params: { userName, ...contactParams },
+    await axios.post("/ValidateBusinessUserAndGenerateOtp", {
+      userName: userName.trim(),
+      ...otpRequestBody(target),
     }),
   )
 }
 
 export const verifyOtp = async (target, otpCode) => {
-  const targetType = validateTarget(target)
   if (!/^\d{4}$/.test(otpCode)) throw new Error("Enter the four-digit verification code")
   return confirmOtpVerification(
-    await axios.post("/VerifyBusinessAccountOtp", null, {
-      params: {
-        targetType,
-        email: target.email?.trim() || "",
-        phoneNumber: target.phoneNumber?.trim() || "",
-        PhoneCountryCode: target.phoneCountryCode?.trim() || "",
-        otpCode,
-      },
+    await axios.post("/VerifyBusinessAccountOtp", {
+      ...otpRequestBody(target),
+      otpCode,
     }),
   )
 }

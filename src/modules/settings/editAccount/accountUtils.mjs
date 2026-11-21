@@ -57,6 +57,12 @@ const has = (object, key) => Object.prototype.hasOwnProperty.call(object, key)
 const inputValue = (value) => (value == null || value === "null" ? "" : value)
 const contactValue = (value) => String(inputValue(value)).trim()
 
+export const OTP_TYPES = {
+  email: "BusinessUserEmailRegistration",
+  sms: "BusinessUserSmsRegistration",
+  whatsapp: "BusinessUserWhatsAppRegistration",
+}
+
 export const toFormValues = (account) =>
   Object.fromEntries(Object.entries(account || {}).map(([key, value]) => [key, inputValue(value)]))
 
@@ -80,8 +86,8 @@ export const phoneTargetType = (countryCode) =>
   String(countryCode || "")
     .replace(/\D/g, "")
     .replace(/^00/, "") === "966"
-    ? 2
-    : 3
+    ? OTP_TYPES.sms
+    : OTP_TYPES.whatsapp
 
 export const isSaudiCountryCode = (countryCode) =>
   String(countryCode || "")
@@ -91,7 +97,7 @@ export const isSaudiCountryCode = (countryCode) =>
 export const isSaudiCountry = (country) => isSaudiCountryCode(country?.countryCode)
 
 export const isPhoneChannelAvailable = (countryCode, targetType) =>
-  Number(targetType) === 3 || (Number(targetType) === 2 && phoneTargetType(countryCode) === 2)
+  targetType === OTP_TYPES.whatsapp || (targetType === OTP_TYPES.sms && phoneTargetType(countryCode) === OTP_TYPES.sms)
 
 export const fullPhoneNumber = (countryCode, phoneNumber) => {
   const code = String(countryCode || "")
@@ -106,27 +112,35 @@ export const fullPhoneNumber = (countryCode, phoneNumber) => {
   return full
 }
 
-export const otpQueryParams = (target) => {
-  const type = Number(target?.targetType)
-  if (![1, 2, 3].includes(type)) throw new Error("Choose a verification channel")
-  if (type === 1) {
-    const email = contactValue(target.email)
-    if (!email) throw new Error("Enter a valid email address")
-    return { targetType: type, email }
+export const otpRequestBody = (target) => {
+  const targetType = target?.targetType
+  const email = contactValue(target?.email)
+  const phoneCountryCode = contactValue(target?.phoneCountryCode)
+  const phoneNumber = contactValue(target?.phoneNumber)
+  if (targetType === OTP_TYPES.email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Error("Enter a valid email address")
+  } else if ([OTP_TYPES.sms, OTP_TYPES.whatsapp].includes(targetType)) {
+    if (!isPhoneChannelAvailable(phoneCountryCode, targetType))
+      throw new Error("This channel is unavailable for this phone number")
+    fullPhoneNumber(phoneCountryCode, phoneNumber)
+  } else {
+    throw new Error("Choose a verification channel")
   }
-  const code = contactValue(target.phoneCountryCode)
-  const number = contactValue(target.phoneNumber)
-  if (!code || !number) throw new Error("Enter a valid phone number and country code")
-  return { targetType: type, phoneNumber: number, phoneCountryCode: code }
+  return {
+    targetType,
+    email: email || null,
+    phoneNumber: phoneNumber || null,
+    phoneCountryCode: phoneCountryCode || null,
+  }
 }
 
 export const buildAccountFormData = (baseline, values = {}, { contact, image } = {}) => {
   if (!baseline?.id) throw new Error("A business account is required")
   const account = { ...baseline }
   if (contact) {
-    if (Number(contact.targetType) === 1) {
+    if (contact.targetType === OTP_TYPES.email) {
       account.businessAccountEmail = contactValue(contact.email)
-    } else if ([2, 3].includes(Number(contact.targetType))) {
+    } else if ([OTP_TYPES.sms, OTP_TYPES.whatsapp].includes(contact.targetType)) {
       account.businessAccountPhoneNumber = contactValue(contact.phoneNumber)
       account.phoneCountryCode = contactValue(contact.phoneCountryCode)
     } else {

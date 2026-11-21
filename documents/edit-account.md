@@ -124,11 +124,13 @@ Display only the names matching the account GET response's saved `categoryIds`, 
 
 The required target types and channel eligibility are:
 
-| Channel | `targetType` | Availability |
-| --- | --- | --- |
-| Email | `1` | Email activation |
-| SMS | `2` | Saudi phone numbers only (`+966`) |
-| WhatsApp | `3` | All phone numbers, including Saudi numbers (`+966`) |
+| Channel  | `OtpType` value | JSON `targetType`                  | Availability                                        |
+| -------- | --------------- | ---------------------------------- | --------------------------------------------------- |
+| Email    | `4`             | `BusinessUserEmailRegistration`    | Email activation                                    |
+| SMS      | `5`             | `BusinessUserSmsRegistration`      | Saudi phone numbers only (`+966`)                   |
+| WhatsApp | `6`             | `BusinessUserWhatsAppRegistration` | All phone numbers, including Saudi numbers (`+966`) |
+
+Swagger defines `OtpType` as a string enum, so send the enum names in JSON. Individual-user types (`1`–`3`) and bank-account types (`7`–`8`) are outside this flow.
 
 The phone country code determines SMS eligibility, independently of the business address's country. WhatsApp is available for all phone numbers, including Saudi numbers; SMS is available only for Saudi numbers (`+966`).
 
@@ -140,7 +142,7 @@ Before sending a mobile OTP, show the channel-selection popup supplied in the co
 - The availability notice must explain the same rule. Do not enable an unavailable channel.
 - Opening or cancelling this popup must not send an OTP. Send only after the user presses `Send OTP`.
 - After a successful send, open the four-digit OTP popup. If sending fails, show the error and keep the channel popup available for retry.
-- Email activation skips channel selection and sends with `targetType: 1`.
+- Email activation skips channel selection and sends with `targetType: "BusinessUserEmailRegistration"`.
 - Generation, verification, and resend must use the same target type and exact target contact. If the phone number or country code changes, invalidate the pending verification and re-evaluate channel eligibility.
 
 POST
@@ -148,14 +150,15 @@ POST
 
 This sends an OTP through the applicable email, SMS, or WhatsApp channel.
 
-use these as query params not payload:
+Send an `application/json` body matching `GenerateBusinessAccountOtpDto`, with no contact query parameters:
 
 ```js
 {
-  userName: '', // existing businessAccountUserName; query parameter documented by Swagger
-  targetType: '', // 1 = email, 2 = SMS (+966 only), 3 = WhatsApp (all phone numbers)
-  // Email activation includes only email; omit phoneNumber and phoneCountryCode.
-  // Mobile activation includes only phoneNumber and phoneCountryCode; omit email.
+  userName: 'store', // required; existing businessAccountUserName
+  targetType: 'BusinessUserEmailRegistration', // use the selected channel's enum name
+  email: 'user@example.com',
+  phoneNumber: '566666666',
+  phoneCountryCode: '+966',
 }
 ```
 
@@ -164,19 +167,17 @@ POST
 
 This verifies the OTP for the same contact and target type used to generate it.
 
-The updated Swagger contract accepts `phoneNumber` and `PhoneCountryCode` separately. Although the contact parameters are optional in Swagger, temporarily send `email`, `phoneNumber`, and `PhoneCountryCode` together for every verification request, using the captured form contacts. Generation and resend still include only the selected contact. Generation uses the lowercase `phoneCountryCode` query key; verification uses `PhoneCountryCode`.
+Both DTOs accept `phoneNumber` and lowercase `phoneCountryCode` separately. Include the captured `email`, `phoneNumber`, and `phoneCountryCode` together for generation, resend, and verification. Trim contact values; use `null` for an absent optional contact instead of an empty string. Validate the contact selected by `targetType` before sending.
 
-use these as query params not payload:
+Send an `application/json` body matching `VerifyBusinessAccountOtpDto`, with no contact query parameters:
 
 ```js
 {
-  targetType: '', // same target type as generation: 1 = email, 2 = SMS, 3 = WhatsApp
-  otpCode: '',
-  email: '',
-  phoneNumber: '',
-  PhoneCountryCode: '',
-  // Temporarily include all three contact fields for verification only.
-  // Keep the country code separate from phoneNumber.
+  targetType: 'BusinessUserEmailRegistration', // same enum name and contacts as generation
+  otpCode: '0123', // required; retain leading zeros
+  email: 'user@example.com',
+  phoneNumber: '566666666',
+  phoneCountryCode: '+966',
 }
 ```
 
@@ -194,16 +195,16 @@ The main Save button submits the remaining permitted edits after changed contact
 
 Use this `BusinessAccountDocumentType` mapping for read-only document cards:
 
-| Value | Enum member | Display group |
-| --- | --- | --- |
-| `1` | `OtherCertificate` | General / additional certificates |
-| `2` | `CommercialRegistrationDocument` | Commercial registration document |
-| `3` | `ProofOfAuthorization` | Proof of authorization |
-| `4` | `RepresentativeNationalId` | Representative / business owner's national ID |
-| `5` | `FreelanceCertificate` | Freelance certificate |
-| `6` | `FreelanceId` | Freelance certificate holder's national ID |
-| `7` | `VatRegistrationCertificate` | VAT certificate |
-| `8` | `BankIbanCertificate` | Bank IBAN certificate |
+| Value | Enum member                      | Display group                                 |
+| ----- | -------------------------------- | --------------------------------------------- |
+| `1`   | `OtherCertificate`               | General / additional certificates             |
+| `2`   | `CommercialRegistrationDocument` | Commercial registration document              |
+| `3`   | `ProofOfAuthorization`           | Proof of authorization                        |
+| `4`   | `RepresentativeNationalId`       | Representative / business owner's national ID |
+| `5`   | `FreelanceCertificate`           | Freelance certificate                         |
+| `6`   | `FreelanceId`                    | Freelance certificate holder's national ID    |
+| `7`   | `VatRegistrationCertificate`     | VAT certificate                               |
+| `8`   | `BankIbanCertificate`            | Bank IBAN certificate                         |
 
 Show every returned document, including multiple documents of one type. Place verification documents in their matching commercial/freelance groups and type `7` in VAT. Place type `8` in additional documents with its bank certificate label; do not introduce a settlement editor. Keep documents from another mode visible in additional documents. Existing type `0` and unknown types use generic additional-document cards without guessing a category.
 
@@ -310,18 +311,18 @@ The short-address endpoint was previously observed returning this same address s
 
 ### Address mapping
 
-| SPL field | Account field / use |
-| --- | --- |
-| `Latitude` | `lat` |
-| `Longitude` | `lon` |
-| `ShortAddress` | `shortAddress` |
-| `RegionId` | `regionId` |
-| `RegionName` | `region` |
-| `CityId` | `neighborhoodId` |
-| `District` | `neighborhood` |
-| `PostCode` | `zipCode` |
-| `BuildingNumber` | `buildingNumber` |
-| `Street` | `street` |
+| SPL field                      | Account field / use                            |
+| ------------------------------ | ---------------------------------------------- |
+| `Latitude`                     | `lat`                                          |
+| `Longitude`                    | `lon`                                          |
+| `ShortAddress`                 | `shortAddress`                                 |
+| `RegionId`                     | `regionId`                                     |
+| `RegionName`                   | `region`                                       |
+| `CityId`                       | `neighborhoodId`                               |
+| `District`                     | `neighborhood`                                 |
+| `PostCode`                     | `zipCode`                                      |
+| `BuildingNumber`               | `buildingNumber`                               |
+| `Street`                       | `street`                                       |
 | `City`, `Address1`, `Address2` | Derived address summary; no new account fields |
 
 Use the country name and ID from the selected country. Submit SPL IDs directly, without resolving or replacing them through internal region/neighborhood lists. Map `CityId` to `neighborhoodId` (`14` in the supplied fixture). `District` still supplies the neighborhood display name. Keep latitude/longitude as decimal values without integer truncation; Swagger declares multipart `Lat` and `Lon` as strings.
@@ -332,7 +333,7 @@ Keep address coordinates, identifiers, and lookup values in form state for submi
 
 These are observed schema discrepancies, not changes to the agreed behavior:
 
-1. `OtpTargetType` currently lists only `1` and `2`; the required WhatsApp value `3` is missing. The backend must support `3` for generation, verification, and resend, and publish the updated enum.
+1. The OTP enum gap is resolved: Swagger publishes the business email, SMS, and WhatsApp `OtpType` names and JSON request DTOs described above. Live OTP delivery and verification still need integration checks.
 2. The published multipart submit schema omits the requested writable `BuildingNumber`, `Country`, `Region`, and `Neighborhood` fields. Confirm/add their save support. GET-only presence does not prove that submission persists them.
 3. The published submit schema also omits `FreelanceCertificateId` and `FreelanceExpiryDate`; these remain read-only and must not be invented as editable fields.
 4. OTP generation documents an HTTP 200 `ProviderInfoDto`; OTP verification documents a string, and account saving has no HTTP 200 response schema. Do not assume every success is a `{ status_code, status, data }` envelope. Handle documented string responses and recognized envelopes, reject HTTP/body errors, and confirm actual mutation responses during integration without replacing the signed-in session from OTP generation data.
@@ -343,7 +344,7 @@ Frontend work can proceed using the supplied SPL fixture. WhatsApp and address p
 
 1. **Form and localization:** Replace the old three-step form with the five SVG sections, using saved commercial/freelance mode, scoped styling, existing fonts/icons, Arabic/English translations, and responsive layouts. Preserve the shared shell, read-only restrictions, date rules, and complete labeled document display.
 2. **API and save flow:** Reuse global axios headers, React Hook Form, multipart configuration, and existing feedback patterns. Initialize the form once; prevent lookup responses from resetting unrelated edits. Build multipart fields from the saved baseline plus allowed changes, using Swagger's field names, preserving arrays, required names/username, and the read-only `unifiedNationalEstablishmentNumber`, avoiding duplicate keys and file-URL uploads. Allow address changes through `shortAddress` without changing the establishment number. Check HTTP and supported body-level failure statuses. Keep the selected-account Redux context used by the existing screen.
-3. **Contact verification:** Implement the mobile channel popup before sending, with SMS only for Saudi numbers and WhatsApp for all phone numbers, including Saudi; email uses type `1` directly. Omit non-applicable contact query parameters from generation and resend; temporarily send email, phoneNumber, and PhoneCountryCode together for verification only. Add the four-digit OTP popup, fixed-target/channel generation/verification/resend, five-minute expiry, ten-second cooldown, and contact-only automatic saving. Preserve unrelated pending edits and prevent unverified contact persistence. Successful main Save returns to settings.
+3. **Contact verification:** Implement the mobile channel popup before sending, with SMS only for Saudi numbers and WhatsApp for all phone numbers, including Saudi; email uses `BusinessUserEmailRegistration` directly. Use the matching business-registration `OtpType` name in JSON bodies for generation, resend, and verification, including captured email, phoneNumber, and lowercase phoneCountryCode together. Add the four-digit OTP popup, fixed-target/channel generation/verification/resend, five-minute expiry, ten-second cooldown, and contact-only automatic saving. Preserve unrelated pending edits and prevent unverified contact persistence. Successful main Save returns to settings.
 4. **Address integration:** Extend the existing shared map through optional selection/sizing/error callbacks without breaking current callers. Use the working existing `NEXT_PUBLIC_MAPS_API_KEY` and the supplied Google service's extraction method to obtain a short code from Google pin/search results, then use SPL short-address lookup when a code exists. Otherwise use SPL coordinate lookup with the selected pin's or resolved search result's latitude/longitude, extract `data.NationalAddress.ShortAddress`, and fetch details through short-address lookup. Handle `MSG005` or missing addresses without sending an invalid short-code request or replacing existing details. Keep typed codes direct, use the supplied response fixture and exact mapping above, preserve manual entry and existing non-Saudi dropdowns, and show lookup errors only when resolution fails.
 5. **Verification and backend follow-up:** Add focused checks for payload preservation, document groups, both contact channels and country-code changes, OTP timing/failures, contact-only saves, SPL object/wrapper mapping, CityId-to-neighborhoodId mapping, stale responses, and manual fallback. Browser-check both account modes and languages on desktop/mobile against both popup references and SVGs. Run focused lint, translation parity, and production build. Use mocked mutation responses until backend gaps are resolved; then verify real persistence and rerun live SPL lookup. Keep existing environment changes intact and add no dependencies.
 
