@@ -237,7 +237,20 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
 
               setActiveElementIndex(null)
             }}
-            renderInput={(params) => <TextField {...params} fullWidth className="rounded" />}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                fullWidth
+                className="rounded"
+                dir={locale === "ar" ? "rtl" : "ltr"}
+                sx={{
+                  "& .MuiInputBase-input": {
+                    direction: locale === "ar" ? "rtl" : "ltr",
+                    textAlign: locale === "ar" ? "right" : "left",
+                  },
+                }}
+              />
+            )}
           />
         </LocalizationProvider>
       </div>
