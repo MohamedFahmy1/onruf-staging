@@ -23,6 +23,7 @@ import ResponsiveImage from "../../../common/ResponsiveImage"
 import moment from "moment"
 import { multiFormData } from "../../../common/axiosHeaders"
 import ShippingBillModal from "./ShippingBillModal"
+import { getProductNameDirection } from "../../../common/getProductNameDirection.mjs"
 
 export const OrderDetails = () => {
   const {
@@ -344,7 +345,9 @@ export const OrderDetails = () => {
                           #{item.productId}
                         </div>
                         <div className="gray-color">{item.category}</div>
-                        <div className="f-b">{item.productName}</div>
+                        <div className="f-b" dir={getProductNameDirection(item.productName)}>
+                          {item.productName}
+                        </div>
                         <div className="gray-color">{orderTypesTranslation(orderSaleType, locale)}</div>
                       </div>
                     </div>

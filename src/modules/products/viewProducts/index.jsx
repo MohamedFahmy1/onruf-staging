@@ -22,6 +22,7 @@ import Alerto from "../../../common/Alerto"
 import DeleteModal from "./DeleteModal"
 import moment from "moment"
 import noImage from "../../../../public/images/noImae.png"
+import { getProductNameDirection } from "../../../common/getProductNameDirection.mjs"
 
 const getProductImageSrc = (product = {}) =>
   product?.listMedia?.find((media) => media?.isMainMadia)?.url ||
@@ -275,7 +276,9 @@ const ViewProducts = ({ products: p = [], setProductsIds, selectedRows, setSelec
                 />
               </div>
               <div className="mx-4" style={{ minWidth: 0, overflowWrap: "anywhere" }}>
-                <h6 className="m-0 f-b"> {propOr("-", ["name"], original)} </h6>
+                <h6 className="m-0 f-b" dir={getProductNameDirection(original.name)}>
+                  {propOr("-", ["name"], original)}
+                </h6>
                 {original.auctionClosingTime && (
                   <div className="gray-color">{formatDate(propOr("-", ["auctionClosingTime"], original))}</div>
                 )}
