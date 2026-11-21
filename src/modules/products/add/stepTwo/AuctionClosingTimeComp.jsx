@@ -206,7 +206,7 @@ const AuctionClosingTimeComp = ({ productPayload, setProductPayload, selectedCat
           <DateTimePicker
             value={datePickerValue}
             minDateTime={getMinimumClosingMoment()}
-            inputFormat={locale === "ar" ? "YYYY/MM/DD - hh:mm a" : "DD/MM/YYYY - hh:mm a"}
+            inputFormat={locale === "ar" ? "سنة/شهر/يوم - ساعة:دقيقة ص/م" : "DD/MM/YYYY - hh:mm a"}
             onChange={(newValue) => {
               const parsedClosingTime = moment.isMoment(newValue) ? newValue : moment(newValue)
 
