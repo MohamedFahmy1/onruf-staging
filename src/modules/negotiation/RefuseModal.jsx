@@ -10,46 +10,60 @@ import { useState } from "react"
 const RefuseModal = ({ refuseModal, setRefuseModal, offerId, productId, getOffers }) => {
   const { locale } = useRouter()
   const [loading, setLoading] = useState(false)
+  const [refuseReason, setRefuseReason] = useState("")
 
-  // const [refuseReason, setRefuseReason] = useState()
+  const closeRefuseModal = () => {
+    setRefuseReason("")
+    setRefuseModal(false)
+  }
 
   const refuseOffer = async () => {
-    // if (refuseReason) {
     try {
       setLoading(true)
-      await axios.post(
-        `/AcceptRejectOffer?offerId=${offerId}&productId=${productId}&acceptOffer=${false}&OfferExpireHours=${0}`,
-      )
+      const reason = refuseReason.trim()
+      await axios.post("/AcceptRejectOffer", null, {
+        params: {
+          offerId,
+          productId,
+          acceptOffer: false,
+          ...(reason && { refuseReason: reason }),
+          OfferExpireHours: 0,
+        },
+      })
       toast.success(locale === "en" ? "Offer rejected Successfully!" : "تم رفض العرض ")
-      setRefuseModal(false)
+      closeRefuseModal()
       getOffers()
     } catch (error) {
-      setLoading(false)
       Alerto(error)
+    } finally {
+      setLoading(false)
     }
-    // } else toast.error(pathOr("", [locale, "negotiation", "please_add_reason"], t))
   }
 
   return (
-    <Modal show={refuseModal} onHide={() => setRefuseModal(false)} centered>
+    <Modal show={refuseModal} onHide={closeRefuseModal} centered>
       <Modal.Header>
         <h5 className="disc-header">{pathOr("", [locale, "negotiation", "reject_negotiation_offer"], t)}</h5>
-        <button type="button" className="btn-close" onClick={() => setRefuseModal(false)}></button>
+        <button type="button" className="btn-close" onClick={closeRefuseModal}></button>
       </Modal.Header>
       <Modal.Body>
-        {/* <div className="form-group">
-          <h5 className="disc-header" style={{ textAlign: locale === "en" ? "left" : "right" }}>
-            {pathOr("", [locale, "negotiation", "please_add_reason"], t)}
-          </h5>
+        <div className="form-group">
+          <label
+            htmlFor={`refuse-reason-${offerId}`}
+            className="disc-header"
+            style={{ textAlign: locale === "en" ? "left" : "right" }}
+          >
+            {pathOr("", [locale, "negotiation", "reject_reason_optional"], t)}
+          </label>
           <input
+            id={`refuse-reason-${offerId}`}
             type="text"
-            minLength={0}
             className="form-control form-input"
             style={{ textAlign: locale === "en" ? "left" : "right" }}
-            placeholder={pathOr("", [locale, "negotiation", "write_reject_reason"], t)}
+            value={refuseReason}
             onChange={(e) => setRefuseReason(e.target.value)}
           />
-        </div> */}
+        </div>
       </Modal.Body>
       <Modal.Footer className="modal-footer">
         <button type="button" className="btn-main" disabled={loading} onClick={refuseOffer}>

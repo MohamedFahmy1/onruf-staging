@@ -1,12 +1,61 @@
 import { Box, CardContent, Typography, Card, Avatar, Grid, Button } from "@mui/material"
 import { useRouter } from "next/router"
 import { pathOr } from "ramda"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import t from "../../translations.json"
 import AcceptModal from "./AcceptModal"
 import { handleNavigateToProductDetails } from "../../common/functions"
 import RefuseModal from "./RefuseModal"
 import ResponsiveImage from "../../common/ResponsiveImage"
+import { getRemainingTimeParts } from "./offerExpiry.mjs"
+
+const TIMER_UNITS = { day: "D", hour: "H", minute: "M", second: "S" }
+
+const OfferExpiryTimer = ({ expireDate }) => {
+  const { locale } = useRouter()
+  const [now, setNow] = useState(Date.now())
+
+  useEffect(() => {
+    const expiresAt = new Date(expireDate).getTime()
+    const startedAt = Date.now()
+    setNow(startedAt)
+
+    if (!Number.isFinite(expiresAt) || expiresAt <= startedAt) return undefined
+
+    const timer = setInterval(() => {
+      const next = Date.now()
+      setNow(next)
+      if (next >= expiresAt) clearInterval(timer)
+    }, 1000)
+
+    return () => clearInterval(timer)
+  }, [expireDate])
+
+  const remaining = getRemainingTimeParts(expireDate, now)
+  if (!remaining.length) return null
+
+  const timerLabel = remaining.map(({ value, unit }) => `${value} ${TIMER_UNITS[unit]}`).join(" | ")
+
+  return (
+    <Box sx={{ display: "flex", justifyContent: locale === "en" ? "flex-end" : "flex-start", px: 2, pt: 1.5 }}>
+      <Typography
+        dir="ltr"
+        component="p"
+        sx={{
+          m: 0,
+          color: "#666",
+          fontSize: { xs: "1rem", sm: "1.1rem" },
+          fontWeight: 500,
+          fontVariantNumeric: "tabular-nums",
+          lineHeight: 1.2,
+          whiteSpace: "nowrap",
+        }}
+      >
+        {timerLabel}
+      </Typography>
+    </Box>
+  )
+}
 
 const OfferCard = ({ offer, getOffers, selectedTab }) => {
   const { locale } = useRouter()
@@ -39,6 +88,7 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
             {offer.offerStatusName}
           </Typography>
         </Box>
+        {offer?.offerStatus === "Accepted" && <OfferExpiryTimer expireDate={offer?.offerExpireDate} />}
         <CardContent
           sx={{
             padding: 2,

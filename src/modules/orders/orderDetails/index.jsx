@@ -136,7 +136,7 @@ export const OrderDetails = () => {
     <div style={{ padding: "24px" }}>
       <div className="d-flex align-items-center justify-content-between mb-4 gap-2 flex-wrap">
         <h6 className="f-b m-0 fs-5">{pathOr("", [locale, "Orders", "order_details"], t)}</h6>
-        <div>
+        {/* <div>
           <button
             type="button"
             className="btn-main"
@@ -156,7 +156,7 @@ export const OrderDetails = () => {
             disabled={invoiceUploading}
             onChange={handleInvoiceUpload}
           />
-        </div>
+        </div> */}
       </div>
 
       <div className="row">
