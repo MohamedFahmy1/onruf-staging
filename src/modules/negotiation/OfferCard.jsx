@@ -9,7 +9,7 @@ import RefuseModal from "./RefuseModal"
 import ResponsiveImage from "../../common/ResponsiveImage"
 import { getRemainingTimeParts } from "./offerExpiry.mjs"
 
-const TIMER_UNITS = { day: "D", hour: "H", minute: "M", second: "S" }
+const ENGLISH_TIMER_UNITS = { day: "D", hour: "H", minute: "M", second: "S" }
 
 const OfferExpiryTimer = ({ expireDate }) => {
   const { locale } = useRouter()
@@ -34,12 +34,19 @@ const OfferExpiryTimer = ({ expireDate }) => {
   const remaining = getRemainingTimeParts(expireDate, now)
   if (!remaining.length) return null
 
-  const timerLabel = remaining.map(({ value, unit }) => `${value} ${TIMER_UNITS[unit]}`).join(" | ")
+  const isArabic = locale === "ar"
+  const timerLabel = remaining
+    .map(({ value, unit }) =>
+      isArabic
+        ? new Intl.NumberFormat(locale, { style: "unit", unit, unitDisplay: "narrow" }).format(value)
+        : `${value} ${ENGLISH_TIMER_UNITS[unit]}`,
+    )
+    .join(" | ")
 
   return (
     <Box sx={{ display: "flex", justifyContent: locale === "en" ? "flex-end" : "flex-start", px: 2, pt: 1.5 }}>
       <Typography
-        dir="ltr"
+        dir={isArabic ? "rtl" : "ltr"}
         component="p"
         sx={{
           m: 0,

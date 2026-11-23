@@ -18,15 +18,20 @@ const RefuseModal = ({ refuseModal, setRefuseModal, offerId, productId, getOffer
   }
 
   const refuseOffer = async () => {
+    const reason = refuseReason.trim()
+    if (!reason) {
+      toast.error(pathOr("", [locale, "negotiation", "please_add_reason"], t))
+      return
+    }
+
     try {
       setLoading(true)
-      const reason = refuseReason.trim()
       await axios.post("/AcceptRejectOffer", null, {
         params: {
           offerId,
           productId,
           acceptOffer: false,
-          ...(reason && { refuseReason: reason }),
+          refuseReason: reason,
           OfferExpireHours: 0,
         },
       })
@@ -53,11 +58,13 @@ const RefuseModal = ({ refuseModal, setRefuseModal, offerId, productId, getOffer
             className="disc-header"
             style={{ textAlign: locale === "en" ? "left" : "right" }}
           >
-            {pathOr("", [locale, "negotiation", "reject_reason_optional"], t)}
+            {pathOr("", [locale, "negotiation", "reject_reason"], t)}
           </label>
           <input
             id={`refuse-reason-${offerId}`}
             type="text"
+            required
+            aria-required="true"
             className="form-control form-input"
             style={{ textAlign: locale === "en" ? "left" : "right" }}
             value={refuseReason}
@@ -67,7 +74,7 @@ const RefuseModal = ({ refuseModal, setRefuseModal, offerId, productId, getOffer
       </Modal.Body>
       <Modal.Footer className="modal-footer">
         <button type="button" className="btn-main" disabled={loading} onClick={refuseOffer}>
-          {pathOr("", [locale, "negotiation", "reject"], t)}
+          {pathOr("", [locale, "ContactUs", "formSend"], t)}
         </button>
       </Modal.Footer>
     </Modal>
