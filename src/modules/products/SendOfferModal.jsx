@@ -7,17 +7,25 @@ import { toast } from "react-toastify"
 import Alerto from "../../common/Alerto"
 import axios from "axios"
 import { useFetch } from "../../hooks/useFetch"
+import Avatar from "@mui/material/Avatar"
 import Image from "next/image"
+import emptyOffersImage from "../../../public/images/send-offer-empty.png"
+import closeIcon from "../../../public/images/failed.png"
 import { formatDate } from "../../common/functions"
 import { useForm } from "react-hook-form"
 import { onlyNumbersInInputs } from "../../common/functions"
 import { priceInputsStyle, priceSpansStyle, textAlignStyle } from "../../styles/stylesObjects"
+import styles from "./sendOfferModal.module.css"
 
 const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
   const { locale } = useRouter()
   const [selectedUsers, setSelectedUsers] = useState([])
   const [step, setStep] = useState(1)
-  const { data: offersData } = useFetch(`/GetBids?productId=${id}`)
+  const { data: offersData, isLoading, isSuccess } = useFetch(`/GetBids?productId=${id}`)
+  const offers = Array.isArray(offersData) ? offersData : []
+  const hasOffers = offers.length > 0
+  const showEmptyState =
+    step === 1 && isSuccess && !isLoading && (offersData === null || (Array.isArray(offersData) && !hasOffers))
   const {
     handleSubmit,
     register,
@@ -30,9 +38,7 @@ const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
     } else setSelectedUsers((prev) => [...prev, userId])
   }
   const selectAllUsersHandler = () => {
-    let allUsers = []
-    offersData.map((item) => allUsers.push(item.userId))
-    setSelectedUsers(allUsers)
+    setSelectedUsers(offers.map((item) => item.userId))
   }
   const goToNextStep = () => {
     selectedUsers.length > 0
@@ -60,34 +66,57 @@ const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
       onHide={() => setSendOfferModal(false)}
       centered
       className="unique-send-offer-modal"
+      dialogClassName={showEmptyState ? styles.emptyDialog : undefined}
+      aria-labelledby="send-offer-title"
       style={textAlignStyle(locale)}
     >
       {step === 1 && (
         <Fragment>
-          <Modal.Header className="justify-content-end">
+          <Modal.Header className={showEmptyState ? styles.emptyHeader : "justify-content-end"}>
             <button
               type="button"
-              className="btn-close"
-              aria-label="close modal"
+              className={showEmptyState ? styles.emptyClose : "btn-close"}
+              aria-label={locale === "ar" ? "إغلاق" : "Close"}
               onClick={() => setSendOfferModal(false)}
-            ></button>
+            >
+              {showEmptyState && <Image src={closeIcon} alt="" width={24} height={24} />}
+            </button>
           </Modal.Header>
-          <Modal.Body className="py-0">
-            <h1 className="disc-header fs-4 text-center m-0 p-0">
+          <Modal.Body className={showEmptyState ? styles.emptyBody : "py-0"}>
+            <h1 id="send-offer-title" className={showEmptyState ? styles.emptyTitle : "disc-header fs-4 text-center m-0 p-0"}>
               {pathOr("", [locale, "Products", "send_offer"], t)}
             </h1>
-            <div className="d-flex justify-content-between my-1">
-              <p className="fs-5">
-                {offersData?.length} {pathOr("", [locale, "Products", "user"], t)}
+            {showEmptyState && (
+              <div role="status">
+                <div className={styles.emptyIllustration}>
+                  <Image src={emptyOffersImage} alt="" layout="responsive" sizes="176px" />
+                </div>
+                <p className={styles.emptyMessage}>{pathOr("", [locale, "Products", "sendOfferEmpty"], t)}</p>
+              </div>
+            )}
+            {isLoading && !hasOffers && (
+              <p className="text-center my-3" role="status">
+                {pathOr("", [locale, "navbar", "loading"], t)}
               </p>
-              <button className="fs-5" aria-label="select all" type="button" onClick={selectAllUsersHandler}>
-                {pathOr("", [locale, "Products", "selectAll"], t)}
-              </button>
-            </div>
-            {offersData?.map((item) => (
+            )}
+            {hasOffers && (
+              <div className="d-flex justify-content-between my-1">
+                <p className="fs-5">
+                  {offers.length} {pathOr("", [locale, "Products", "user"], t)}
+                </p>
+                <button className="fs-5" aria-label="select all" type="button" onClick={selectAllUsersHandler}>
+                  {pathOr("", [locale, "Products", "selectAll"], t)}
+                </button>
+              </div>
+            )}
+            {offers.map((item) => (
               <div className="justify-content-between d-flex align-items-center my-2" key={item.bidId}>
                 <label className="d-flex align-items-center gap-2">
-                  <Image src={item.userImage} priority className="img-fluid" alt="user" width={60} height={60} />
+                  <Avatar
+                    src={typeof item.userImage === "string" ? item.userImage.trim() : undefined}
+                    sx={{ width: 60, height: 60, flexShrink: 0 }}
+                    aria-hidden="true"
+                  />
                   <div>
                     <p className="fs-6">{formatDate(item.createdAt)}</p>
                     <p className="f-b fs-5">{item.userName}</p>
@@ -105,8 +134,14 @@ const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
               </div>
             ))}
           </Modal.Body>
-          <Modal.Footer className="modal-footer">
-            <button type="button" className="btn-main" aria-label="next step" onClick={goToNextStep}>
+          <Modal.Footer className={showEmptyState ? styles.emptyFooter : "modal-footer"}>
+            <button
+              type="button"
+              className={showEmptyState ? `btn-main ${styles.emptyNext}` : "btn-main"}
+              aria-label="next step"
+              disabled={!hasOffers}
+              onClick={goToNextStep}
+            >
               {pathOr("", [locale, "Products", "next"], t)}
             </button>
           </Modal.Footer>
@@ -123,7 +158,7 @@ const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
             ></button>
           </Modal.Header>
           <Modal.Body className="py-0">
-            <h1 className="disc-header fs-4 text-center m-0 p-0">
+            <h1 id="send-offer-title" className="disc-header fs-4 text-center m-0 p-0">
               {pathOr("", [locale, "Products", "send_offer"], t)}
             </h1>
             <p className="text-center fs-5 text-secondary">

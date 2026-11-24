@@ -1,0 +1,69 @@
+@font-face {
+  font-family: "Send Offer Latin";
+  src: url("/fonts/poppins-regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Send Offer Arabic";
+  src: url("/fonts/almarai-regular.ttf") format("truetype");
+  font-display: swap;
+}
+
+.emptyDialog :global(.modal-content) {
+  font-family: "Send Offer Latin", "Send Offer Arabic", sans-serif;
+}
+
+.emptyDialog .emptyHeader {
+  padding: 0;
+}
+
+.emptyClose {
+  display: grid;
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 16px;
+  inset-inline-end: 16px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  place-items: center;
+  border-radius: 50%;
+}
+
+.emptyDialog .emptyBody {
+  padding: 32px 16px 0;
+  text-align: center;
+}
+
+.emptyTitle {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.emptyIllustration {
+  width: min(100%, 176px);
+  margin: 4px auto 0;
+}
+
+.emptyMessage {
+  margin: 0;
+  color: #252d3b;
+  font-size: 1.125rem;
+  line-height: 1.2;
+}
+
+.emptyDialog .emptyFooter {
+  padding: 16px;
+  background: #fff;
+}
+
+.emptyDialog .emptyNext:disabled {
+  width: 100%;
+  margin: 0;
+  background: #f6b1a0;
+  color: #fff;
+  font-size: 1rem;
+  opacity: 1;
+}
