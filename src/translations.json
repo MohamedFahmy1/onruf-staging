@@ -131,7 +131,11 @@
       "countError": "تعذر تحميل عدد الإشعارات غير المقروءة.",
       "actionError": "تعذر تحديث الإشعارات. يرجى المحاولة مرة أخرى.",
       "retry": "حاول مرة أخرى",
-      "delete": "حذف الإشعار"
+      "delete": "حذف الإشعار",
+      "productPaymentSuccess": {
+        "title": "نجاح عملية الدفع",
+        "body": "تمت عملية الدفع بنجاح، وتم الإعلان عن منتجك للبيع على أونرف."
+      }
     },
     "LastOrders": {
       "lastorders": "احدث الطلبات",
@@ -1314,7 +1318,11 @@
       "countError": "Could not load the unread count.",
       "actionError": "Could not update notifications. Please try again.",
       "retry": "Try again",
-      "delete": "Delete notification"
+      "delete": "Delete notification",
+      "productPaymentSuccess": {
+        "title": "Payment successful",
+        "body": "Your payment was successful and your product is now listed for sale on OnRuf."
+      }
     },
     "LastOrders": {
       "lastorders": "Last Orders",

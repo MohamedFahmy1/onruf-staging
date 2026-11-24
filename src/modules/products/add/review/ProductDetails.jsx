@@ -11,6 +11,7 @@ import t from "../../../../translations.json"
 import Image from "next/image"
 import moment from "moment/moment"
 import { multiFormData } from "../../../../common/axiosHeaders"
+import { showProductPublishSuccessToast } from "../../../../common/productPublishSuccessToast"
 import CheckoutModal from "./CheckoutModal"
 import { useFetch } from "../../../../hooks/useFetch"
 import MyFatoorahEmbeddedCard from "../../../../components/payments/MyFatoorahEmbeddedCard"
@@ -379,7 +380,12 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
       // Add product
       if (pathname.includes("add")) {
-        return axios.post("/AddProduct", formData, multiFormData)
+        const response = await axios.post("/AddProduct", formData, multiFormData)
+        const { status_code, status, message } = response.data ?? {}
+        if (Number(status_code) >= 400 || status === "Failure" || status === "Error") {
+          throw new Error(message || "Could not add product")
+        }
+        return response
       }
 
       // Edit or repost product
@@ -444,6 +450,13 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
     setMfResetKey((k) => k + 1)
   }
 
+  const showCheckoutSuccess = useCallback(() => {
+    setIsCheckoutModalOpen("success")
+    if (pathname.includes("add")) {
+      showProductPublishSuccessToast(locale, totalAmount > 0)
+    }
+  }, [locale, pathname, totalAmount])
+
   const handlePaymentStatus = useCallback(
     async (rawStatus) => {
       // SignalR confirms the transaction result. Add/EditProduct was already called to generate the PaymentUrl.
@@ -485,7 +498,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       logPayment("payment status received", { rawStatus, status })
       switch (status) {
         case "PaymentSuccessMessage":
-          setIsCheckoutModalOpen("success")
+          showCheckoutSuccess()
           setLoading(false)
           setIsPaymentModalOpen(false)
           setPaymentIframeUrl("")
@@ -507,7 +520,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
 
       const statusLower = status.toLowerCase()
       if (statusLower.includes("success")) {
-        setIsCheckoutModalOpen("success")
+        showCheckoutSuccess()
         setLoading(false)
         setIsPaymentModalOpen(false)
         setPaymentIframeUrl("")
@@ -536,7 +549,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
       hasRequestedPaymentRef.current = false
       return
     },
-    [logPayment],
+    [logPayment, showCheckoutSuccess],
   )
 
   const signalRHubUrl = useMemo(() => {
@@ -1146,7 +1159,7 @@ const ProductDetails = ({ selectedCatProps, productFullData, handleBack, setProd
                     } else {
                       await submitProduct()
                     }
-                    setIsCheckoutModalOpen("success")
+                    showCheckoutSuccess()
                   } catch (e) {
                     setIsCheckoutModalOpen("failed")
                   } finally {

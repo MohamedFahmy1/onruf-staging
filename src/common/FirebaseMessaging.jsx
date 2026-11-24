@@ -4,9 +4,13 @@ import { toast } from "react-toastify"
 import { messaging } from "./firebase"
 import axios from "axios"
 import { useDispatch, useSelector } from "react-redux"
+import { useRouter } from "next/router"
 import { setId } from "../appState/deviceId/reducer"
+import t from "../translations.json"
+import { showProductPublishSuccessToast } from "./productPublishSuccessToast"
 
 const FirebaseMessaging = () => {
+  const { locale } = useRouter()
   const buisnessAccountId = useSelector((state) => state.authSlice.buisnessId)
   const dispatch = useDispatch()
   const generateToken = useCallback(async () => {
@@ -26,23 +30,34 @@ const FirebaseMessaging = () => {
     }
   }, [buisnessAccountId, dispatch])
 
-  const showNotification = (payload) => {
-    toast.info(
-      <div>
-        <strong>{payload.notification.title}</strong>
-        <div>{payload.notification.body}</div>
-      </div>,
-    )
-  }
-
   useEffect(() => {
     if (messaging) {
       generateToken()
-      onMessage(messaging, (payload) => {
-        showNotification(payload)
-      })
     }
   }, [generateToken])
+
+  useEffect(() => {
+    if (!messaging) return
+
+    return onMessage(messaging, ({ notification }) => {
+      if (!notification) return
+
+      const { title, body } = notification
+
+      // Match the product announcement because the payment title is generic.
+      if (title?.trim() === t.ar.Notifications.productPaymentSuccess.title && /عن\s+منتجك\s+للبيع/.test(body)) {
+        showProductPublishSuccessToast(locale, true)
+        return
+      }
+
+      toast.info(
+        <div>
+          <strong>{title}</strong>
+          <div>{body}</div>
+        </div>,
+      )
+    })
+  }, [locale])
 
   return null
 }
