@@ -95,7 +95,7 @@ const OfferCard = ({ offer, getOffers, selectedTab }) => {
             {offer.offerStatusName}
           </Typography>
         </Box>
-        {offer?.offerStatus === "Accepted" && <OfferExpiryTimer expireDate={offer?.offerExpireDate} />}
+        {offer?.offerExpireDate && <OfferExpiryTimer expireDate={offer.offerExpireDate} />}
         <CardContent
           sx={{
             padding: 2,
