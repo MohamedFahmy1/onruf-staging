@@ -21,7 +21,7 @@ const SendOfferModal = ({ sendOfferModal, setSendOfferModal, id }) => {
   const { locale } = useRouter()
   const [selectedUsers, setSelectedUsers] = useState([])
   const [step, setStep] = useState(1)
-  const { data: offersData, isLoading, isSuccess } = useFetch(`/GetBids?productId=${id}`)
+  const { data: offersData, isLoading, isSuccess } = useFetch(`/GetBidsForSendOffer?productId=${id}`)
   const offers = Array.isArray(offersData) ? offersData : []
   const hasOffers = offers.length > 0
   const showEmptyState =
